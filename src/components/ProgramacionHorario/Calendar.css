@@ -1,0 +1,27 @@
+/* Calendar.css */
+.calendar-container {
+  font-size: 13px; /* Ajusta el tamaño de la fuente según sea necesario */
+}
+
+.calendar-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.calendar-cell {
+  border: 1px solid #ddd;
+  padding: 5px;
+  text-align: center;
+}
+
+.valid-day {
+  background-color: #f2f2f2;
+}
+
+.invalid-day {
+  background-color: #fff;
+}
+
+.day-number {
+  font-size: 12px; /* Ajusta el tamaño de la fuente del número del día según sea necesario */
+}
