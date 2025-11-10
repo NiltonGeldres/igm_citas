@@ -8,7 +8,8 @@ import Private from "./components/Private"; // Componente que gestiona el dashbo
 //import "bootstrap/dist/css/bootstrap.min.css"; // Mantener si usas estilos de Bootstrap
 
 // Importa los componentes de las secciones que tendrán sus propias rutas
-import MedicalRecordForm from "./components/AtencionMedica/MedicalRecordForm";
+//import MedicalRecordForm from "./components/AtencionMedica/MedicalRecordForm";
+import AtencionMedicaForm from "./components/AtencionMedica/AtencionMedicaForm";
 import CitaSeparada from "./components/CitaSeparada/CitaSeparada"; // Asumiendo que esta es la página de "Citados"
 import Cita from "./components/Cita/Cita"; // Asumiendo que esta es la página de "Citados"
 import Usuario from "./components/Usuario/Usuario"; // Asumiendo que esta es la página de "Citados"
@@ -152,7 +153,7 @@ function App() {
             <>
               <Route path="/" element={<Private />} />
               <Route path="/private" element={<Private />} />
-              <Route path="/atenciones" element={<MedicalRecordForm />} />
+              <Route path="/atenciones" element={<AtencionMedicaForm />} />
               <Route path="/citados" element={<CitaSeparada />} />
               <Route path="/facturacion" element={<Facturacion />} />
               <Route path="/programacion" element={<ProgramacionHorario />} />

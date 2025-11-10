@@ -28,7 +28,7 @@ import FirmaPeruPanel from '../FirmaPeru/FirmaPeruPanel'; // NUEVO: Importa el c
  * Componente principal del formulario de Registro de Atención Médica.
  * Contiene todos los paneles y la lógica para guardar la atención.
  */
-function MedicalRecordForm() {
+function AtencionMedicaForm() {
   const navigate = useNavigate();
 
   // Estado para la pestaña activa en la barra inferior
@@ -381,4 +381,4 @@ function MedicalRecordForm() {
   );
 }
 
-export default MedicalRecordForm;
+export default AtencionMedicaForm;
