@@ -1,18 +1,14 @@
-// src/components/pages/MedicalRecordForm.js
-// Este es el componente que contiene todo el formulario de atención médica.
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-// Importa los iconos de Lucide React
 import { Thermometer, Stethoscope, Lightbulb, Microscope, Pill, CheckCircle, PenTool } from 'lucide-react';
-// Asegúrate de que estas rutas sean correctas según tu estructura de carpetas
 import MessageModal from './common/MessageModal';
+import AtencionMedicaService from './AtencionMedicaService';
 import AtencionMedicaMedicamentoPanel from './AtencionMedicaMedicamento/AtencionMedicaMedicamentoPanel';
 import AtencionMedicaAltaPanel from './AtencionMedicaAlta/AtencionMedicaAltaPanel'; // Usado para Alta y Alergias
 import AtencionMedicaAntecedentePanel from './AtencionMedicaAntecedente/AtencionMedicaAntecedentePanel';
 import AtencionMedicaExamenFisicoPanel from './AtencionMedicaExamenFisico/AtencionMedicaExamenFisicoPanel';
 import AtencionMedicaSintomaPanel from './AtencionMedicaSintoma/AtencionMedicaSintomaPanel';
-// import StructuredListMedicalSection from './common/StructuredListMedicalSection'; // REMOVIDO: Ya no se usa directamente para Triaje
 import AtencionMedicaDiagnostico from './AtencionMedicaDiagnostico/AtencionMedicaDiagnostico';
 import AtencionMedicaExamen from './AtencionMedicaExamen/AtencionMedicaExamen';
 import AtencionMedicaPacienteCitadoSeleccionar from '../AtencionMedica/AtencionMedicaPacienteDatos/AtencionMedicaPacienteCitadoSeleccionar';
@@ -125,8 +121,22 @@ function AtencionMedicaForm() {
     console.log('Datos a enviar al web service:', fullMedicalRecord);
     showModalMessage('Guardando atención médica...');
 
+
+    
+
+
     try {
+
+
+// === Llama a la Capa de Servicios ===
+ const response = await AtencionMedicaService.guardarRegistro(fullMedicalRecord);
+ // Manejo de respuesta exitosa de Axios
+ console.log('Atención médica guardada con éxito:', response.data);
+ showModalMessage('¡Atención médica guardada con éxito!');
+
+
       // Por ahora, seguimos usando jsonplaceholder.typicode.com
+/*       alert(JSON.stringify(fullMedicalRecord))
       const response = await fetch('https://jsonplaceholder.typicode.com/posts', {
         method: 'POST',
         headers: {
@@ -143,7 +153,7 @@ function AtencionMedicaForm() {
       const result = await response.json();
       console.log('Atención médica guardada con éxito:', result);
       showModalMessage('¡Atención médica guardada con éxito!');
-
+*/
       // Limpiar los campos después de guardar exitosamente
       setSectionsData({
         PanelTriaje: [],
