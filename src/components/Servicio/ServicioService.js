@@ -24,7 +24,7 @@ const getXIdEspecialidad = (idEspecialidad) => {
 };
 
 const getXIdEntidad = (idEntidad) => {
-  alert("Servicio   "+idEntidad)
+ // alert("Servicio   "+idEntidad)
   return axios.post(API_URL+SERVICE_X_ENTIDAD
        ,{idEntidad:idEntidad}
         ,{ headers: header()}

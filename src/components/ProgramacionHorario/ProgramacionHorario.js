@@ -263,10 +263,10 @@ const ProgramacionHorario = () => {
                     </div>    
 
             <div className='mb-1' style={{width:400}}>
-                        <Entidad
-                            valueEntidad = {valueEntidad}
-                            textEntidad= {textEntidad}
-                            />
+                <Entidad
+                    valueEntidad = {valueEntidad}
+                    textEntidad= {textEntidad}
+                />
             </div>           
             <div className='mb-1' style={{width:400}}>
                  <Especialidad

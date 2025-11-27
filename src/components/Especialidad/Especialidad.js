@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import EspecialidadService from "./EspecialidadService";
 import { useNavigate } from "react-router-dom";
 import AuthService from "../Login/services/auth.service";
+import { Form} from "react-bootstrap";
 
 // Importaciones de Chakra UI
 import {
@@ -88,13 +89,13 @@ const Especialidad = ({ valueEspecialidad, textEspecialidad }) => {
   }
 
   return (
-    <Box>
-      {/* <FormLabel htmlFor="especialidad-select" mb={2}>Especialidad</FormLabel> */}
-      <Select
+    <>
+      <Form.Select   
+        style={{width: "400px"}} 
+        aria-label="Default select example" 
         id="especialidad-select" // ID para asociar con FormLabel si se usa
         placeholder="Selecciona una Especialidad" // Texto por defecto
         onChange={handleSelectChange}
-        size="lg" // Tamaño más grande para mejor tacto en móvil
         variant="filled" // Estilo de relleno para el select
         colorScheme="blue" // Esquema de color
         borderRadius="md" // Bordes redondeados
@@ -106,11 +107,11 @@ const Especialidad = ({ valueEspecialidad, textEspecialidad }) => {
             {post.descripcionEspecialidad}
           </option>
         ))}
-      </Select>
+      </Form.Select>
       {posts.length === 0 && !loading && (
         <Text mt={2} color="red.500" fontSize="sm">No hay especialidades disponibles.</Text>
       )}
-    </Box>
+    </>
   );
 };
 

@@ -15,6 +15,7 @@ import Cita from "./components/Cita/Cita"; // Asumiendo que esta es la página d
 import Usuario from "./components/Usuario/Usuario"; // Asumiendo que esta es la página de "Citados"
 import Facturacion from "./components/Facturacion/Facturacion";
 import ProgramacionHorario from "./components/ProgramacionHorario/ProgramacionHorario";
+import ProgramacionHorarioIndividual from "./components/ProgramacionHorarioIndividual/ProgramacionHorarioIndividual";
 import { jwtDecode } from "jwt-decode"; 
 import UsuarioService from '../src/components/Usuario/UsuarioService'
 function App() {
@@ -156,7 +157,7 @@ function App() {
               <Route path="/atenciones" element={<AtencionMedicaForm />} />
               <Route path="/citados" element={<CitaSeparada />} />
               <Route path="/facturacion" element={<Facturacion />} />
-              <Route path="/programacion" element={<ProgramacionHorario />} />
+              <Route path="/programacion" element={<ProgramacionHorarioIndividual />} />
               <Route path="/Cita" element={<Cita/>} />
               <Route path="/CitaSeparada" element={<CitaSeparada />} />
               <Route path="/Usuario" element={<Usuario/>} />

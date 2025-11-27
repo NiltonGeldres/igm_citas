@@ -7,6 +7,7 @@ const SERVICE_MEDICO_TODOS =  "/programacionMedicoTodos";
 
 const getDias = (idMedico,idEspecialidad) => {
 //    console.log("Header:   "+JSON.stringify(header()))
+    console.log('Datos Enviados: idMedico '+ idMedico+'--- idEspecialidad  '+idEspecialidad)
     return axios.post(API_URL+SERVICE_MEDICO_TODOS
          ,{idMedico : idMedico, idEspecialidad: idEspecialidad }
           ,{ headers: header()}
