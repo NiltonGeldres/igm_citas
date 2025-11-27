@@ -14,10 +14,12 @@ import CitaSeparada from "./components/CitaSeparada/CitaSeparada"; // Asumiendo 
 import Cita from "./components/Cita/Cita"; // Asumiendo que esta es la página de "Citados"
 import Usuario from "./components/Usuario/Usuario"; // Asumiendo que esta es la página de "Citados"
 import Facturacion from "./components/Facturacion/Facturacion";
-import ProgramacionHorario from "./components/ProgramacionHorario/ProgramacionHorario";
-import ProgramacionHorarioIndividual from "./components/ProgramacionHorarioIndividual/ProgramacionHorarioIndividual";
+//import ProgramacionHorario from "./components/ProgramacionHorario/ProgramacionHorario";
+import ProgramacionHorarioIndividualApp from "./components/ProgramacionHorarioIndividual/ProgramacionHorarioIndividualApp";
 import { jwtDecode } from "jwt-decode"; 
 import UsuarioService from '../src/components/Usuario/UsuarioService'
+
+
 function App() {
   const navigate = useNavigate();
   const [currentUser, setCurrentUser] = useState(undefined);
@@ -157,7 +159,7 @@ function App() {
               <Route path="/atenciones" element={<AtencionMedicaForm />} />
               <Route path="/citados" element={<CitaSeparada />} />
               <Route path="/facturacion" element={<Facturacion />} />
-              <Route path="/programacion" element={<ProgramacionHorarioIndividual />} />
+              <Route path="/programacion" element={<ProgramacionHorarioIndividualApp />} />
               <Route path="/Cita" element={<Cita/>} />
               <Route path="/CitaSeparada" element={<CitaSeparada />} />
               <Route path="/Usuario" element={<Usuario/>} />
