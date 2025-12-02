@@ -1,52 +1,41 @@
 import React from 'react';
 import { Icon } from "../Components/Icons"; // *** CORREGIDO: USANDO LA EXTENSIÓN .js ***
+import { Clock } from 'lucide-react';
 
-/**
- * Componente para la celda individual del calendario.
- * Es un componente de presentación (no tiene estado ni lógica compleja).
- */
-const CalendarCell = React.memo(({ day, isEmpty, isToday, hasSchedule, isSelectedForBulk, handleDayClick }) => {
-    const dayString = String(day);
-    
-    // Clases dinámicas basadas en el estado
-    let cellClasses = "calendar-cell p-3 transition duration-150 ease-in-out relative rounded-md";
-    
+const CalendarCell = ({ day, isToday, hasSchedule, isSelectedForBulk, isEmpty, handleDayClick }) => {
     if (isEmpty) {
-        cellClasses += " bg-gray-50/50";
-    } else {
-        cellClasses += " bg-white hover:bg-gray-50 cursor-pointer";
-        if (isToday) {
-            cellClasses += " bg-blue-100 font-bold border-blue-400 shadow-inner";
-        }
-        // Clase especial aplicada por el contenedor principal (ProgramacionHorariosApp)
-        if (isSelectedForBulk) {
-            cellClasses += " selected-for-bulk"; 
-        }
+        return <div className="calendar-cell bg-gray-50/50"></div>;
     }
+
+    const cellClasses = `
+        calendar-cell p-3 relative cursor-pointer transition duration-200
+        ${isToday ? 'bg-indigo-50 border-indigo-300' : 'bg-white'}
+        ${hasSchedule ? 'border-l-4 border-l-blue-500' : ''}
+        ${isSelectedForBulk ? 'selected-for-bulk' : ''}
+    `;
+
+    const dayTextClasses = `font-bold text-lg leading-none ${isToday ? 'text-indigo-700' : 'text-gray-800'}`;
 
     return (
         <div 
             className={cellClasses} 
-            data-day={dayString} 
-            onClick={isEmpty ? null : () => handleDayClick(dayString)}
+            onClick={() => handleDayClick(String(day))}
+            aria-label={`Día ${day}. Programados: ${hasSchedule} turnos`}
         >
-            {isEmpty ? null : (
-                <>
-                    {/* Número del día */}
-                    <span className={`text-lg font-semibold ${hasSchedule ? 'text-blue-700' : 'text-gray-900'} ${isToday ? 'text-gray-900' : ''}`}>
-                        {day}
-                    </span>
-                    {/* Información de turnos programados */}
-                    {hasSchedule > 0 && (
-                        <div className="text-xs text-green-600 font-medium mt-1 flex items-center day-info">
-                            <Icon name="Clock" className="w-3 h-3 inline mr-1" />
-                            {hasSchedule} Turno{hasSchedule !== 1 ? 's' : ''}
-                        </div>
-                    )}
-                </>
+            <span className={dayTextClasses}>{day}</span>
+            {hasSchedule > 0 && (
+                <div className="mt-1 flex items-center day-info">
+                    <Clock className="w-3 h-3 mr-1 text-blue-500" />
+                    <span className="text-xs text-gray-600 font-medium">{hasSchedule} Turnos</span>
+                </div>
+            )}
+            
+            {isSelectedForBulk && (
+                 <div className="absolute top-1 right-1 bg-green-600 text-white w-5 h-5 flex items-center justify-center rounded-full text-xs font-bold shadow-lg">
+                    ✓
+                 </div>
             )}
         </div>
     );
-});
-
+};
 export default CalendarCell;

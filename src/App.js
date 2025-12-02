@@ -148,6 +148,7 @@ function App() {
           La altura de la navbar (Styles.navbar) es aproximadamente 60px. */}
       <div style={{ flexGrow: 1, width: '100%', paddingTop: '60px' }}>
         <Routes>
+          <Route path="/home" element={<ProgramacionHorarioIndividualApp />} />
           <Route path="/home" element={<Home />} />
           <Route path="/login" element={<Login setCurrentUser={setCurrentUser} setUserName={setUserName} />} />
           <Route path="/signup" element={<Signup/>} />

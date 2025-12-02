@@ -26,8 +26,18 @@ const ICON_MAP = {
 };
 
 
-// Componente Icon que acepta el nombre del ícono como prop
-export const Icon = React.memo(({ name, className = "w-6 h-6" }) => {
-    const Component = ICON_MAP[name];
-    return Component ? <Component className={className} /> : null;
-});
+
+// Mock para el componente Icon
+export const Icon = ({ name, className }) => {
+    const icons = {
+        CalendarCheck: CalendarCheck,
+        ChevronLeft: ChevronLeft,
+        ChevronRight: ChevronRight,
+        X: X,
+        PlusCircle: PlusCircle,
+        Clock: Clock,
+        CheckCircle: CheckCircle,
+    };
+    const Component = icons[name] || X;
+    return <Component className={className} />;
+};

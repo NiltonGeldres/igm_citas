@@ -1,4 +1,5 @@
 import React, { useState, useCallback, useMemo } from 'react';
+import { CalendarCheck, ChevronLeft, ChevronRight, X, PlusCircle, Clock, CheckCircle } from 'lucide-react';
 
 // Importaciones de subcomponentes desde la carpeta 'components'
 // *** IMPORTACIONES CORREGIDAS AHORA USAN LA EXTENSIÓN .js ***
@@ -8,7 +9,7 @@ import BulkScheduler from "../ProgramacionHorarioIndividual/Programacion/Compone
 import CalendarCell from "../ProgramacionHorarioIndividual/Programacion/Components/CalendarCell.js"; 
 import ShiftEditorModal from "../ProgramacionHorarioIndividual/Programacion/Components/ShiftEditorModal.js"; 
 import { SHIFTS_DATA } from "../ProgramacionHorarioIndividual/Programacion/Data/data.js"; // Importación de datos, también usando .js
-
+import CUSTOM_STYLES from './CUSTOM_STYLES.js';
 // =================================================================
 // COMPONENTE PRINCIPAL (ProgramacionHorariosApp)
 // =================================================================
@@ -78,7 +79,8 @@ const ProgramacionHorariosIndividualApp = () => {
         
         // Aplicar los turnos seleccionados a todos los días marcados
         selectedBulkDays.forEach(day => {
-            newSchedule[day] = selectedBulkShifts;
+            // Reemplaza el horario existente con la nueva selección masiva
+            newSchedule[day] = selectedBulkShifts; 
         });
 
         setCalendarSchedule(newSchedule);
@@ -144,49 +146,9 @@ const ProgramacionHorariosIndividualApp = () => {
 
     // --- RENDERIZADO PRINCIPAL ---
     return (
-        // Estilos CSS incrustados para la apariencia del calendario
         <>
-            <style jsx="true">{`
-                /* Estilos CSS adaptados para el componente */
-                .calendar-grid {
-                    display: grid;
-                    grid-template-columns: repeat(7, 1fr);
-                    gap: 1px;
-                }
-                .calendar-cell {
-                    min-height: 100px;
-                    border: 1px solid #e5e7eb; /* gray-200 */
-                }
-                .calendar-cell:hover:not(.bg-gray-50\\/50):not(.selected-for-bulk) {
-                    box-shadow: 0 0 0 3px rgba(0, 120, 245, 0.2); 
-                    z-index: 10;
-                }
-                
-                /* Estilo para el modo masivo activado */
-                .bulk-mode .calendar-cell:not(.bg-gray-50\\/50) {
-                    cursor: crosshair;
-                }
-
-                .selected-for-bulk {
-                    background-color: #d1fae5 !important; /* green-100 */
-                    border-color: #34d399 !important; /* green-400 */
-                    box-shadow: 0 0 0 3px #6ee7b7; /* green-300 ring */
-                    z-index: 20;
-                }
-                /* Ajuste de diseño responsivo */
-                @media (max-width: 640px) {
-                    .calendar-cell {
-                        min-height: 80px;
-                        padding: 8px;
-                    }
-                    .calendar-cell span {
-                        font-size: 1rem;
-                    }
-                    .day-info {
-                        font-size: 0.65rem;
-                    }
-                }
-            `}</style>
+            {/* FIX: Inyección de estilos con dangerouslySetInnerHTML para evitar que sean ignorados */}
+            <style dangerouslySetInnerHTML={{ __html: CUSTOM_STYLES }} />
 
             <div className={`p-4 md:p-8 ${isBulkMode ? 'bulk-mode' : ''} bg-gray-50 min-h-screen font-inter`}>
                 <div className="max-w-7xl mx-auto">
@@ -268,5 +230,6 @@ const ProgramacionHorariosIndividualApp = () => {
         </>
     );
 };
+
 
 export default ProgramacionHorariosIndividualApp;
