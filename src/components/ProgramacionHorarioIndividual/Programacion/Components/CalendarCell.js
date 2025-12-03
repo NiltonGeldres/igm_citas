@@ -1,17 +1,19 @@
 import React from 'react';
-import { Icon } from "../Components/Icons"; // *** CORREGIDO: USANDO LA EXTENSIÓN .js ***
+import { Icon } from "../Components/Icons"; // Importación correcta
 import { Clock } from 'lucide-react';
 
 const CalendarCell = ({ day, isToday, hasSchedule, isSelectedForBulk, isEmpty, handleDayClick }) => {
     if (isEmpty) {
-        return <div className="calendar-cell bg-gray-50/50"></div>;
+        // CORRECCIÓN: Asegurar que las celdas vacías tengan los estilos de borde de la cuadrícula
+        return <div className="bg-gray-50/50"></div>; 
     }
 
     const cellClasses = `
         calendar-cell p-3 relative cursor-pointer transition duration-200
         ${isToday ? 'bg-indigo-50 border-indigo-300' : 'bg-white'}
-        ${hasSchedule ? 'border-l-4 border-l-blue-500' : ''}
+        ${hasSchedule > 0 ? 'border-l-4 border-l-blue-500' : ''}
         ${isSelectedForBulk ? 'selected-for-bulk' : ''}
+        flex flex-col items-start
     `;
 
     const dayTextClasses = `font-bold text-lg leading-none ${isToday ? 'text-indigo-700' : 'text-gray-800'}`;
@@ -38,4 +40,5 @@ const CalendarCell = ({ day, isToday, hasSchedule, isSelectedForBulk, isEmpty, h
         </div>
     );
 };
+
 export default CalendarCell;

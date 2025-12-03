@@ -1,15 +1,18 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import { CalendarCheck, ChevronLeft, ChevronRight, X, PlusCircle, Clock, CheckCircle } from 'lucide-react';
+// Importaciones de subcomponentes (Manteniendo rutas originales para simular la estructura)
+import { Icon } from "../ProgramacionHorarioIndividual/Programacion/Components/Icons.js";
+import FilterBar from "../ProgramacionHorarioIndividual/Programacion/Components/FilterBar.js";
+import BulkScheduler from "../ProgramacionHorarioIndividual/Programacion/Components/BulkScheduler.js";
+import CalendarCell from "../ProgramacionHorarioIndividual/Programacion/Components/CalendarCell.js";
+import ShiftEditorModal from "../ProgramacionHorarioIndividual/Programacion/Components/ShiftEditorModal.js";
 
-// Importaciones de subcomponentes desde la carpeta 'components'
-// *** IMPORTACIONES CORREGIDAS AHORA USAN LA EXTENSIÓN .js ***
-import { Icon } from "../ProgramacionHorarioIndividual/Programacion/Components/Icons.js"; 
-import FilterBar from "../ProgramacionHorarioIndividual/Programacion/Components/FilterBar.js"; 
-import BulkScheduler from "../ProgramacionHorarioIndividual/Programacion/Components/BulkScheduler.js"; 
-import CalendarCell from "../ProgramacionHorarioIndividual/Programacion/Components/CalendarCell.js"; 
-import ShiftEditorModal from "../ProgramacionHorarioIndividual/Programacion/Components/ShiftEditorModal.js"; 
-import { SHIFTS_DATA } from "../ProgramacionHorarioIndividual/Programacion/Data/data.js"; // Importación de datos, también usando .js
 import CUSTOM_STYLES from './CUSTOM_STYLES.js';
+
+// =================================================================
+// COMPONENTE PRINCIPAL (ProgramacionHorariosIndividualApp)
+// =================================================================
+
 // =================================================================
 // COMPONENTE PRINCIPAL (ProgramacionHorariosApp)
 // =================================================================
@@ -44,18 +47,18 @@ const ProgramacionHorariosIndividualApp = () => {
 
     // Función para seleccionar/deseleccionar turnos en el panel masivo
     const toggleBulkShift = useCallback((shiftId) => {
-        setSelectedBulkShifts(prev => 
-            prev.includes(shiftId) 
-                ? prev.filter(id => id !== shiftId) 
+        setSelectedBulkShifts(prev =>
+            prev.includes(shiftId)
+                ? prev.filter(id => id !== shiftId)
                 : [...prev, shiftId]
         );
     }, []);
 
     // Función para seleccionar/deseleccionar días en el calendario durante el modo masivo
     const toggleBulkDaySelection = useCallback((day) => {
-        setSelectedBulkDays(prev => 
-            prev.includes(day) 
-                ? prev.filter(d => d !== day) 
+        setSelectedBulkDays(prev =>
+            prev.includes(day)
+                ? prev.filter(d => d !== day)
                 : [...prev, day]
         );
     }, []);
@@ -71,6 +74,8 @@ const ProgramacionHorariosIndividualApp = () => {
     const applyBulkSchedule = useCallback(() => {
         if (selectedBulkDays.length === 0 || selectedBulkShifts.length === 0) {
             console.error('Error: Debes seleccionar días Y turnos para aplicar la programación masiva.');
+            // Reemplazo de alert() por console.log o un modal
+            alert('Debes seleccionar días Y turnos para aplicar la programación masiva.'); 
             return;
         }
 
@@ -80,7 +85,7 @@ const ProgramacionHorariosIndividualApp = () => {
         // Aplicar los turnos seleccionados a todos los días marcados
         selectedBulkDays.forEach(day => {
             // Reemplaza el horario existente con la nueva selección masiva
-            newSchedule[day] = selectedBulkShifts; 
+            newSchedule[day] = selectedBulkShifts;
         });
 
         setCalendarSchedule(newSchedule);
@@ -113,11 +118,12 @@ const ProgramacionHorariosIndividualApp = () => {
     const calendarDays = useMemo(() => {
         // Simulación: Noviembre 2025: 30 días, empieza en Sábado (5 celdas vacías previas)
         const totalDays = 30;
-        const startDayOffset = 5; 
+        const startDayOffset = 5;
         const daysArray = [];
 
         // Agregar celdas vacías de inicio
         for (let i = 0; i < startDayOffset; i++) {
+            // CORRECCIÓN: Se usa la celda vacía para mantener la estructura de la cuadrícula
             daysArray.push(<CalendarCell key={`empty-${i}`} isEmpty={true} />);
         }
 
@@ -130,10 +136,10 @@ const ProgramacionHorariosIndividualApp = () => {
             const isSelectedForBulk = selectedBulkDays.includes(dayString);
 
             daysArray.push(
-                <CalendarCell 
-                    key={day} 
-                    day={day} 
-                    isToday={isToday} 
+                <CalendarCell
+                    key={day}
+                    day={day}
+                    isToday={isToday}
                     hasSchedule={hasSchedule}
                     isSelectedForBulk={isSelectedForBulk}
                     handleDayClick={handleDayClick}
@@ -147,7 +153,7 @@ const ProgramacionHorariosIndividualApp = () => {
     // --- RENDERIZADO PRINCIPAL ---
     return (
         <>
-            {/* FIX: Inyección de estilos con dangerouslySetInnerHTML para evitar que sean ignorados */}
+            {/* FIX: Inyección de estilos CSS con dangerouslySetInnerHTML */}
             <style dangerouslySetInnerHTML={{ __html: CUSTOM_STYLES }} />
 
             <div className={`p-4 md:p-8 ${isBulkMode ? 'bulk-mode' : ''} bg-gray-50 min-h-screen font-inter`}>
@@ -163,9 +169,9 @@ const ProgramacionHorariosIndividualApp = () => {
 
                     {/* Botón para alternar el modo masivo */}
                     <div className="mb-6 flex justify-end">
-                        <button 
+                        <button
                             id="toggle-bulk-mode"
-                            onClick={toggleBulkMode} 
+                            onClick={toggleBulkMode}
                             className={`flex items-center px-4 py-2 font-semibold rounded-lg shadow-md transition ${isBulkMode ? 'bg-gray-500 hover:bg-gray-600' : 'bg-indigo-600 hover:bg-indigo-700'} text-white`}
                             aria-label={isBulkMode ? 'Cerrar Programación Masiva' : 'Abrir Programación Masiva'}
                         >
@@ -175,13 +181,13 @@ const ProgramacionHorariosIndividualApp = () => {
                     </div>
 
                     {/* 2. CONTENEDOR PRINCIPAL: Panel Masivo (condicional) y Calendario */}
-                    <div 
-                        id="main-content-wrapper" 
+                    <div
+                        id="main-content-wrapper"
                         className={`lg:grid gap-6 ${isBulkMode ? 'lg:grid-cols-[280px_1fr]' : 'lg:grid-cols-1'}`}
                     >
                         {/* A. PROGRAMACIÓN MASIVA */}
                         {isBulkMode && (
-                            <BulkScheduler 
+                            <BulkScheduler
                                 selectedShifts={selectedBulkShifts}
                                 toggleShift={toggleBulkShift}
                                 applyToAllDays={applyToAllDays}
@@ -207,7 +213,8 @@ const ProgramacionHorariosIndividualApp = () => {
                                 {/* Encabezados de días */}
                                 <div className="calendar-grid text-center font-semibold text-sm bg-gray-100 border-b border-gray-200">
                                     {['L', 'M', 'M', 'J', 'V', 'S', 'D'].map(day => (
-                                        <div key={day} className="py-3 border-r border-gray-200 text-gray-600 last:border-r-0">{day}</div>
+                                        // CORRECCIÓN: La clase calendar-grid ya define los bordes, pero mantenemos flex/text-center.
+                                        <div key={day} className="py-3 text-gray-600 flex items-center justify-center">{day}</div>
                                     ))}
                                 </div>
                                 
@@ -221,7 +228,7 @@ const ProgramacionHorariosIndividualApp = () => {
                 </div>
                 
                 {/* 3. MODAL DE EDICIÓN DE TURNOS INDIVIDUAL */}
-                <ShiftEditorModal 
+                <ShiftEditorModal
                     isOpen={isModalOpen}
                     day={selectedDayForIndividualEdit}
                     onClose={closeShiftEditor}
@@ -230,6 +237,5 @@ const ProgramacionHorariosIndividualApp = () => {
         </>
     );
 };
-
 
 export default ProgramacionHorariosIndividualApp;

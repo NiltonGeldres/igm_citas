@@ -1,7 +1,7 @@
 import React from 'react';
 
 // =================================================================
-// DEFINICIÓN DE ICONOS (SVGs en Línea)
+// DEFINICIÓN DE ICONOS (SVGs en Línea) - Se usan SVGs para compatibilidad.
 // =================================================================
 
 const CalendarCheck = (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><path d="m9 16 2 2 4-4"/></svg>;
@@ -20,24 +20,16 @@ const ChevronRight = (props) => <svg {...props} xmlns="http://www.w3.org/2000/sv
 const CalendarPlus = (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M8 2v4"/><path d="M16 2v4"/><path d="M3 10h18"/><path d="M21 8H3"/><path d="M7 4h10a2 2 0 0 1 2 2v2"/><path d="M21 8v12a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8"/><path d="M12 16h6"/><path d="M15 13v6"/></svg>;
 const UserPlus = (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" x2="19" y1="8" y2="14"/><line x1="22" x2="16" y1="11" y2="11"/></svg>;
 
-// Mapa para facilitar el uso del componente Icon
+// Mapeo de nombres de iconos (strings) a los componentes de Lucide.
 const ICON_MAP = {
-    CalendarCheck, PlusCircle, X, PackagePlus, Sun, CloudSun, Moon, CheckCircle, Clock, Save, SaveAll, ChevronLeft, ChevronRight, CalendarPlus, UserPlus
+    CalendarCheck, ChevronLeft, ChevronRight, X, PlusCircle, Clock, CheckCircle
 };
 
 
-
-// Mock para el componente Icon
+// Componente Icon que mapea el nombre a la función SVG correspondiente
 export const Icon = ({ name, className }) => {
-    const icons = {
-        CalendarCheck: CalendarCheck,
-        ChevronLeft: ChevronLeft,
-        ChevronRight: ChevronRight,
-        X: X,
-        PlusCircle: PlusCircle,
-        Clock: Clock,
-        CheckCircle: CheckCircle,
-    };
-    const Component = icons[name] || X;
+    const Component = ICON_MAP[name] || X; // Fallback a X si el icono no se encuentra
     return <Component className={className} />;
 };
+
+

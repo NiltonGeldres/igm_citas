@@ -1199,6 +1199,48 @@ const Styles = {
       fontSize: '13px',
     },
   },
+
+// EMPEZAR AGREGACIÓN DE ESTILOS
+loadingOverlay: {
+    position: 'fixed',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(255, 255, 255, 0.8)', // Fondo blanco semitransparente
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 2000, // Asegura que esté por encima de todo
+    flexDirection: 'column',
+    gap: '15px',
+ },
+    loadingText: {
+    fontSize: '18px',
+    fontWeight: '500',
+    color: '#007bff',
+ },
+// FINALIZAR AGREGACIÓN DE ESTILOS
+ loadingOverlay: {
+ position: 'fixed',
+ top: 0,
+ left: 0,
+ right: 0,
+ bottom: 0,
+ backgroundColor: 'rgba(255, 255, 255, 0.8)', // Fondo blanco semitransparente
+ display: 'flex',
+ justifyContent: 'center',
+ alignItems: 'center',
+ zIndex: 2000, // Asegura que esté por encima de todo
+ flexDirection: 'column',
+ gap: '15px',
+},
+loadingText: {
+ fontSize: '18px',
+ fontWeight: '500',
+ color: '#007bff',
+ },
+
 };
 
 export default Styles;

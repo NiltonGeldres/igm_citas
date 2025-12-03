@@ -3,11 +3,9 @@ import { Icon } from './Icons.js'; // Importación correcta
 import { SHIFTS_DATA } from "../Data/data.js"; // Importación de datos de turnos
 import { CheckCircle, Clock } from 'lucide-react';
 
-
 /**
  * Panel para la programación masiva de turnos.
  */
-// Mock para BulkScheduler (Panel de Programación Masiva)
 const BulkScheduler = ({ selectedShifts, toggleShift, applyToAllDays, applyBulkSchedule }) => (
     <div className="bg-white p-5 rounded-xl shadow-xl border border-gray-200 h-fit mb-6 lg:mb-0">
         <h3 className="text-xl font-bold text-gray-800 mb-4 border-b pb-2">Programación Masiva</h3>
@@ -47,5 +45,6 @@ const BulkScheduler = ({ selectedShifts, toggleShift, applyToAllDays, applyBulkS
         </div>
     </div>
 );
+
 
 export default BulkScheduler;
