@@ -1,77 +1,60 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import { CalendarCheck, ChevronLeft, ChevronRight, X, PlusCircle, Clock, CheckCircle } from 'lucide-react';
 
-// =================================================================
-// 0. DATOS Y ESTILOS GLOBALES (CONSOLIDACIÓN)
-// =================================================================
-
-// --- MOCK DATA ---
-const SHIFTS_DATA = [
-    { id: 'morning', name: 'Mañana', time: '08:00 - 14:00', color: 'bg-yellow-100 text-yellow-800' },
-    { id: 'afternoon', name: 'Tarde', time: '14:00 - 20:00', color: 'bg-blue-100 text-blue-800' },
-    { id: 'evening', name: 'Noche', time: '20:00 - 02:00', color: 'bg-purple-100 text-purple-800' },
-];
-
-// --- CUSTOM STYLES (CORREGIDOS) ---
+// --- ESTILOS PERSONALIZADOS MÍNIMOS (SOLO PARA EL CALENDARIO Y BULK SELECT) ---
 const CUSTOM_STYLES = `
-    /* FIX CRÍTICO: Definición del layout del calendario como una cuadrícula de 7 columnas */
+    /* Necesario para hacer que el componente funcione en una única página HTML */
+    @import url('https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css');
+    
     .calendar-grid {
         display: grid;
-        grid-template-columns: repeat(7, minmax(0, 1fr));
-        /* Agregamos bordes para separar las celdas y visualmente mejorar el layout */
-        border-left: 1px solid #e5e7eb; /* gray-200 */
+        grid-template-columns: repeat(7, 1fr);
+        border-top: 1px solid var(--bs-border-color);
+        border-left: 1px solid var(--bs-border-color);
+    }
+    .calendar-cell {
+        min-height: 120px;
+        border-right: 1px solid var(--bs-border-color);
+        border-bottom: 1px solid var(--bs-border-color);
+        transition: background-color 0.2s, border-color 0.2s, box-shadow 0.2s;
     }
     
-    .calendar-grid > div {
-        border-right: 1px solid #e5e7eb;
-        border-bottom: 1px solid #e5e7eb;
-        min-height: 120px; /* Asegura un tamaño mínimo para las celdas */
-    }
-    
-    .calendar-grid > div:nth-child(7n) {
-        border-right: none; /* Elimina el borde derecho de la última columna */
+    /* Efecto hover cuando NO está en modo masivo (edición individual) */
+    .calendar-cell:hover:not(.selected-for-bulk):not(.bg-light) {
+        box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.25); /* Primary blue ring */
+        border-color: #0d6efd; /* Primary blue */
+        z-index: 10;
+        cursor: pointer;
     }
 
-    /* Hover effect para el modo de edición individual (cuando NO está en modo masivo) */
-    .calendar-cell:hover:not(.selected-for-bulk):not(.bg-gray-50\\/50) {
-        /* El doble escape (\\/) es necesario para que el selector funcione correctamente */
-        box-shadow: 0 0 0 3px rgba(0, 120, 245, 0.2);
-        z-index: 10;
-        border-color: #3b82f6; /* blue-500 */
-    }
-    
     /* 1. Estilo para el modo masivo activado (Activa el cursor de selección) */
-    .bulk-mode .calendar-cell:not(.bg-gray-50\\/50) {
+    .bulk-mode .calendar-cell:not(.bg-light) {
         cursor: crosshair !important;
     }
-
+    
     /* 2. Sobrescribe el hover individual cuando se está en modo masivo */
-    .bulk-mode .calendar-cell:hover {
+    .bulk-mode .calendar-cell:hover:not(.selected-for-bulk) {
+        background-color: var(--bs-gray-200); /* Gray 200 */
         box-shadow: none !important;
-        border-color: #e5e7eb; /* Restaura el color de borde normal */
+        border-color: var(--bs-border-color);
     }
 
-    /* Estilo para la celda seleccionada en modo masivo */
+    /* Estilo para la celda seleccionada en modo masivo (Bootstrap success color) */
     .selected-for-bulk {
-        background-color: #d1fae5 !important; /* green-100 */
-        border-color: #34d399 !important; /* green-400 */
-        box-shadow: 0 0 0 3px #6ee7b7; /* green-300 ring */
+        background-color: var(--bs-green-100) !important; 
+        border: 2px solid var(--bs-success) !important;
+        box-shadow: 0 0 0 3px rgba(25, 135, 84, 0.5); /* Success ring */
         z-index: 20;
     }
 
-    /* Ajuste de diseño responsivo */
-    @media (max-width: 640px) {
-        .calendar-grid > div {
-            min-height: 80px;
-        }
+    /* Responsive adjustments */
+    @media (max-width: 576px) {
         .calendar-cell {
+            min-height: 80px;
             padding: 8px;
         }
-        .calendar-cell span {
-            font-size: 1rem;
-        }
         .day-info {
-            font-size: 0.65rem;
+            font-size: 0.7rem;
         }
     }
 `;

@@ -1,50 +1,46 @@
-import React from 'react';
-import { Icon } from "../Components/Icons.js";
-import { SHIFTS_DATA } from "../Data/data.js";
-import { X } from 'lucide-react';
+import { SHIFTS_DATA } from "../Data/Data";
 /**
- * Modal para editar individualmente los turnos de un día.
+ * Modal para editar individualmente los turnos de un día (usando estructura de Modal de Bootstrap).
  */
 const ShiftEditorModal = ({ isOpen, day, onClose }) => {
+    // Si no está abierto, devolvemos un elemento vacío
     if (!isOpen || day === null) return null;
 
+    // La lógica del modal de Bootstrap se simula usando clases de posición fija
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-xl shadow-2xl w-full max-w-md p-6">
-                <div className="flex justify-between items-center border-b pb-3 mb-4">
-                    <h3 className="text-xl font-bold text-gray-800">Editar Turnos - Día {day}</h3>
-                    <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
-                        <X className="w-6 h-6" />
-                    </button>
-                </div>
-                <p className="text-gray-600 mb-4">Aquí se editarían los turnos individualmente para el día {day}.</p>
-                {/* Mock de lista de turnos para edición */}
-                <div className="space-y-2 mb-6">
-                    {SHIFTS_DATA.map(shift => (
-                         <div key={shift.id} className="p-3 border rounded-lg bg-gray-50 flex justify-between items-center">
-                            <span className="font-medium">{shift.name}</span>
-                            <input type="checkbox" className="form-checkbox text-indigo-600 h-5 w-5 rounded focus:ring-indigo-500" defaultChecked={Math.random() > 0.5} />
-                         </div>
-                    ))}
-                </div>
-                <div className="flex justify-end space-x-3">
-                    <button 
-                         onClick={onClose} 
-                         className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg font-semibold hover:bg-gray-300 transition"
-                     >
-                         Cancelar
-                     </button>
-                    <button 
-                        onClick={onClose} // Simular guardado
-                        className="px-4 py-2 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition"
-                    >
-                        Guardar Cambios
-                    </button>
+        <div className="modal d-block" tabIndex="-1" role="dialog" aria-modal="true" style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}>
+            <div className="modal-dialog modal-dialog-centered">
+                <div className="modal-content rounded-4 shadow-lg border-0">
+                    <div className="modal-header">
+                        <h3 className="modal-title h5 fw-bold text-dark">Editar Turnos - Día {day}</h3>
+                        <button type="button" className="btn-close" aria-label="Cerrar" onClick={onClose}></button>
+                    </div>
+                    <div className="modal-body">
+                        <p className="text-secondary">Aquí se editarían los turnos individualmente para el día **{day}**.</p>
+                        
+                        {/* Mock de opciones de edición */}
+                        <div className="p-3 bg-light rounded-3">
+                            <p className="fw-semibold small mb-2">Turnos Disponibles (Mock):</p>
+                            <div className="d-grid gap-2">
+                                {SHIFTS_DATA.map(shift => (
+                                    <span key={shift.id} className={`badge text-capitalize p-2 ${shift.color}`}>{shift.name} - {shift.time}</span>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                    <div className="modal-footer">
+                        <button
+                            type="button"
+                            onClick={onClose}
+                            className="btn btn-primary fw-semibold shadow-sm"
+                        >
+                            Guardar y Cerrar
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
     );
 };
-
 
 export default ShiftEditorModal;

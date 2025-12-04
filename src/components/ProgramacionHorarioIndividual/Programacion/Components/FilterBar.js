@@ -1,26 +1,25 @@
-import React from 'react';
-// La importación de Icon en FilterBar es innecesaria si no se usa, pero se mantiene si el usuario la necesita para futuros cambios.
-// import { Icon } from "../Components/Icons"; 
-
 // =================================================================
-// 2. SUBCOMPONENTES (CONSOLIDACIÓN)
+// 1. SUBCOMPONENTES (Refactorizados con Bootstrap)
 // =================================================================
 
 /**
  * Componente para la barra de filtros.
  */
 const FilterBar = () => (
-    <div className="bg-white p-4 rounded-xl shadow-lg mb-6 flex flex-wrap gap-4 items-center border border-gray-200">
-        <select className="border rounded-lg p-2 text-sm bg-gray-50 focus:ring-blue-500 focus:border-blue-500">
-            <option>Servicio: Emergencias</option>
-            <option>Servicio: Consulta</option>
-        </select>
-        <select className="border rounded-lg p-2 text-sm bg-gray-50 focus:ring-blue-500 focus:border-blue-500">
-            <option>Usuario/Rol: Mi Horario</option>
-            <option>Usuario/Rol: Médico A</option>
-        </select>
+    <div className="card shadow-sm mb-4 p-3 border-0">
+        <div className="d-flex flex-wrap gap-3 align-items-center">
+            <select className="form-select w-auto">
+                <option>Servicio: Emergencias</option>
+                <option>Servicio: Consulta</option>
+            </select>
+            <select className="form-select w-auto">
+                <option>Usuario/Rol: Mi Horario</option>
+                <option>Usuario/Rol: Médico A</option>
+            </select>
+        </div>
     </div>
 );
+
 
 
 export default FilterBar;

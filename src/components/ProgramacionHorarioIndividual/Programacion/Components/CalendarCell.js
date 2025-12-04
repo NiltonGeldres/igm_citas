@@ -1,39 +1,45 @@
-import React from 'react';
-import { Icon } from "../Components/Icons"; // Importación correcta
-import { Clock } from 'lucide-react';
-
+import { Icon } from "./Icon";
+/**
+ * Celda individual del calendario.
+ */
 const CalendarCell = ({ day, isToday, hasSchedule, isSelectedForBulk, isEmpty, handleDayClick }) => {
     if (isEmpty) {
-        // CORRECCIÓN: Asegurar que las celdas vacías tengan los estilos de borde de la cuadrícula
-        return <div className="bg-gray-50/50"></div>; 
+        // bg-light es el equivalente a bg-gray-50/50
+        return <div className="calendar-cell bg-light opacity-50"></div>;
     }
 
-    const cellClasses = `
-        calendar-cell p-3 relative cursor-pointer transition duration-200
-        ${isToday ? 'bg-indigo-50 border-indigo-300' : 'bg-white'}
-        ${hasSchedule > 0 ? 'border-l-4 border-l-blue-500' : ''}
-        ${isSelectedForBulk ? 'selected-for-bulk' : ''}
-        flex flex-col items-start
-    `;
+    // Adaptación de clases Tailwind a Bootstrap
+    let cellClasses = `calendar-cell p-3 position-relative`;
+    
+    // Condición de Hoy (bg-primary-subtle y border-primary)
+    cellClasses += isToday ? ' bg-primary-subtle border-primary' : ' bg-white';
 
-    const dayTextClasses = `font-bold text-lg leading-none ${isToday ? 'text-indigo-700' : 'text-gray-800'}`;
+    // Indicador de horario programado (borde izquierdo azul)
+    cellClasses += hasSchedule ? ' border-start border-5 border-primary' : '';
+    
+    // Indicador de selección masiva
+    cellClasses += isSelectedForBulk ? ' selected-for-bulk' : '';
+    
+    // Texto del día
+    const dayTextClasses = `fw-bold fs-5 lh-1 ${isToday ? 'text-primary' : 'text-dark'}`;
 
     return (
-        <div 
-            className={cellClasses} 
+        <div
+            className={cellClasses}
             onClick={() => handleDayClick(String(day))}
             aria-label={`Día ${day}. Programados: ${hasSchedule} turnos`}
         >
             <span className={dayTextClasses}>{day}</span>
             {hasSchedule > 0 && (
-                <div className="mt-1 flex items-center day-info">
-                    <Clock className="w-3 h-3 mr-1 text-blue-500" />
-                    <span className="text-xs text-gray-600 font-medium">{hasSchedule} Turnos</span>
+                <div className="mt-2 d-flex align-items-center day-info">
+                    <Icon name="Clock" className="text-primary me-1" style={{width: '16px', height: '16px'}}/>
+                    <span className="small text-secondary fw-semibold">{hasSchedule} Turnos</span>
                 </div>
             )}
             
             {isSelectedForBulk && (
-                 <div className="absolute top-1 right-1 bg-green-600 text-white w-5 h-5 flex items-center justify-center rounded-full text-xs font-bold shadow-lg">
+                 // Badge o indicador de selección
+                 <div className="position-absolute top-0 end-0 mt-1 me-1 bg-success text-white rounded-circle d-flex align-items-center justify-content-center fw-bold shadow" style={{width: '20px', height: '20px', fontSize: '12px'}}>
                     ✓
                  </div>
             )}
