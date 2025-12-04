@@ -6,42 +6,68 @@ import FilterBar from "../ProgramacionHorarioIndividual/Programacion/Components/
 import BulkScheduler from "../ProgramacionHorarioIndividual/Programacion/Components/BulkScheduler.js";
 import CalendarCell from "../ProgramacionHorarioIndividual/Programacion/Components/CalendarCell.js";
 import ShiftEditorModal from "../ProgramacionHorarioIndividual/Programacion/Components/ShiftEditorModal.js";
-import  Data from  ".//Programacion/Data/Data.js"
 import CUSTOM_STYLES from './CUSTOM_STYLES.js';
+//import { MONTHS_ES, WEEKDAYS, ALL_SHIFTS, SHIFT_MAPPING, firebaseConfig, appId, initialAuthToken} from "../ProgramacionHorarioIndividual/Programacion/Data/Constants.js"
+//import { MONTHS_ES} from "../ProgramacionHorarioIndividual/Programacion/Data/Constants.js"
 
-// =================================================================
-// COMPONENTE PRINCIPAL (ProgramacionHorariosIndividualApp)
-// =================================================================
+import {MONTHS_ES} from "./Programacion/Constants/MONTH_ES.js"
+import {WEEKDAYS} from "./Programacion/Constants/WEEKDAYS.js"
 
-// =================================================================
-// COMPONENTE PRINCIPAL (ProgramacionHorariosApp)
-// =================================================================
+
+export default function ProgramacionHorariosIndividualApp() {
 
 // =================================================================
 // 2. COMPONENTE PRINCIPAL (ProgramacionHorariosIndividualApp)
 // =================================================================
 
-const ProgramacionHorariosIndividualApp = () => {
     // --- ESTADO ---
+    // 1. Estado de la fecha actual que se está visualizando
+    const [currentDate, setCurrentDate] = useState(new Date(2025, 10, 1)); // Inicializado en Noviembre 2025 (mes 10)
+    
+    // 2. Estados de programación masiva y modal
     const [isBulkMode, setIsBulkMode] = useState(false);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedDayForIndividualEdit, setSelectedDayForIndividualEdit] = useState(null);
     const [selectedBulkShifts, setSelectedBulkShifts] = useState([]);
     const [selectedBulkDays, setSelectedBulkDays] = useState([]);
     
-    // Estado para simular la programación actual de turnos en el calendario
+    // 3. Estado para la programación actual, usando 'YYYY-MM-DD' como clave
     const [calendarSchedule, setCalendarSchedule] = useState({
-        '3': ['morning', 'afternoon'],
-        '15': ['morning', 'afternoon', 'evening'],
+        '2025-11-03': ['morning', 'afternoon'],
+        '2025-11-15': ['morning', 'afternoon', 'evening'],
     });
 
-    // --- MANEJADORES DE ESTADO Y LÓGICA ---
+    // --- LÓGICA DE NAVEGACIÓN MENSUAL ---
+    
+    // Función para ir al mes anterior
+    const goToPreviousMonth = useCallback(() => {
+        setCurrentDate(prevDate => {
+            const newDate = new Date(prevDate.getTime());
+            newDate.setMonth(newDate.getMonth() - 1);
+            return newDate;
+        });
+        // Limpiar selección masiva al cambiar de mes
+        setIsBulkMode(false);
+        setSelectedBulkDays([]);
+    }, []);
 
-    // Función para alternar el modo de programación masiva
+    // Función para ir al mes siguiente
+    const goToNextMonth = useCallback(() => {
+        setCurrentDate(prevDate => {
+            const newDate = new Date(prevDate.getTime());
+            newDate.setMonth(newDate.getMonth() + 1);
+            return newDate;
+        });
+        // Limpiar selección masiva al cambiar de mes
+        setIsBulkMode(false);
+        setSelectedBulkDays([]);
+    }, []);
+
+    // --- MANEJADORES DE ESTADO Y LÓGICA EXISTENTE ---
+
     const toggleBulkMode = useCallback(() => {
         setIsBulkMode(prev => {
             if (prev) {
-                // Limpiar selección masiva al salir del modo
                 setSelectedBulkDays([]);
                 setSelectedBulkShifts([]);
             }
@@ -49,7 +75,6 @@ const ProgramacionHorariosIndividualApp = () => {
         });
     }, []);
 
-    // Función para seleccionar/deseleccionar turnos en el panel masivo
     const toggleBulkShift = useCallback((shiftId) => {
         setSelectedBulkShifts(prev =>
             prev.includes(shiftId)
@@ -57,71 +82,77 @@ const ProgramacionHorariosIndividualApp = () => {
                 : [...prev, shiftId]
         );
     }, []);
-
-    // Función para seleccionar/deseleccionar días en el calendario durante el modo masivo
-    const toggleBulkDaySelection = useCallback((day) => {
-        setSelectedBulkDays(prev =>
-            prev.includes(day)
-                ? prev.filter(d => d !== day)
-                : [...prev, day]
-        );
-    }, []);
     
-    // Aplica la selección masiva a todos los días del mes (mock: 30 días)
     const applyToAllDays = useCallback(() => {
-        const totalDays = 30; // Días del mes mockeado
-        const allDays = Array.from({ length: totalDays }, (_, i) => String(i + 1));
-        setSelectedBulkDays(allDays);
-    }, []);
+        const year = currentDate.getFullYear();
+        const month = currentDate.getMonth();
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
+        
+        const allDaysKeys = Array.from({ length: daysInMonth }, (_, i) => {
+            const day = i + 1;
+            const monthPadded = String(month + 1).padStart(2, '0');
+            const dayPadded = String(day).padStart(2, '0');
+            return `${year}-${monthPadded}-${dayPadded}`;
+        });
 
-    // Aplica y guarda la programación masiva en el estado principal
+        setSelectedBulkDays(allDaysKeys);
+    }, [currentDate]);
+
     const applyBulkSchedule = useCallback(() => {
         if (selectedBulkDays.length === 0 || selectedBulkShifts.length === 0) {
             console.error('Error: Debes seleccionar días Y turnos para aplicar la programación masiva.');
             return;
         }
 
-        // Crear una copia del horario actual
         const newSchedule = { ...calendarSchedule };
         
-        // Aplicar los turnos seleccionados a todos los días marcados
-        selectedBulkDays.forEach(day => {
-            // Reemplaza el horario existente con la nueva selección masiva
-            newSchedule[day] = selectedBulkShifts;
+        selectedBulkDays.forEach(dateKey => {
+            newSchedule[dateKey] = selectedBulkShifts;
         });
 
         setCalendarSchedule(newSchedule);
         console.log(`Programación masiva aplicada a ${selectedBulkDays.length} días.`);
         
-        // Reset y salida del modo masivo
         setSelectedBulkShifts([]);
         setSelectedBulkDays([]);
         toggleBulkMode();
     }, [selectedBulkDays, selectedBulkShifts, calendarSchedule, toggleBulkMode]);
 
-    // Maneja el clic en una celda del día (abre modal o selecciona día masivo)
-    const handleDayClick = useCallback((day) => {
+    // Maneja el clic en una celda del día, ahora usando la clave 'YYYY-MM-DD'
+    const handleDayClick = useCallback((dateKey) => {
         if (isBulkMode) {
-            toggleBulkDaySelection(day);
+            setSelectedBulkDays(prev =>
+                prev.includes(dateKey)
+                    ? prev.filter(d => d !== dateKey)
+                    : [...prev, dateKey]
+            );
         } else {
-            setSelectedDayForIndividualEdit(day);
+            setSelectedDayForIndividualEdit(dateKey);
             setIsModalOpen(true);
         }
-    }, [isBulkMode, toggleBulkDaySelection]);
+    }, [isBulkMode]);
 
-    // Cierra el modal de edición individual
     const closeShiftEditor = useCallback(() => {
         setIsModalOpen(false);
         setSelectedDayForIndividualEdit(null);
     }, []);
 
 
-    // --- GENERACIÓN DEL CALENDARIO (useMemo para optimización) ---
-    const calendarDays = useMemo(() => {
-        // Simulación: Noviembre 2025: 30 días, empieza en Sábado (5 celdas vacías previas)
-        const totalDays = 30;
-        const startDayOffset = 5; // Empezar en Sábado (0=Lun, 1=Mar, 2=Mier, 3=Jue, 4=Vie, 5=Sab, 6=Dom)
+    // --- GENERACIÓN DINÁMICA DEL CALENDARIO (useMemo) ---
+    const calendarData = useMemo(() => {
+        const year = currentDate.getFullYear();
+        const month = currentDate.getMonth(); // 0-indexed (0=Enero)
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
+        
+        // El día de la semana en que comienza el mes (0=Dom, 1=Lun, etc.)
+        const firstDayOfMonth = new Date(year, month, 1);
+        
+        // Convertir Sunday=0, Monday=1, ..., Saturday=6 a ISO Weekday (Monday=0, ..., Sunday=6)
+        // (DayOfWeek - 1 + 7) % 7
+        const startDayOffset = (firstDayOfMonth.getDay() - 1 + 7) % 7; 
+
         const daysArray = [];
+        const todayKey = new Date().toISOString().slice(0, 10); // 'YYYY-MM-DD' de hoy
 
         // Agregar celdas vacías de inicio
         for (let i = 0; i < startDayOffset; i++) {
@@ -129,38 +160,43 @@ const ProgramacionHorariosIndividualApp = () => {
         }
 
         // Agregar días del mes
-        for (let day = 1; day <= totalDays; day++) {
-            const dayString = String(day);
-            const isToday = day === 4; // Mock: Día 4 es hoy
-            const shifts = calendarSchedule[dayString];
+        for (let day = 1; day <= daysInMonth; day++) {
+            const dayPadded = String(day).padStart(2, '0');
+            const monthPadded = String(month + 1).padStart(2, '0');
+            const dateKey = `${year}-${monthPadded}-${dayPadded}`; // Clave para el estado: YYYY-MM-DD
+            
+            const isToday = dateKey === todayKey;
+            const shifts = calendarSchedule[dateKey];
             const hasSchedule = shifts ? shifts.length : 0;
-            const isSelectedForBulk = selectedBulkDays.includes(dayString);
+            const isSelectedForBulk = selectedBulkDays.includes(dateKey);
 
             daysArray.push(
                 <CalendarCell
-                    key={day}
+                    key={dateKey}
                     day={day}
+                    dateKey={dateKey}
                     isToday={isToday}
                     hasSchedule={hasSchedule}
                     isSelectedForBulk={isSelectedForBulk}
                     handleDayClick={handleDayClick}
+                    schedule={calendarSchedule}
                 />
             );
         }
 
-        return daysArray;
-    }, [selectedBulkDays, calendarSchedule, handleDayClick]);
+        return { daysArray, monthName: MONTHS_ES[month], year };
+    }, [currentDate, selectedBulkDays, calendarSchedule, handleDayClick]);
 
     // --- RENDERIZADO PRINCIPAL ---
     return (
         <>
-            {/* INYECCIÓN DE ESTILOS CSS PERSONALIZADOS */}
+            {/* INYECCIÓN DE ESTILOS CSS PERSONALIZADOS (incluye Bootstrap) */}
             <style dangerouslySetInnerHTML={{ __html: CUSTOM_STYLES }} />
 
-            {/* CONTENEDOR PRINCIPAL: Adaptado a Bootstrap */}
+            {/* CONTENEDOR PRINCIPAL */}
             <div className={`p-4 p-md-5 ${isBulkMode ? 'bulk-mode' : ''} bg-light min-vh-100 font-inter`}>
                 <div className="container-lg">
-                    <h1 className="h2 fw-bolder text-dark mb-4 d-flex align-items-center">
+                    <h1 className="h2 fw-bolder text-primary mb-4 d-flex align-items-center">
                         <Icon name="CalendarCheck" className="text-primary me-3" style={{width: '32px', height: '32px'}} />
                         Programación Horaria Mensual
                     </h1>
@@ -168,7 +204,6 @@ const ProgramacionHorariosIndividualApp = () => {
 
                     {/* 1. FILTROS */}
                     <FilterBar />
-
                     {/* Botón para alternar el modo masivo */}
                     <div className="mb-4 d-flex justify-content-end">
                         <button
@@ -183,12 +218,11 @@ const ProgramacionHorariosIndividualApp = () => {
                     </div>
 
                     {/* 2. CONTENEDOR PRINCIPAL: Panel Masivo (condicional) y Calendario */}
-                    {/* Se usa el sistema de grid de Bootstrap: col-lg-3 para Bulk, col-lg-9 para Calendario */}
                     <div className="row g-4" id="main-content-wrapper">
                         
                         {/* A. PROGRAMACIÓN MASIVA */}
                         {isBulkMode && (
-                            <div className="col-12 col-lg-3">
+                            <div className="col-12 col-lg-3 d-flex">
                                 <BulkScheduler
                                     selectedShifts={selectedBulkShifts}
                                     toggleShift={toggleBulkShift}
@@ -201,13 +235,24 @@ const ProgramacionHorariosIndividualApp = () => {
                         {/* B. CALENDARIO */}
                         <div className={`col-12 ${isBulkMode ? 'col-lg-9' : 'col-lg-12'}`}>
                             
-                            <div className="d-flex justify-content-between align-items-center mb-3">
-                                <h2 className="h4 fw-bold text-dark">Noviembre 2025</h2>
+                            <div className="d-flex justify-content-between align-items-center mb-3 p-3 bg-white rounded-3 shadow-sm border">
+                                {/* TÍTULO DINÁMICO DEL MES Y AÑO */}
+                                <h2 className="h4 fw-bold text-dark mb-0">
+                                    {calendarData.monthName} {calendarData.year}
+                                </h2>
                                 <div className="d-flex gap-2">
-                                    <button className="btn btn-outline-secondary rounded-circle shadow-sm" aria-label="Mes anterior">
+                                    <button 
+                                        onClick={goToPreviousMonth}
+                                        className="btn btn-outline-secondary rounded-circle shadow-sm" 
+                                        aria-label="Mes anterior"
+                                    >
                                         <Icon name="ChevronLeft" style={{width: '20px', height: '20px'}}/>
                                     </button>
-                                    <button className="btn btn-outline-secondary rounded-circle shadow-sm" aria-label="Mes siguiente">
+                                    <button 
+                                        onClick={goToNextMonth}
+                                        className="btn btn-outline-secondary rounded-circle shadow-sm" 
+                                        aria-label="Mes siguiente"
+                                    >
                                         <Icon name="ChevronRight" style={{width: '20px', height: '20px'}}/>
                                     </button>
                                 </div>
@@ -215,15 +260,15 @@ const ProgramacionHorariosIndividualApp = () => {
 
                             <div className="bg-white rounded-4 shadow-lg overflow-hidden border">
                                 {/* Encabezados de días */}
-                                <div className="calendar-grid text-center small fw-semibold bg-light border-bottom">
-                                    {['L', 'M', 'M', 'J', 'V', 'S', 'D'].map(day => (
-                                        <div key={day} className="py-2 text-secondary">{day}</div>
+                                <div className="calendar-grid text-center small fw-semibold bg-primary-subtle border-bottom">
+                                    {WEEKDAYS.map(day => (
+                                        <div key={day} className="py-3 text-primary">{day}</div>
                                     ))}
                                 </div>
                                 
                                 {/* Celdas del calendario */}
                                 <div className="calendar-grid">
-                                    {calendarDays}
+                                    {calendarData.daysArray}
                                 </div>
                             </div>
                         </div>
@@ -233,13 +278,12 @@ const ProgramacionHorariosIndividualApp = () => {
                 {/* 3. MODAL DE EDICIÓN DE TURNOS INDIVIDUAL */}
                 <ShiftEditorModal
                     isOpen={isModalOpen}
-                    day={selectedDayForIndividualEdit}
+                    dayKey={selectedDayForIndividualEdit}
                     onClose={closeShiftEditor}
+                    schedule={calendarSchedule}
+                    setSchedule={setCalendarSchedule}
                 />
             </div>
         </>
     );
 };
-
-
-export default ProgramacionHorariosIndividualApp;

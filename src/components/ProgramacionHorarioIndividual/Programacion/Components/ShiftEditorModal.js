@@ -1,40 +1,100 @@
-import { SHIFTS_DATA } from "../Data/Data";
-/**
- * Modal para editar individualmente los turnos de un día (usando estructura de Modal de Bootstrap).
- */
-const ShiftEditorModal = ({ isOpen, day, onClose }) => {
-    // Si no está abierto, devolvemos un elemento vacío
-    if (!isOpen || day === null) return null;
+import  { useState } from 'react';
+import { Icon } from './Icon';
+import { ALL_SHIFTS } from '../Constants/ALL_SHIFTS';
 
-    // La lógica del modal de Bootstrap se simula usando clases de posición fija
+// Componente Modal de Edición (Simplificado y adaptado al nuevo SHIFT_MAPPING)
+const ShiftEditorModal = ({ isOpen, dayKey, onClose, schedule, setSchedule }) => {
+    if (!isOpen || !dayKey) return null;
+
+    const currentDay = new Date(dayKey).getDate();
+    
+    // Estado interno para rastrear los IDs de los turnos seleccionados mientras el modal está abierto
+    const initialShifts = schedule[dayKey] || ['free'];
+    const [selectedShiftIds, setSelectedShiftIds] = useState(initialShifts);
+
+    // Función para manejar la selección/deselección de un turno
+    const toggleShift = (shiftId) => {
+        if (shiftId === 'free') {
+            // Si selecciona 'Libre', deselecciona todos los demás.
+            setSelectedShiftIds(prev => (prev.includes('free') && prev.length === 1) ? [] : ['free']);
+        } else {
+            // Si selecciona cualquier otro, quita 'Libre' si está presente y luego hace el toggle
+            setSelectedShiftIds(prev => {
+                const filtered = prev.filter(id => id !== 'free');
+                if (filtered.includes(shiftId)) {
+                    const newIds = filtered.filter(id => id !== shiftId);
+                    return newIds.length > 0 ? newIds : ['free']; // Si deselecciona el último, vuelve a 'Libre'
+                } else {
+                    return [...filtered, shiftId];
+                }
+            });
+        }
+    };
+
+    // Manejador del botón Guardar
+    const handleSave = () => {
+        // Asegurar que al menos un turno esté seleccionado
+        const finalIds = selectedShiftIds.length > 0 ? selectedShiftIds : ['free'];
+        
+        // Llamar a la función de guardar del componente padre
+        setSchedule(prevSchedule => ({
+            ...prevSchedule,
+            [dayKey]: finalIds,
+        }));
+        
+        onClose();
+    };
+
     return (
-        <div className="modal d-block" tabIndex="-1" role="dialog" aria-modal="true" style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}>
+        <div className="modal d-block" tabIndex="-1" style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}>
             <div className="modal-dialog modal-dialog-centered">
-                <div className="modal-content rounded-4 shadow-lg border-0">
-                    <div className="modal-header">
-                        <h3 className="modal-title h5 fw-bold text-dark">Editar Turnos - Día {day}</h3>
-                        <button type="button" className="btn-close" aria-label="Cerrar" onClick={onClose}></button>
+                <div className="modal-content rounded-4 shadow-lg">
+                    <div className="modal-header bg-primary text-white border-0 rounded-top-4">
+                        <h5 className="modal-title d-flex align-items-center">
+                            <Icon name="CalendarCheck" className="me-2" style={{width: '20px', height: '20px'}} />
+                            Editar Turnos - Día {currentDay}
+                        </h5>
+                        <button type="button" className="btn-close btn-close-white" onClick={onClose} aria-label="Cerrar"></button>
                     </div>
-                    <div className="modal-body">
-                        <p className="text-secondary">Aquí se editarían los turnos individualmente para el día **{day}**.</p>
+
+                    <div className="modal-body p-4">
+                        <p className="text-secondary small mb-3">
+                            Selecciona los turnos disponibles para el día **{currentDay}**.
+                        </p>
                         
-                        {/* Mock de opciones de edición */}
-                        <div className="p-3 bg-light rounded-3">
-                            <p className="fw-semibold small mb-2">Turnos Disponibles (Mock):</p>
-                            <div className="d-grid gap-2">
-                                {SHIFTS_DATA.map(shift => (
-                                    <span key={shift.id} className={`badge text-capitalize p-2 ${shift.color}`}>{shift.name} - {shift.time}</span>
-                                ))}
-                            </div>
+                        <div className="d-grid gap-3">
+                            {ALL_SHIFTS.map(shift => {
+                                const isSelected = selectedShiftIds.includes(shift.id);
+                                return (
+                                    <button
+                                        key={shift.id}
+                                        onClick={() => toggleShift(shift.id)}
+                                        className={`
+                                            btn text-start d-flex justify-content-between align-items-center
+                                            ${isSelected ? 'btn-success fw-bold shadow-sm border-2' : 'btn-outline-secondary'}
+                                        `}
+                                    >
+                                        <div>
+                                            {shift.name} 
+                                            <span className="badge rounded-pill text-bg-light ms-2 text-secondary">{shift.time}</span>
+                                        </div>
+                                        {isSelected && <Icon name="CheckCircle" style={{width: '20px', height: '20px'}}/>}
+                                    </button>
+                                );
+                            })}
                         </div>
                     </div>
-                    <div className="modal-footer">
+                    
+                    <div className="modal-footer bg-light border-0 rounded-bottom-4">
+                        <button type="button" className="btn btn-secondary" onClick={onClose}>Cancelar</button>
                         <button
                             type="button"
-                            onClick={onClose}
-                            className="btn btn-primary fw-semibold shadow-sm"
+                            onClick={handleSave}
+                            className="btn btn-primary d-flex align-items-center"
+                            disabled={selectedShiftIds.length === 0}
                         >
-                            Guardar y Cerrar
+                            <Icon name="Save" className="me-2" style={{width: '20px', height: '20px'}}/>
+                            Guardar Cambios
                         </button>
                     </div>
                 </div>

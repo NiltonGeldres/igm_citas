@@ -1,50 +1,60 @@
+import React from "react";
 import { Icon } from "./Icon";
-/**
- * Celda individual del calendario.
- */
-const CalendarCell = ({ day, isToday, hasSchedule, isSelectedForBulk, isEmpty, handleDayClick }) => {
-    if (isEmpty) {
-        // bg-light es el equivalente a bg-gray-50/50
-        return <div className="calendar-cell bg-light opacity-50"></div>;
+import { SHIFT_MAPPING } from "../Constants/SHIFT_MAPPING";
+
+// Componente para la celda individual del calendario
+const CalendarCell = React.memo(({ day, dateKey, isToday, hasSchedule, isSelectedForBulk, handleDayClick, schedule }) => {
+    if (!day) {
+        return <div className="calendar-cell p-2 bg-light border-0"></div>; // Celda vacía
     }
 
-    // Adaptación de clases Tailwind a Bootstrap
-    let cellClasses = `calendar-cell p-3 position-relative`;
+    // Usa las constantes globales SHIFT_MAPPING
+    const currentShifts = schedule[dateKey] || [SHIFT_MAPPING.free.id]; // Usar 'free' por defecto
+    const isFree = currentShifts.length === 1 && currentShifts[0] === SHIFT_MAPPING.free.id;
     
-    // Condición de Hoy (bg-primary-subtle y border-primary)
-    cellClasses += isToday ? ' bg-primary-subtle border-primary' : ' bg-white';
-
-    // Indicador de horario programado (borde izquierdo azul)
-    cellClasses += hasSchedule ? ' border-start border-5 border-primary' : '';
+    // Si hay turnos programados, usamos la primera letra de cada turno para mostrar
     
-    // Indicador de selección masiva
-    cellClasses += isSelectedForBulk ? ' selected-for-bulk' : '';
-    
-    // Texto del día
-    const dayTextClasses = `fw-bold fs-5 lh-1 ${isToday ? 'text-primary' : 'text-dark'}`;
+    const bgColor = isSelectedForBulk ? 'bg-primary-subtle border-primary shadow-sm' : 'bg-white border-light';
+    const dayClasses = `
+        calendar-cell
+        p-2 p-sm-3 
+        text-start 
+        fw-normal 
+        border 
+        cursor-pointer 
+        transition-all 
+        duration-200 
+        hover:shadow-md 
+        hover:border-primary 
+        ${bgColor}
+    `;
 
     return (
         <div
-            className={cellClasses}
-            onClick={() => handleDayClick(String(day))}
-            aria-label={`Día ${day}. Programados: ${hasSchedule} turnos`}
+            className={`${dayClasses} ${isToday ? 'bg-info-subtle border-info text-info fw-bold' : ''} ${isSelectedForBulk ? 'is-bulk-selected' : ''}`}
+            onClick={() => handleDayClick(dateKey)}
+            data-day={day}
         >
-            <span className={dayTextClasses}>{day}</span>
-            {hasSchedule > 0 && (
-                <div className="mt-2 d-flex align-items-center day-info">
-                    <Icon name="Clock" className="text-primary me-1" style={{width: '16px', height: '16px'}}/>
-                    <span className="small text-secondary fw-semibold">{hasSchedule} Turnos</span>
-                </div>
-            )}
-            
-            {isSelectedForBulk && (
-                 // Badge o indicador de selección
-                 <div className="position-absolute top-0 end-0 mt-1 me-1 bg-success text-white rounded-circle d-flex align-items-center justify-content-center fw-bold shadow" style={{width: '20px', height: '20px', fontSize: '12px'}}>
-                    ✓
-                 </div>
-            )}
+            <div className="d-flex justify-content-between align-items-center mb-1">
+                <span className={`fw-bolder ${isToday ? 'text-info' : 'text-dark'} text-sm`}>{day}</span>
+                {hasSchedule > 0 && <Icon name="Clock" className="text-success" style={{width: '16px', height: '16px'}}/>}
+            </div>
+
+            <div className="mt-1 d-flex flex-wrap gap-1" style={{minHeight: '20px'}}>
+                {isFree ? (
+                    <span className="badge rounded-pill text-bg-secondary fw-normal">Libre</span>
+                ) : (
+                    currentShifts.map(shiftId => {
+                        const s = SHIFT_MAPPING[shiftId] || { name: 'Desconocido', colorClass: 'bg-danger text-white' };
+                        return (
+                            <span key={shiftId} className={`badge rounded-pill ${s.colorClass} fw-normal`}>
+                                {s.name.substring(0, 1)}
+                            </span>
+                        );
+                    })
+                )}
+            </div>
         </div>
     );
-};
-
+});
 export default CalendarCell;

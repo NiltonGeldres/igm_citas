@@ -10,3 +10,4 @@ export const SHIFTS_DATA = [
     { id: 'afternoon', name: 'Tarde', time: '14:00 - 20:00', color: 'bg-info text-dark' }, // Bootstrap: info/dark
     { id: 'evening', name: 'Noche', time: '20:00 - 02:00', color: 'bg-dark text-white' }, // Bootstrap: dark/white
 ];
+
