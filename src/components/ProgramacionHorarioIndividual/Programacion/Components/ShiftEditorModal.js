@@ -1,17 +1,20 @@
-import  { useState } from 'react';
+import { useState } from 'react';
 import { Icon } from './Icon';
 import { ALL_SHIFTS } from '../Constants/ALL_SHIFTS';
 
 // Componente Modal de Edición (Simplificado y adaptado al nuevo SHIFT_MAPPING)
 const ShiftEditorModal = ({ isOpen, dayKey, onClose, schedule, setSchedule }) => {
+
+    // --- CORRECCIÓN DE HOOKS ---
+    // El hook useState debe llamarse incondicionalmente antes de cualquier return anticipado.
+    const initialShifts = schedule[dayKey] || ['free'];
+    const [selectedShiftIds, setSelectedShiftIds] = useState(initialShifts);
+
+    // Ahora el return anticipado viene después de la llamada al Hook.
     if (!isOpen || !dayKey) return null;
 
     const currentDay = new Date(dayKey).getDate();
     
-    // Estado interno para rastrear los IDs de los turnos seleccionados mientras el modal está abierto
-    const initialShifts = schedule[dayKey] || ['free'];
-    const [selectedShiftIds, setSelectedShiftIds] = useState(initialShifts);
-
     // Función para manejar la selección/deselección de un turno
     const toggleShift = (shiftId) => {
         if (shiftId === 'free') {
