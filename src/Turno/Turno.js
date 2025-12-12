@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Form} from "react-bootstrap";
 import AuthService from "../components/Login/services/auth.service";
@@ -56,9 +56,6 @@ const Turno = ({handleSelectTurno }) => {
                         </option>
                     ))}
                 </Form.Select>
-
-
-
          </>
     )
 }

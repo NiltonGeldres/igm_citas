@@ -16,24 +16,25 @@ const getTodos = () => {
       });
 };
 
-
 /**
- * NUEVA CONSTANTE AGREGADA: getAllShifts
- * Obtiene el listado completo de turnos (simulando la constante ALL_SHIFTS).
- * Sigue el mismo patrón de llamada POST con encabezados de seguridad.
+ * Función para obtener el listado de todos los turnos (ALL_SHIFTS).
+ * Eliminada la simulación, utiliza la llamada real a axios.post.
  */
 const getAllShifts = () => {
-    console.log(`Llamando a la API para obtener ALL_SHIFTS en: ${API_URL + SERVICE_ALL_SHIFTS}`);
+    const fullUrl = API_URL + SERVICE_ALL_SHIFTS;
+    console.log(`[Servicio] Llamando a getAllShifts en: ${fullUrl}`);
+
     return axios.post(
-        API_URL + SERVICE_ALL_SHIFTS, // Usamos el nuevo endpoint
-        {},
+        fullUrl,
+        {}, // Cuerpo de la petición, vacío según su estructura
         { headers: header() }
     ).catch(function (error) {
-        // Propagamos el error para que el componente (Context) lo maneje
-        console.log("Error en getAllShifts:", error.toJSON());
-        throw error; 
+        // Registrar el error y relanzarlo para manejo externo
+        console.error("Error en getAllShifts:", error.toJSON ? error.toJSON() : error.message);
+        throw error;
     });
 };
+
 
 const TurnoService = {
     getTodos,
