@@ -8,7 +8,7 @@ import { Button, Col ,Form,Row} from "react-bootstrap";
 
 import Swal from "sweetalert2";
 import FormatDate from "../Maestros/FormatDate";
-import Turno from "../../Turno/Turno";
+import Turno from "../Turno/Turno";
 
 //const ProgramacionHorarioList =({month, year,idEspecialidad,idMedico,idServicio,programacion,actualizarProgramacion} )=>{
 const ProgramacionHorarioList =({programacion,onModificarProgramacion,onEliminarProgramacion} )=>{

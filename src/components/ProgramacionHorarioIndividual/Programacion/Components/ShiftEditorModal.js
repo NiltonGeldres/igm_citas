@@ -1,9 +1,41 @@
-import { useState } from 'react';
+import { useState, useEffect } from "react";
 import { Icon } from './Icon';
-import { ALL_SHIFTS } from '../Constants/ALL_SHIFTS';
+//import { ALL_SHIFTS } from '../Constants/ALL_SHIFTS';
+import TurnoService from "../../../Turno/TurnoService";
+import AuthService from "../../../Login/services/auth.service";
+import { useNavigate } from "react-router-dom";
+
 
 // Componente Modal de Edición (Simplificado y adaptado al nuevo SHIFT_MAPPING)
 const ShiftEditorModal = ({ isOpen, dayKey, onClose, schedule, setSchedule }) => {
+    const [loading, setLoading]  = useState(false);
+    const [posts, setPosts] = useState([]);
+    const navigate = useNavigate();
+
+    //  Carga de Turnos
+            useEffect(() => {
+                LoadData() ;
+        }, []);
+
+                const LoadData = ()=>{
+                    setLoading(true);
+                        TurnoService.getTodos()
+                        .then((response) => {
+                            console.log("TURNOS  "+JSON.stringify(response) );                    
+                            console.log("TURNOS 2 "+JSON.stringify(response.data) );                    
+                            setPosts(response.data);
+
+                    setLoading(false);
+                    },(error) => {
+                        console.log("Turno PostService Error page", error.response);
+                        if (error.response && error.response.status === 403) {
+                            AuthService.logout();
+                            navigate("/login");
+                            window.location.reload();
+                        }
+                    });
+            };    
+            
 
     // --- CORRECCIÓN DE HOOKS ---
     // El hook useState debe llamarse incondicionalmente antes de cualquier return anticipado.
@@ -66,20 +98,20 @@ const ShiftEditorModal = ({ isOpen, dayKey, onClose, schedule, setSchedule }) =>
                         </p>
                         
                         <div className="d-grid gap-3">
-                            {ALL_SHIFTS.map(shift => {
-                                const isSelected = selectedShiftIds.includes(shift.id);
+                            {posts.map(turno => {
+                                const isSelected = selectedShiftIds.includes(turno.id);
                                 return (
                                     <button
-                                        key={shift.id}
-                                        onClick={() => toggleShift(shift.id)}
+                                        key={turno.id}
+                                        onClick={() => toggleShift(turno.idTurno)}
                                         className={`
                                             btn text-start d-flex justify-content-between align-items-center
                                             ${isSelected ? 'btn-success fw-bold shadow-sm border-2' : 'btn-outline-secondary'}
                                         `}
                                     >
                                         <div>
-                                            {shift.name} 
-                                            <span className="badge rounded-pill text-bg-light ms-2 text-secondary">{shift.time}</span>
+                                            {turno.descripcion} 
+                                            <span className="badge rounded-pill text-bg-light ms-2 text-secondary">{turno.horainicio}</span>
                                         </div>
                                         {isSelected && <Icon name="CheckCircle" style={{width: '20px', height: '20px'}}/>}
                                     </button>
@@ -90,15 +122,15 @@ const ShiftEditorModal = ({ isOpen, dayKey, onClose, schedule, setSchedule }) =>
                     
                     <div className="modal-footer bg-light border-0 rounded-bottom-4">
                         <button type="button" className="btn btn-secondary" onClick={onClose}>Cancelar</button>
-                        <button
-                            type="button"
-                            onClick={handleSave}
-                            className="btn btn-primary d-flex align-items-center"
-                            disabled={selectedShiftIds.length === 0}
-                        >
-                            <Icon name="Save" className="me-2" style={{width: '20px', height: '20px'}}/>
-                            Guardar Cambios
-                        </button>
+                            <button
+                                type="button"
+                                onClick={handleSave}
+                                className="btn btn-primary d-flex align-items-center"
+                                disabled={selectedShiftIds.length === 0}
+                            >
+                                <Icon name="Save" className="me-2" style={{width: '20px', height: '20px'}}/>
+                                Guardar Cambios
+                            </button>
                     </div>
                 </div>
             </div>

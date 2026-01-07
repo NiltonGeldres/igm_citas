@@ -159,7 +159,7 @@ function App() {
               <Route path="/atenciones" element={<AtencionMedicaForm />} />
               <Route path="/citados" element={<CitaSeparada />} />
               <Route path="/facturacion" element={<Facturacion />} />
-              <Route path="/programacion" element={<ProgramacionHorario/>} />
+              <Route path="/programacion" element={<ProgramacionHorariosIndividualApp/>} />
               <Route path="/Cita" element={<Cita/>} />
               <Route path="/CitaSeparada" element={<CitaSeparada />} />
               <Route path="/Usuario" element={<Usuario/>} />

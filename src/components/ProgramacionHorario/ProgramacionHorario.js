@@ -9,7 +9,7 @@ import FormatDate from '../Maestros/FormatDate';
 import { useNavigate } from "react-router-dom";
 import AuthService from '../Login/services/auth.service';
 import ProgramacionHorarioService from './ProgramacionHorarioService';
-import Turno from '../../Turno/Turno';
+import Turno from "../Turno/Turno";
 import { AiOutlineSave } from "react-icons/ai";
 import { RiSave3Line } from "react-icons/ri";
 import MedicoEspecialidad from '../Medico/MedicoEspecialidad';
