@@ -45,7 +45,7 @@ const CalendarCell = React.memo(({ day, dateKey, isToday, hasSchedule, isSelecte
                     <span className="badge rounded-pill text-bg-secondary fw-normal">Libre</span>
                 ) : (
                     currentShifts.map(shiftId => {
-                        const s = SHIFT_MAPPING[shiftId] || { name: 'Desconocido', colorClass: 'bg-danger text-white' };
+                        ssconst s = SHIFT_MAPPING[shiftId] || { name: 'Desconocido', colorClass: 'bg-danger text-white' };
                         return (
                             <span key={shiftId} className={`badge rounded-pill ${s.colorClass} fw-normal`}>
                                 {s.name.substring(0, 1)}

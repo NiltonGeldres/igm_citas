@@ -5,32 +5,62 @@ import TurnoService from "../../../Turno/TurnoService";
 import AuthService from "../../../Login/services/auth.service";
 import { useNavigate } from "react-router-dom";
 
-const ShiftEditorModal = ({ isOpen, dayKey, onClose, schedule, setSchedule, onSave }) => {
+
+// Componente Modal de Edición (Simplificado y adaptado al nuevo SHIFT_MAPPING)
+const ShiftEditorModal = ({ isOpen, dayKey, onClose, schedule, setSchedule }) => {
+    const [loading, setLoading]  = useState(false);
+    const [posts, setPosts] = useState([]);
+    const navigate = useNavigate();
+
+    //  Carga de Turnos
+            useEffect(() => {
+                LoadData() ;
+        }, []);
+
+                const LoadData = ()=>{
+                    setLoading(true);
+                        TurnoService.getTodos()
+                        .then((response) => {
+                            console.log("TURNOS  "+JSON.stringify(response) );                    
+                            console.log("TURNOS 2 "+JSON.stringify(response.data) );                    
+                            setPosts(response.data);
+
+                    setLoading(false);
+                    },(error) => {
+                        console.log("Turno PostService Error page", error.response);
+                        if (error.response && error.response.status === 403) {
+                            AuthService.logout();
+                            navigate("/login");
+                            window.location.reload();
+                        }
+                    });
+            };    
+            
+
+    // --- CORRECCIÓN DE HOOKS ---
+    // El hook useState debe llamarse incondicionalmente antes de cualquier return anticipado.
+    const initialShifts = schedule[dayKey] || ['free'];
     const [selectedShiftIds, setSelectedShiftIds] = useState(initialShifts);
+
+    // Ahora el return anticipado viene después de la llamada al Hook.
     if (!isOpen || !dayKey) return null;
 
     const currentDay = new Date(dayKey).getDate();
     
-    const initialShifts = schedule[dayKey] || ['free'];
-
-    // Asegura que el estado interno se actualice si el día cambia mientras el modal está abierto
-    React.useEffect(() => {
-        if (dayKey) {
-            const dayShifts = schedule[dayKey] ? [...schedule[dayKey]] : ['free'];
-            setSelectedShiftIds(dayShifts);
-        }
-    }, [dayKey, schedule]);
-
     // Función para manejar la selección/deselección de un turno
     const toggleShift = (shiftId) => {
+        console.log("toggleShift  "+shiftId)
+       
         if (shiftId === 'free') {
+            // Si selecciona 'Libre', deselecciona todos los demás.
             setSelectedShiftIds(prev => (prev.includes('free') && prev.length === 1) ? [] : ['free']);
         } else {
+            // Si selecciona cualquier otro, quita 'Libre' si está presente y luego hace el toggle
             setSelectedShiftIds(prev => {
                 const filtered = prev.filter(id => id !== 'free');
                 if (filtered.includes(shiftId)) {
                     const newIds = filtered.filter(id => id !== shiftId);
-                    return newIds.length > 0 ? newIds : ['free']; 
+                    return newIds.length > 0 ? newIds : ['free']; // Si deselecciona el último, vuelve a 'Libre'
                 } else {
                     return [...filtered, shiftId];
                 }
@@ -38,30 +68,22 @@ const ShiftEditorModal = ({ isOpen, dayKey, onClose, schedule, setSchedule, onSa
         }
     };
 
-    // Manejador del botón Guardar (Actualiza el estado local y llama a onSave)
+    // Manejador del botón Guardar
     const handleSave = () => {
-        const finalIds = selectedShiftIds.length > 0 
-            ? selectedShiftIds.filter(id => id !== 'free').length > 0 
-                ? selectedShiftIds.filter(id => id !== 'free') 
-                : ['free'] 
-            : ['free'];
-        
-        // 1. Crear el nuevo objeto de horario completo
-        const newSchedule = { 
-            ...schedule, 
-            [dayKey]: finalIds
-        };
-
-        // 2. Actualizar estado local 
-        setSchedule(newSchedule);
-        
-        // 3. Llamar a la función de guardado (que ahora solo actualiza el estado)
-        onSave(newSchedule);
+        // Asegurar que al menos un turno esté seleccionado
+        const finalIds = selectedShiftIds.length > 0 ? selectedShiftIds : ['free'];
+        console.log(selectedShiftIds)
+      
+        // Llamar a la función de guardar del componente padre
+        setSchedule(prevSchedule => ({
+            ...prevSchedule,
+            [dayKey]: finalIds,
+        }));
         
         onClose();
     };
 
-    return (
+  return (
         <div className="modal d-block" tabIndex="-1" style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}>
             <div className="modal-dialog modal-dialog-centered">
                 <div className="modal-content rounded-4 shadow-lg">
