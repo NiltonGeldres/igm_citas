@@ -103,6 +103,7 @@ const ShiftEditorModal = ({ isOpen, dayKey, onClose, schedule, setSchedule }) =>
                         <div className="d-grid gap-3">
                             {ALL_SHIFTS.map(shift => {
                                 const isSelected = selectedShiftIds.includes(shift.id);
+                               // console.log("SHIFT ID "+shift.id)
                                 return (
                                     <button
                                         key={shift.id}

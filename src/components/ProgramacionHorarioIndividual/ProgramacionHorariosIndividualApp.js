@@ -33,8 +33,8 @@ export default function ProgramacionHorariosIndividualApp() {
     
     // 3. Estado para la programación actual, usando 'YYYY-MM-DD' como clave
     const [calendarSchedule, setCalendarSchedule] = useState({
-        '2025-11-03': ['morning', 'afternoon'],
-        '2025-11-15': ['morning', 'afternoon', 'evening'],
+        '2025-11-03': ['morningId', 'afternoonId'],
+        '2025-11-15': ['morningId', 'afternoonId', 'eveningId'],
     });
 
     // --- LÓGICA DE NAVEGACIÓN MENSUAL ---
