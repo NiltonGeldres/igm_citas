@@ -22,7 +22,7 @@ export default function ProgramacionHorariosIndividualApp() {
 
     // --- ESTADO ---
     // 1. Estado de la fecha actual que se está visualizando
-    const [currentDate, setCurrentDate] = useState(new Date(2025, 10, 1)); // Inicializado en Noviembre 2025 (mes 10)
+    const [currentDate, setCurrentDate] = useState(new Date()); // Inicializado en Noviembre 2025 (mes 10)
     
     // 2. Estados de programación masiva y modal
     const [isBulkMode, setIsBulkMode] = useState(false);

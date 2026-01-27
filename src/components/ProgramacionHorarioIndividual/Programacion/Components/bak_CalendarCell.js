@@ -7,13 +7,15 @@ const CalendarCell = React.memo(({ day, dateKey, isToday, hasSchedule, isSelecte
     if (!day) {
         return <div className="calendar-cell p-2 bg-light border-0"></div>; // Celda vacía
     }
-console.log("Day ==>  "+day);
+
+/*console.log("Day ==>  "+day);
 console.log("dateKey ==>  "+dateKey);
 console.log("isToday ==>  "+isToday);
 console.log("hasSchedule ==>  "+hasSchedule);
 console.log( "isSelectedForBulk ==>  "+isSelectedForBulk);
 console.log("handleDayClick ==>  "+handleDayClick);
 console.log("schedule ==>  "+JSON.stringify(schedule));
+*/
 
     // Usa las constantes globales SHIFT_MAPPING
     const currentShifts = schedule[dateKey] || [SHIFT_MAPPING.freeId.id]; // Usar 'free' por defecto
@@ -70,4 +72,5 @@ console.log("schedule ==>  "+JSON.stringify(schedule));
         </div>
     );
 });
+
 export default CalendarCell;
