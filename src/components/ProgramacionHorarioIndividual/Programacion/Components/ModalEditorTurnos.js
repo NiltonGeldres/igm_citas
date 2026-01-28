@@ -9,9 +9,37 @@ import { useNavigate } from "react-router-dom";
 const ModalEditorTurnos = ({ estaAbierto, claveDia, alCerrar, horario, setHorario, alGuardar }) => {
     const turnosIniciales = horario[claveDia] || ['libre'];
     const [idsTurnosSeleccionados, setIdsTurnosSeleccionados] = useState(turnosIniciales);
-    
-
     const diaActual = new Date(claveDia + 'T00:00:00').getDate();
+
+    //  Carga de Turnos
+    const [loading, setLoading]  = useState(false);
+    const [posts, setPosts] = useState([]);
+    const navigate = useNavigate();
+
+            useEffect(() => {
+                LoadData() ;
+        }, []);
+
+                const LoadData = ()=>{
+                    setLoading(true);
+                        TurnoService.getTodos()
+                        .then((response) => {
+                            console.log("TURNOS  "+JSON.stringify(response) );                    
+                            console.log("TURNOS 2 "+JSON.stringify(response.data) );                    
+                            setPosts(response.data);
+
+                    setLoading(false);
+                    },(error) => {
+                        console.log("Turno PostService Error page", error.response);
+                        if (error.response && error.response.status === 403) {
+                            AuthService.logout();
+                            navigate("/login");
+                            window.location.reload();
+                        }
+                    });
+            };    
+            
+            
 
     useEffect(() => {
         if (claveDia) {
@@ -60,17 +88,17 @@ const ModalEditorTurnos = ({ estaAbierto, claveDia, alCerrar, horario, setHorari
                     <div className="modal-body p-4">
                         <p className="text-secondary small mb-4">Selecciona los turnos para este día:</p>
                         <div className="d-grid gap-3">
-                            {TODOS_LOS_TURNOS.map(turno => {
+                            {posts.map(turno => {
                                 const seleccionado = idsTurnosSeleccionados.includes(turno.id);
                                 return (
                                     <button
-                                        key={turno.id}
+                                        key={turno.turnoId}
                                         onClick={() => alternarTurno(turno.id)}
                                         className={`btn text-start d-flex justify-content-between align-items-center p-3 rounded-3 transition-all ${seleccionado ? 'btn-success fw-bold shadow-sm border-2' : 'btn-outline-light text-dark border-secondary-subtle'}`}
                                     >
                                         <div>
-                                            {turno.nombre} 
-                                            <span className="badge rounded-pill bg-light text-secondary border ms-2" style={{fontSize: '0.7rem'}}>{turno.hora}</span>
+                                            {turno.descripcion} 
+                                            <span className="badge rounded-pill bg-light text-secondary border ms-2" style={{fontSize: '0.7rem'}}>{turno.horaInicio+'-'+turno.horaFin}</span>
                                         </div>
                                         {seleccionado && <Icono nombre="CheckCircle" size={20}/>}
                                     </button>
