@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { CalendarCheck, ChevronLeft, ChevronRight, X, PlusCircle, Clock, CheckCircle } from 'lucide-react';
 // Importaciones de subcomponentes (Manteniendo rutas originales para simular la estructura)
 import { Icono } from "../ProgramacionHorarioIndividual/Programacion/Components/Icono.js";
@@ -13,7 +13,8 @@ import ESTILOS_PERSONALIZADOS from './ESTILOS_PERSONALIZADOS.js';
 import {MESES_ES} from "./Programacion/Constants/MESES_ES.js"
 import {DIAS_SEMANA} from "./Programacion/Constants/DIAS_SEMANA.js"
 
-
+import TurnoService from "../Turno/TurnoService.js";
+import { cargarConfiguracionTurnos } from './Programacion/Data/CargarConfiguracionTurnos.js';
 
 export default function ProgramacionHorarioPersonal() {
     
@@ -26,6 +27,15 @@ export default function ProgramacionHorarioPersonal() {
     const [diaSeleccionadoParaEdicion, setDiaSeleccionadoParaEdicion] = useState(null);
     const [turnosMasivosSeleccionados, setTurnosMasivosSeleccionados] = useState([]);
     const [diasMasivosSeleccionados, setDiasMasivosSeleccionados] = useState([]);
+    const [turnosCargados, setTurnosCargados]  = useState([]);
+
+    useEffect(() => {
+        TurnoService.getTodos().then(res => {
+            // Configuramos el mapeo global antes de que las celdas se dibujen
+            cargarConfiguracionTurnos(res.data);
+            setTurnosCargados(true); // Un estado para avisar que ya podemos mostrar el calendario
+        });
+    }, []);
 
     const guardarHorario = useCallback((datosNuevos) => {
         setEstadoGuardado('guardando');

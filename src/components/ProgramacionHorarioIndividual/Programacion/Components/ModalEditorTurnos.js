@@ -4,6 +4,7 @@ import { TODOS_LOS_TURNOS } from '../Constants/TODOS_LOS_TURNOS';
 import TurnoService from "../../../Turno/TurnoService";
 import AuthService from "../../../Login/services/auth.service";
 import { useNavigate } from "react-router-dom";
+import { stringify } from "postcss";
 
 
 const ModalEditorTurnos = ({ estaAbierto, claveDia, alCerrar, horario, setHorario, alGuardar }) => {
@@ -15,12 +16,12 @@ const ModalEditorTurnos = ({ estaAbierto, claveDia, alCerrar, horario, setHorari
     const [loading, setLoading]  = useState(false);
     const [posts, setPosts] = useState([]);
     const navigate = useNavigate();
-
+/*
             useEffect(() => {
                 LoadData() ;
         }, []);
 
-                const LoadData = ()=>{
+            const LoadData = ()=>{
                     setLoading(true);
                         TurnoService.getTodos()
                         .then((response) => {
@@ -39,7 +40,7 @@ const ModalEditorTurnos = ({ estaAbierto, claveDia, alCerrar, horario, setHorari
                     });
             };    
             
-            
+           */ 
 
     useEffect(() => {
         if (claveDia) {
@@ -47,9 +48,13 @@ const ModalEditorTurnos = ({ estaAbierto, claveDia, alCerrar, horario, setHorari
         }
     }, [claveDia, horario]);
 
+
     if (!estaAbierto || !claveDia) return null;
 
     const alternarTurno = (turnoId) => {
+         // alert(turnoId)
+          //console.log(turnosSeleccionados)
+
         if (turnoId === 'libre') {
             setIdsTurnosSeleccionados(['libre']);
         } else {
@@ -67,7 +72,7 @@ const ModalEditorTurnos = ({ estaAbierto, claveDia, alCerrar, horario, setHorari
 
     const manejarGuardado = () => {
         const idsFinales = idsTurnosSeleccionados.length > 0 ? idsTurnosSeleccionados : ['libre'];
-        const nuevoHorario = { ...horario, [claveDia]: idsFinales };
+        const nuevoHorario = { ...horario, [claveDia]: idsFinales};
         setHorario(nuevoHorario);
         alGuardar(nuevoHorario);
         alCerrar();
@@ -89,11 +94,11 @@ const ModalEditorTurnos = ({ estaAbierto, claveDia, alCerrar, horario, setHorari
                         <p className="text-secondary small mb-4">Selecciona los turnos para este día:</p>
                         <div className="d-grid gap-3">
                             {posts.map(turno => {
-                                const seleccionado = idsTurnosSeleccionados.includes(turno.id);
+                                const seleccionado = idsTurnosSeleccionados.includes(turno.idTurno);
                                 return (
                                     <button
-                                        key={turno.turnoId}
-                                        onClick={() => alternarTurno(turno.id)}
+                                        key={turno.idTurno}
+                                        onClick={() => alternarTurno(turno.idTurno)}
                                         className={`btn text-start d-flex justify-content-between align-items-center p-3 rounded-3 transition-all ${seleccionado ? 'btn-success fw-bold shadow-sm border-2' : 'btn-outline-light text-dark border-secondary-subtle'}`}
                                     >
                                         <div>
