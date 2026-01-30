@@ -33,6 +33,7 @@ export default function ProgramacionHorarioPersonal() {
         TurnoService.getTodos().then(res => {
             // Configuramos el mapeo global antes de que las celdas se dibujen
             cargarConfiguracionTurnos(res.data);
+         
             setTurnosCargados(true); // Un estado para avisar que ya podemos mostrar el calendario
         });
     }, []);

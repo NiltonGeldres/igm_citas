@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
 import { Icono } from './Icono';
 import { TODOS_LOS_TURNOS } from '../Constants/TODOS_LOS_TURNOS';
-import TurnoService from "../../../Turno/TurnoService";
-import AuthService from "../../../Login/services/auth.service";
+//import TurnoService from "../../../Turno/TurnoService";
+//import AuthService from "../../../Login/services/auth.service";
 import { useNavigate } from "react-router-dom";
-import { stringify } from "postcss";
+//import { stringify } from "postcss";
 
 
 const ModalEditorTurnos = ({ estaAbierto, claveDia, alCerrar, horario, setHorario, alGuardar }) => {
@@ -16,6 +16,8 @@ const ModalEditorTurnos = ({ estaAbierto, claveDia, alCerrar, horario, setHorari
     const [loading, setLoading]  = useState(false);
     const [posts, setPosts] = useState([]);
     const navigate = useNavigate();
+  console.log("todos los turnos en Modal:  "+JSON.stringify(TODOS_LOS_TURNOS))
+    
 /*
             useEffect(() => {
                 LoadData() ;
@@ -93,7 +95,7 @@ const ModalEditorTurnos = ({ estaAbierto, claveDia, alCerrar, horario, setHorari
                     <div className="modal-body p-4">
                         <p className="text-secondary small mb-4">Selecciona los turnos para este día:</p>
                         <div className="d-grid gap-3">
-                            {posts.map(turno => {
+                            {TODOS_LOS_TURNOS.map(turno => {
                                 const seleccionado = idsTurnosSeleccionados.includes(turno.idTurno);
                                 return (
                                     <button
@@ -103,7 +105,7 @@ const ModalEditorTurnos = ({ estaAbierto, claveDia, alCerrar, horario, setHorari
                                     >
                                         <div>
                                             {turno.descripcion} 
-                                            <span className="badge rounded-pill bg-light text-secondary border ms-2" style={{fontSize: '0.7rem'}}>{turno.horaInicio+'-'+turno.horaFin}</span>
+                                            <span className="badge rounded-pill bg-light text-secondary border ms-2" style={{fontSize: '0.7rem'}}>{turno.hora}</span>
                                         </div>
                                         {seleccionado && <Icono nombre="CheckCircle" size={20}/>}
                                     </button>

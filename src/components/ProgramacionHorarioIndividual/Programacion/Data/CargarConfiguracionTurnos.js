@@ -1,8 +1,9 @@
 // Esta es tu única "Constante", pero es dinámica
 export let MAPEO_TURNOS = {
     'libre': { 
-        id: 'libre', 
-        nombre: 'Libre', 
+        idTurno: 'libre', 
+        descripcion: 'Libre', 
+        hora: 'Libre', 
         claseColor: 'bg-light text-secondary border' 
     }
 };
@@ -11,11 +12,13 @@ export let MAPEO_TURNOS = {
 export const cargarConfiguracionTurnos = (turnosDesdeApi) => {
     turnosDesdeApi.forEach((turno, index) => {
         MAPEO_TURNOS[turno.idTurno] = {
-            id: turno.idTurno,
-            nombre: turno.descripcion,
+            idTurno: turno.idTurno,
+            descripcion: turno.descripcion,
+            hora: turno.horaInicio+"-"+ turno.horaFin,
             // Generamos colores dinámicos o los traemos de la API si los tienes
             claseColor: obtenerColorPorIndice(index)
         };
+            console.log("MAPEO DE TURNOS "+JSON.stringify(MAPEO_TURNOS)) ;          
     });
 };
 
