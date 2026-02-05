@@ -16,6 +16,8 @@ import {DIAS_SEMANA} from "./Programacion/Constants/DIAS_SEMANA.js"
 import TurnoService from "../Turno/TurnoService.js";
 import { cargarConfiguracionTurnos } from './Programacion/Data/CargarConfiguracionTurnos.js';
 
+import { TODOS_LOS_TURNOS } from "../ProgramacionHorarioIndividual/Programacion/Constants";
+
 export default function ProgramacionHorarioPersonal() {
     
     const [fechaActual, setFechaActual] = useState(new Date()); 
@@ -33,10 +35,13 @@ export default function ProgramacionHorarioPersonal() {
         TurnoService.getTodos().then(res => {
             // Configuramos el mapeo global antes de que las celdas se dibujen
             cargarConfiguracionTurnos(res.data);
-         
+          console.log("todos los turnos en Useffec:  "+JSON.stringify(TODOS_LOS_TURNOS))
+            
             setTurnosCargados(true); // Un estado para avisar que ya podemos mostrar el calendario
         });
     }, []);
+
+  console.log("todos los turnos fuera Useffec:  "+JSON.stringify(TODOS_LOS_TURNOS))
 
     const guardarHorario = useCallback((datosNuevos) => {
         setEstadoGuardado('guardando');
