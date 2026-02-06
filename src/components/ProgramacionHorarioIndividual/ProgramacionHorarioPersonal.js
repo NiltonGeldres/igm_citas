@@ -14,9 +14,10 @@ import {MESES_ES} from "./Programacion/Constants/MESES_ES.js"
 import {DIAS_SEMANA} from "./Programacion/Constants/DIAS_SEMANA.js"
 
 import TurnoService from "../Turno/TurnoService.js";
-import { cargarConfiguracionTurnos } from './Programacion/Data/CargarConfiguracionTurnos.js';
-
-import { TODOS_LOS_TURNOS } from "../ProgramacionHorarioIndividual/Programacion/Constants";
+//import { cargarConfiguracionTurnos } from './Programacion/Data/CargarConfiguracionTurnos.js';
+//import { TODOS_LOS_TURNOS } from "../ProgramacionHorarioIndividual/Programacion/Constants/TODOS_LOS_TURNOS.js";
+import { cargarConfiguracionTurnos, MAPEO_TURNOS } from "./Programacion/Data/CargarConfiguracionTurnos.js";
+//import { TODOS_LOS_TURNOS } from "../ProgramacionHorarioIndividual/Programacion/Constants/TODOS_LOS_TURNOS.js";
 
 export default function ProgramacionHorarioPersonal() {
     
@@ -33,15 +34,18 @@ export default function ProgramacionHorarioPersonal() {
 
     useEffect(() => {
         TurnoService.getTodos().then(res => {
-            // Configuramos el mapeo global antes de que las celdas se dibujen
+            // 1. Cargamos la configuración en el objeto global
             cargarConfiguracionTurnos(res.data);
-          console.log("todos los turnos en Useffec:  "+JSON.stringify(TODOS_LOS_TURNOS))
             
-            setTurnosCargados(true); // Un estado para avisar que ya podemos mostrar el calendario
-        });
+            // 2. Ahora sí, si haces Object.values, verás los datos nuevos
+            const turnosParaEstado = Object.values(MAPEO_TURNOS);
+            console.log("Turnos cargados correctamente:", turnosParaEstado);
+            
+            // 3. Actualizamos el estado para disparar el re-renderizado
+                    setTurnosCargados(turnosParaEstado);        });
     }, []);
 
-  console.log("todos los turnos fuera Useffec:  "+JSON.stringify(TODOS_LOS_TURNOS))
+//  console.log("todos los turnos fuera Useffec:  "+JSON.stringify(TODOS_LOS_TURNOS))
 
     const guardarHorario = useCallback((datosNuevos) => {
         setEstadoGuardado('guardando');

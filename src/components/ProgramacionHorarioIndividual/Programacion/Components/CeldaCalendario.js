@@ -9,11 +9,11 @@ const CeldaCalendario = React.memo(({ dia, claveFecha, esHoy, tieneHorario, esta
     if (!dia) {
         return <div className="calendar-cell p-2 bg-light border-0 opacity-25"></div>;
     }
- console.log("HORARIO "+JSON.stringify(horario))
+ 
 
     const turnosActuales = horario[claveFecha] || [MAPEO_TURNOS.libre.id]; 
     const esLibre = turnosActuales.length === 1 && turnosActuales[0] === MAPEO_TURNOS.libre.id;
- console.log("TURNOS ACTUALES "+turnosActuales)
+ //console.log("TURNOS ACTUALES "+turnosActuales)
     const claseFondo = estaSeleccionadoMasivo ? 'bg-primary-subtle border-primary shadow-sm' : 'bg-white border-light';
     const clasesDia = `
         calendar-cell
@@ -44,7 +44,7 @@ const CeldaCalendario = React.memo(({ dia, claveFecha, esHoy, tieneHorario, esta
                 ) : (
                     turnosActuales.map(turnoId => {
                         const t = MAPEO_TURNOS[turnoId] || { nombre: '?', claseColor: 'bg-danger text-white' };
- console.log(turnoId+"   MAPEO TURNOS "+JSON.stringify(t))
+ //console.log(turnoId+"   MAPEO TURNOS "+JSON.stringify(t))
                         return (
                             <span key={turnoId} className={`badge rounded-pill ${t.claseColor} fw-normal`} style={{fontSize: '0.65rem'}}>
                                 {t.nombre.substring(0, 1)}

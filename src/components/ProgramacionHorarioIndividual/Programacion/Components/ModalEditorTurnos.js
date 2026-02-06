@@ -16,33 +16,10 @@ const ModalEditorTurnos = ({ estaAbierto, claveDia, alCerrar, horario, setHorari
     const [loading, setLoading]  = useState(false);
     const [posts, setPosts] = useState([]);
     const navigate = useNavigate();
+    
   console.log("todos los turnos en Modal:  "+JSON.stringify(TODOS_LOS_TURNOS))
     
-/*
-            useEffect(() => {
-                LoadData() ;
-        }, []);
 
-            const LoadData = ()=>{
-                    setLoading(true);
-                        TurnoService.getTodos()
-                        .then((response) => {
-                            console.log("TURNOS  "+JSON.stringify(response) );                    
-                            console.log("TURNOS 2 "+JSON.stringify(response.data) );                    
-                            setPosts(response.data);
-
-                    setLoading(false);
-                    },(error) => {
-                        console.log("Turno PostService Error page", error.response);
-                        if (error.response && error.response.status === 403) {
-                            AuthService.logout();
-                            navigate("/login");
-                            window.location.reload();
-                        }
-                    });
-            };    
-            
-           */ 
 
     useEffect(() => {
         if (claveDia) {

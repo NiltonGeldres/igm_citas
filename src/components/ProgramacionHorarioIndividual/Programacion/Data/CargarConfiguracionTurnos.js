@@ -8,6 +8,9 @@ export let MAPEO_TURNOS = {
     }
 };
 
+
+export const obtenerTodosLosTurnos = () => Object.values(MAPEO_TURNOS);
+
 // Esta función la llamas al iniciar la App o el Calendario
 export const cargarConfiguracionTurnos = (turnosDesdeApi) => {
     turnosDesdeApi.forEach((turno, index) => {
@@ -18,7 +21,7 @@ export const cargarConfiguracionTurnos = (turnosDesdeApi) => {
             // Generamos colores dinámicos o los traemos de la API si los tienes
             claseColor: obtenerColorPorIndice(index)
         };
-            console.log("MAPEO DE TURNOS "+JSON.stringify(MAPEO_TURNOS)) ;          
+          //  console.log("MAPEO DE TURNOS "+JSON.stringify(MAPEO_TURNOS)) ;          
     });
 };
 
