@@ -39,7 +39,6 @@ export default function ProgramacionHorarioPersonal() {
             
             // 2. Ahora sí, si haces Object.values, verás los datos nuevos
             const turnosParaEstado = Object.values(MAPEO_TURNOS);
-            console.log("Turnos cargados correctamente:", turnosParaEstado);
             
             // 3. Actualizamos el estado para disparar el re-renderizado
                     setTurnosCargados(turnosParaEstado);        });
@@ -48,6 +47,7 @@ export default function ProgramacionHorarioPersonal() {
 //  console.log("todos los turnos fuera Useffec:  "+JSON.stringify(TODOS_LOS_TURNOS))
 
     const guardarHorario = useCallback((datosNuevos) => {
+        console.log("GUARDAR ===> "+JSON.stringify(datosNuevos));
         setEstadoGuardado('guardando');
         setTimeout(() => {
             setEstadoGuardado('guardado');
@@ -134,6 +134,8 @@ export default function ProgramacionHorarioPersonal() {
         const offsetInicio = (primerDiaMes.getDay() - 1 + 7) % 7; 
         const celdas = [];
         const claveHoy = new Date().toISOString().slice(0, 10);
+        console.log("Clave Hoy ===> "+claveHoy);
+
 
         for (let i = 0; i < offsetInicio; i++) {
             celdas.push(<CeldaCalendario key={`vacia-${i}`} dia={null} />);

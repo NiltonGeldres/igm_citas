@@ -1,3 +1,5 @@
+//cargarConfiguracionTurnos.js
+
 // Esta es tu única "Constante", pero es dinámica
 export let MAPEO_TURNOS = {
     'libre': { 

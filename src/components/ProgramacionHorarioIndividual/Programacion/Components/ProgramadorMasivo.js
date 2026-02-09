@@ -1,10 +1,14 @@
 import { SHIFTS_DATA } from "../Data/Data";
 import { Icono } from "./Icono";
-import {TODOS_LOS_TURNOS} from "../Constants/TODOS_LOS_TURNOS"
+//import {TODOS_LOS_TURNOS} from "../Constants/TODOS_LOS_TURNOS"
+import { obtenerListaTurnos } from '../Constants/TODOS_LOS_TURNOS';
+
 
 const ProgramadorMasivo = ({ turnosSeleccionados, alternarTurno, aplicarATodosLosDias, aplicarProgramacionMasiva }) => {
     const cantidadSeleccionada = turnosSeleccionados.length;
     const estaListoParaAplicar = cantidadSeleccionada > 0;
+    //  Carga de Turnos
+    const listaDeTurnos = obtenerListaTurnos();
     
     return (
         <div className="card shadow-lg bg-white h-100 border-0">
@@ -15,15 +19,15 @@ const ProgramadorMasivo = ({ turnosSeleccionados, alternarTurno, aplicarATodosLo
             <div className="card-body">
                 <h5 className="h6 fw-bold mb-3 text-dark">1. Selecciona Turnos:</h5>
                 <div className="d-grid gap-2">
-                    {TODOS_LOS_TURNOS.map(turno => {
-                        const estaSeleccionado = turnosSeleccionados.includes(turno.id);
+                    {listaDeTurnos.map(turno => {
+                        const estaSeleccionado = turnosSeleccionados.includes(turno.idTurno);
                         return (
                             <button
-                                key={turno.id}
-                                onClick={() => alternarTurno(turno.id)}
+                                key={turno.idTurno}
+                                onClick={() => alternarTurno(turno.idTurno)}
                                 className={`btn d-flex flex-column align-items-start fw-semibold text-start transition-all ${estaSeleccionado ? 'btn-success shadow-sm' : 'btn-outline-secondary'}`}
                             >
-                                {turno.nombre}
+                                {turno.descripcion}
                                 <span className="small opacity-75" style={{fontSize: '0.7rem'}}>{turno.hora}</span>
                             </button>
                         );

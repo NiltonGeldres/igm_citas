@@ -1,3 +1,5 @@
-import {MAPEO_TURNOS} from "../Data/CargarConfiguracionTurnos";
+// TODOS_LOS_TURNOS.js
+import { MAPEO_TURNOS } from "../Data/CargarConfiguracionTurnos";
 
-export const TODOS_LOS_TURNOS = Object.values(MAPEO_TURNOS);
+// En lugar de una constante, exportamos una función que lea el objeto en tiempo real
+export const obtenerListaTurnos = () => Object.values(MAPEO_TURNOS);

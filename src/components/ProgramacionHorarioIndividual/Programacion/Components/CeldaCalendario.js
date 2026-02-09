@@ -1,3 +1,4 @@
+//CeldaCalendario.js
 import React from "react";
 import { Icono } from "./Icono";
 import { TODOS_LOS_TURNOS } from "../Constants/TODOS_LOS_TURNOS";
@@ -13,7 +14,6 @@ const CeldaCalendario = React.memo(({ dia, claveFecha, esHoy, tieneHorario, esta
 
     const turnosActuales = horario[claveFecha] || [MAPEO_TURNOS.libre.id]; 
     const esLibre = turnosActuales.length === 1 && turnosActuales[0] === MAPEO_TURNOS.libre.id;
- //console.log("TURNOS ACTUALES "+turnosActuales)
     const claseFondo = estaSeleccionadoMasivo ? 'bg-primary-subtle border-primary shadow-sm' : 'bg-white border-light';
     const clasesDia = `
         calendar-cell
@@ -43,11 +43,10 @@ const CeldaCalendario = React.memo(({ dia, claveFecha, esHoy, tieneHorario, esta
                     <span className="badge rounded-pill text-bg-secondary fw-normal opacity-50" style={{fontSize: '0.65rem'}}>Libre</span>
                 ) : (
                     turnosActuales.map(turnoId => {
-                        const t = MAPEO_TURNOS[turnoId] || { nombre: '?', claseColor: 'bg-danger text-white' };
- //console.log(turnoId+"   MAPEO TURNOS "+JSON.stringify(t))
+                        const t = MAPEO_TURNOS[turnoId] || { descripcion: '?', claseColor: 'bg-danger text-white' };
                         return (
                             <span key={turnoId} className={`badge rounded-pill ${t.claseColor} fw-normal`} style={{fontSize: '0.65rem'}}>
-                                {t.nombre.substring(0, 1)}
+                                {t.descripcion.substring(0, 1)}
                             </span>
                         );
                     })

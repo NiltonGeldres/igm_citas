@@ -1,25 +1,19 @@
+// ModalEditorTurnos.js 
+
 import { useState, useEffect } from "react";
 import { Icono } from './Icono';
-import { TODOS_LOS_TURNOS } from '../Constants/TODOS_LOS_TURNOS';
-//import TurnoService from "../../../Turno/TurnoService";
-//import AuthService from "../../../Login/services/auth.service";
+//import { TODOS_LOS_TURNOS } from '../Constants/TODOS_LOS_TURNOS';
 import { useNavigate } from "react-router-dom";
-//import { stringify } from "postcss";
+import { obtenerListaTurnos } from '../Constants/TODOS_LOS_TURNOS';
+
 
 
 const ModalEditorTurnos = ({ estaAbierto, claveDia, alCerrar, horario, setHorario, alGuardar }) => {
     const turnosIniciales = horario[claveDia] || ['libre'];
     const [idsTurnosSeleccionados, setIdsTurnosSeleccionados] = useState(turnosIniciales);
     const diaActual = new Date(claveDia + 'T00:00:00').getDate();
-
     //  Carga de Turnos
-    const [loading, setLoading]  = useState(false);
-    const [posts, setPosts] = useState([]);
-    const navigate = useNavigate();
-    
-  console.log("todos los turnos en Modal:  "+JSON.stringify(TODOS_LOS_TURNOS))
-    
-
+    const listaDeTurnos = obtenerListaTurnos();
 
     useEffect(() => {
         if (claveDia) {
@@ -31,9 +25,6 @@ const ModalEditorTurnos = ({ estaAbierto, claveDia, alCerrar, horario, setHorari
     if (!estaAbierto || !claveDia) return null;
 
     const alternarTurno = (turnoId) => {
-         // alert(turnoId)
-          //console.log(turnosSeleccionados)
-
         if (turnoId === 'libre') {
             setIdsTurnosSeleccionados(['libre']);
         } else {
@@ -50,8 +41,12 @@ const ModalEditorTurnos = ({ estaAbierto, claveDia, alCerrar, horario, setHorari
     };
 
     const manejarGuardado = () => {
+        if (!claveDia) return; // Supervivencia: si no hay clave, no guardes nada
         const idsFinales = idsTurnosSeleccionados.length > 0 ? idsTurnosSeleccionados : ['libre'];
+        console.log("Horario =>  "+ JSON.stringify(horario))
+        console.log("Clave Dia =>  "+ JSON.stringify(claveDia))
         const nuevoHorario = { ...horario, [claveDia]: idsFinales};
+        console.log("Nuevo Horario =>  "+ JSON.stringify(nuevoHorario))
         setHorario(nuevoHorario);
         alGuardar(nuevoHorario);
         alCerrar();
@@ -72,7 +67,7 @@ const ModalEditorTurnos = ({ estaAbierto, claveDia, alCerrar, horario, setHorari
                     <div className="modal-body p-4">
                         <p className="text-secondary small mb-4">Selecciona los turnos para este día:</p>
                         <div className="d-grid gap-3">
-                            {TODOS_LOS_TURNOS.map(turno => {
+                            {listaDeTurnos.map(turno => {
                                 const seleccionado = idsTurnosSeleccionados.includes(turno.idTurno);
                                 return (
                                     <button
