@@ -1,3 +1,5 @@
+//src/components/ProgramacionHorarioIndividual/ProgramacionHorarioIndividual.js
+
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { CalendarCheck, ChevronLeft, ChevronRight, X, PlusCircle, Clock, CheckCircle } from 'lucide-react';
 // Importaciones de subcomponentes (Manteniendo rutas originales para simular la estructura)
@@ -18,8 +20,10 @@ import TurnoService from "../Turno/TurnoService.js";
 //import { TODOS_LOS_TURNOS } from "../ProgramacionHorarioIndividual/Programacion/Constants/TODOS_LOS_TURNOS.js";
 import { cargarConfiguracionTurnos, MAPEO_TURNOS } from "./Programacion/Data/CargarConfiguracionTurnos.js";
 //import { TODOS_LOS_TURNOS } from "../ProgramacionHorarioIndividual/Programacion/Constants/TODOS_LOS_TURNOS.js";
+import ProgramacionHorarioIndividualService from "../ProgramacionHorarioIndividual/ProgramacionMedicaIndividualService.js";
 
-export default function ProgramacionHorarioPersonal() {
+
+export default function ProgramacionHorarioIndividual() {
     
     const [fechaActual, setFechaActual] = useState(new Date()); 
     const [horarioCalendario, setHorarioCalendario] = useState({}); 
@@ -45,7 +49,7 @@ export default function ProgramacionHorarioPersonal() {
     }, []);
 
 //  console.log("todos los turnos fuera Useffec:  "+JSON.stringify(TODOS_LOS_TURNOS))
-
+/*
     const guardarHorario = useCallback((datosNuevos) => {
         console.log("GUARDAR ===> "+JSON.stringify(datosNuevos));
         setEstadoGuardado('guardando');
@@ -54,6 +58,63 @@ export default function ProgramacionHorarioPersonal() {
             setTimeout(() => setEstadoGuardado(null), 2000);
         }, 600);
     }, []);
+*/
+
+// Dentro de export default function ProgramacionHorarioIndividual() { ...
+
+// Función para obtener y formatear la data del servidor al estado del calendario
+const cargarDatosPrevios = useCallback(async () => {
+    setEstadoGuardado('guardando'); // Reutilizamos el estado para mostrar carga
+    const mes = fechaActual.getMonth() + 1;
+    const anio = fechaActual.getFullYear();
+    const idEspecialidad = 1; // Obtener de tus filtros
+    const idMedico = 1;       // Obtener de tu sesión o filtros
+    try {
+        const res = await ProgramacionHorarioIndividualService.getProgramacionMedicoMesBlanco(mes, anio, idEspecialidad, idMedico);
+        if (res.data) {
+            // Suponiendo que res.data viene en formato { "2024-05-01": ["turno1"], ... }
+            // Si el JSON viene diferente, aquí debes mapearlo al formato de tu estado
+            const dataConFormato = mapearAFormatoCalendario(res.data)
+            setHorarioCalendario(dataConFormato);
+        }
+    } catch (error) {
+        console.error("Error al cargar programación previa:", error);
+    } finally {
+        setEstadoGuardado(null);
+    }
+}, [fechaActual]);
+
+const mapearAFormatoCalendario = (data) => {
+    return data; 
+}
+
+
+// Efecto para cargar datos cada vez que la fecha (mes/año) cambia
+useEffect(() => {
+    cargarDatosPrevios();
+}, [cargarDatosPrevios]);
+
+
+
+// Actualizar la función guardarHorario para que sea real
+const guardarHorario = useCallback(async (datosNuevos) => {
+    setEstadoGuardado('guardando');
+    
+    try {
+        // Aquí llamarías a tu servicio de GUARDADO (no al de carga "Blanco")
+        // await ProgramacionService.guardar(datosNuevos);
+        
+        console.log("Datos a enviar:", datosNuevos);
+        
+        setEstadoGuardado('guardado');
+        setTimeout(() => setEstadoGuardado(null), 2000);
+    } catch (error) {
+        setEstadoGuardado(null);
+        alert("Error al guardar");
+    }
+}, []);
+
+/////////////////////////////////////////////
 
     const irMesAnterior = useCallback(() => {
         setFechaActual(prev => {

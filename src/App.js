@@ -14,7 +14,7 @@ import CitaSeparada from "./components/CitaSeparada/CitaSeparada"; // Asumiendo 
 import Cita from "./components/Cita/Cita"; // Asumiendo que esta es la página de "Citados"
 import Usuario from "./components/Usuario/Usuario"; // Asumiendo que esta es la página de "Citados"
 import Facturacion from "./components/Facturacion/Facturacion";
-import ProgramacionHorarioPersonal from "./components/ProgramacionHorarioIndividual/ProgramacionHorarioPersonal";
+import ProgramacionHorarioIndividual from "./components/ProgramacionHorarioIndividual/ProgramacionHorarioIndividual";
 import { jwtDecode } from "jwt-decode"; 
 import UsuarioService from '../src/components/Usuario/UsuarioService'
 import ProgramacionHorario from "./components/ProgramacionHorario/ProgramacionHorario";
@@ -147,7 +147,7 @@ function App() {
           La altura de la navbar (Styles.navbar) es aproximadamente 60px. */}
       <div style={{ flexGrow: 1, width: '100%', paddingTop: '60px' }}>
         <Routes>
-          <Route path="/home" element={<ProgramacionHorarioPersonal/>} />
+          <Route path="/home" element={<ProgramacionHorarioIndividual/>} />
           <Route path="/home" element={<Home />} />
           <Route path="/login" element={<Login setCurrentUser={setCurrentUser} setUserName={setUserName} />} />
           <Route path="/signup" element={<Signup/>} />
@@ -159,7 +159,8 @@ function App() {
               <Route path="/atenciones" element={<AtencionMedicaForm />} />
               <Route path="/citados" element={<CitaSeparada />} />
               <Route path="/facturacion" element={<Facturacion />} />
-              <Route path="/programacion" element={<ProgramacionHorarioPersonal/>} />
+              <Route path="/programacion" element={<ProgramacionHorario/>} />
+              <Route path="/programacionI" element={<ProgramacionHorarioIndividual/>} />
               <Route path="/Cita" element={<Cita/>} />
               <Route path="/CitaSeparada" element={<CitaSeparada />} />
               <Route path="/Usuario" element={<Usuario/>} />

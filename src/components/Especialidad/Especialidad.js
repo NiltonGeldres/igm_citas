@@ -96,6 +96,7 @@ const Especialidad = ({ valueEspecialidad, textEspecialidad }) => {
         id="especialidad-select" // ID para asociar con FormLabel si se usa
         placeholder="Selecciona una Especialidad" // Texto por defecto
         onChange={handleSelectChange}
+        onClick={handleSelectChange}
         variant="filled" // Estilo de relleno para el select
         colorScheme="blue" // Esquema de color
         borderRadius="md" // Bordes redondeados
