@@ -40,6 +40,16 @@ const ModalEditorTurnos = ({ estaAbierto, claveDia, alCerrar, horario, setHorari
         }
     };
 
+    const seleccionarTurnoUnico = (turnoId) => {
+    // Si el médico hace clic en el que ya está seleccionado, lo desmarcamos (pasa a libre)
+    // Si hace clic en uno nuevo, reemplazamos el anterior
+    const nuevosSeleccionados = idsTurnosSeleccionados.includes(turnoId) 
+        ? ['libre'] 
+        : [turnoId];
+    
+    setIdsTurnosSeleccionados(nuevosSeleccionados);
+};
+
     const manejarGuardado = () => {
         if (!claveDia) return; // Supervivencia: si no hay clave, no guardes nada
         const idsFinales = idsTurnosSeleccionados.length > 0 ? idsTurnosSeleccionados : ['libre'];
@@ -70,17 +80,12 @@ const ModalEditorTurnos = ({ estaAbierto, claveDia, alCerrar, horario, setHorari
                             {listaDeTurnos.map(turno => {
                                 const seleccionado = idsTurnosSeleccionados.includes(turno.idTurno);
                                 return (
-                                    <button
-                                        key={turno.idTurno}
-                                        onClick={() => alternarTurno(turno.idTurno)}
-                                        className={`btn text-start d-flex justify-content-between align-items-center p-3 rounded-3 transition-all ${seleccionado ? 'btn-success fw-bold shadow-sm border-2' : 'btn-outline-light text-dark border-secondary-subtle'}`}
-                                    >
-                                        <div>
-                                            {turno.descripcion} 
-                                            <span className="badge rounded-pill bg-light text-secondary border ms-2" style={{fontSize: '0.7rem'}}>{turno.hora}</span>
-                                        </div>
-                                        {seleccionado && <Icono nombre="CheckCircle" size={20}/>}
-                                    </button>
+                                        <button 
+                                            onClick={() => seleccionarTurnoUnico(turno.idTurno)}
+                                            className={`btn ${idsTurnosSeleccionados.includes(turno.idTurno) ? 'btn-primary' : 'btn-outline-primary'}`}
+                                        >
+                                            {turno.descripcion}
+                                        </button>                                    
                                 );
                             })}
                         </div>
@@ -99,3 +104,18 @@ const ModalEditorTurnos = ({ estaAbierto, claveDia, alCerrar, horario, setHorari
     );
 };
 export default ModalEditorTurnos;
+
+/*
+                                    <button
+                                        key={turno.idTurno}
+                                        onClick={() => alternarTurno(turno.idTurno)}
+                                        className={`btn text-start d-flex justify-content-between align-items-center p-3 rounded-3 transition-all ${seleccionado ? 'btn-success fw-bold shadow-sm border-2' : 'btn-outline-light text-dark border-secondary-subtle'}`}
+                                    >
+                                        <div>
+                                            {turno.descripcion} 
+                                            <span className="badge rounded-pill bg-light text-secondary border ms-2" style={{fontSize: '0.7rem'}}>{turno.hora}</span>
+                                        </div>
+                                        {seleccionado && <Icono nombre="CheckCircle" size={20}/>}
+                                    </button>
+
+*/ 

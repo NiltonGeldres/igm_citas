@@ -42,14 +42,28 @@ const CeldaCalendario = React.memo(({ dia, claveFecha, esHoy, tieneHorario, esta
                 {esLibre ? (
                     <span className="badge rounded-pill text-bg-secondary fw-normal opacity-50" style={{fontSize: '0.65rem'}}>Libre</span>
                 ) : (
-                    turnosActuales.map(turnoId => {
-                        const t = MAPEO_TURNOS[turnoId] || { descripcion: '?', claseColor: 'bg-danger text-white' };
-                        return (
-                            <span key={turnoId} className={`badge rounded-pill ${t.claseColor} fw-normal`} style={{fontSize: '0.65rem'}}>
-                                {t.descripcion.substring(0, 1)}
-                            </span>
-                        );
-                    })
+// CeldaCalendario.js
+turnosActuales.map(turnoId => {
+    const t = MAPEO_TURNOS[turnoId] || MAPEO_TURNOS['libre'];
+    
+    // Si el ID es 'libre', no queremos solo la "L", queremos el texto o un icono
+    const esLibre = turnoId === 'libre';
+    const textoMostrar = esLibre ? "Libre" : (t.descripcion || '').substring(0, 1);
+
+    return (
+        <span 
+            key={turnoId} 
+            className={`badge rounded-pill ${t.claseColor} fw-normal d-flex align-items-center justify-content-center`} 
+            style={{ 
+                fontSize: esLibre ? '0.6rem' : '0.65rem',
+                minWidth: esLibre ? '45px' : '20px' // Le damos más ancho si es la palabra "Libre"
+            }}
+        >
+            {esLibre && <Icono nombre="X" size={10} className="me-1" />} 
+            {textoMostrar}
+        </span>
+    );
+})
                 )}
             </div>
         </div>

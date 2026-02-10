@@ -36,16 +36,17 @@ export default function ProgramacionHorarioIndividual() {
     const [diasMasivosSeleccionados, setDiasMasivosSeleccionados] = useState([]);
     const [turnosCargados, setTurnosCargados]  = useState([]);
 
+            // Estado para simular la programación actual de turnos en el calendario (Day: [Shift IDs])
+            /*const [calendarSchedule, setCalendarSchedule] = useState({
+                '3': ['morning', 'afternoon'],
+                '15': ['morning', 'afternoon', 'evening'],
+            });*/
+
     useEffect(() => {
         TurnoService.getTodos().then(res => {
-            // 1. Cargamos la configuración en el objeto global
             cargarConfiguracionTurnos(res.data);
-            
-            // 2. Ahora sí, si haces Object.values, verás los datos nuevos
             const turnosParaEstado = Object.values(MAPEO_TURNOS);
-            
-            // 3. Actualizamos el estado para disparar el re-renderizado
-                    setTurnosCargados(turnosParaEstado);        });
+            setTurnosCargados(turnosParaEstado);        });
     }, []);
 
 //  console.log("todos los turnos fuera Useffec:  "+JSON.stringify(TODOS_LOS_TURNOS))
@@ -72,6 +73,8 @@ const cargarDatosPrevios = useCallback(async () => {
     try {
         const res = await ProgramacionHorarioIndividualService.getProgramacionMedicoMesBlanco(mes, anio, idEspecialidad, idMedico);
         if (res.data) {
+
+
             // Suponiendo que res.data viene en formato { "2024-05-01": ["turno1"], ... }
             // Si el JSON viene diferente, aquí debes mapearlo al formato de tu estado
             const dataConFormato = mapearAFormatoCalendario(res.data)
@@ -145,13 +148,18 @@ const guardarHorario = useCallback(async (datosNuevos) => {
             return !prev;
         });
     }, []);
-
+/*
     const alternarTurnoMasivo = useCallback((turnoId) => {
         setTurnosMasivosSeleccionados(prev =>
             prev.includes(turnoId) ? prev.filter(id => id !== turnoId) : [...prev, turnoId]
         );
     }, []);
-    
+    */
+const alternarTurnoMasivo = useCallback((turnoId) => {
+    // Si el usuario hace clic en un turno, ese es el ÚNICO seleccionado
+    setTurnosMasivosSeleccionados([turnoId]);
+}, []);
+
     const seleccionarTodoElMes = useCallback(() => {
         const año = fechaActual.getFullYear();
         const mes = fechaActual.getMonth();
