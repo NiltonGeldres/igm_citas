@@ -1,3 +1,5 @@
+
+
 // src/App.js
 import React, { useState, useEffect } from "react";
 import { Routes, Route, useNavigate } from "react-router-dom";
@@ -189,3 +191,119 @@ function App() {
 }
 
 export default App;
+
+/*.....................................................................*/
+   //  console.log("todos los turnos fuera Useffec:  "+JSON.stringify(TODOS_LOS_TURNOS))
+  /*  const guardarHorario = useCallback((datosNuevos) => {
+        console.log("GUARDAR ===> "+JSON.stringify(datosNuevos));
+        setEstadoGuardado('guardando');
+        setTimeout(() => {
+            setEstadoGuardado('guardado');
+            setTimeout(() => setEstadoGuardado(null), 2000);
+        }, 600);
+    }, []);
+*/
+
+
+
+/**................................................................... 
+ * 
+     const cargarProgramacionCompleta = useCallback(async () => {
+        // 1. Preparar parámetros (estos vendrían de tus estados de filtros)
+        const mes = fechaActual.getMonth() + 1;
+        const anio = fechaActual.getFullYear();
+        const idEspecialidad = 9; // id de ejemplo
+        const idMedico = 1762;    // id de 
+        
+        console.log("DATA BLANCO cargarProgramacionCompleta   "+ mes+anio)
+
+        setEstadoGuardado('guardando ');
+
+        try {
+            // 2. Llamada al Service
+            const res = await ProgramacionHorarioIndividualService.getProgramacionMedicoMesBlanco(
+                mes, anio, idEspecialidad, idMedico
+            );
+              console.log("DATA BLANCO "+JSON.stringify(res))
+
+            if (res.data && Array.isArray(res.data)) {
+                // 3. TRANSFORMACIÓN A MODELOS (La clave del éxito)
+                // Convertimos cada objeto plano del JSON en un "Modelo Funcional"
+                console.log("DATA BLANCO "+JSON.stringify(res.data))
+                const modelosProcesados = res.data.map(item => crearProgramacionHorarioDia(item));
+
+                // 4. ACTUALIZAR ESTADOS
+                // Guardamos la lista completa de modelos (los 31 días)
+                setDatosOriginalesBackend(modelosProcesados);
+
+                // Generamos el mapa visual para el calendario { "2026-05-01": ["1"] }
+                const mapaParaUI = mapearListaAUI(res.data);
+                setHorarioCalendario(mapaParaUI);
+                
+                console.log("Datos cargados y modelados correctamente.");
+            }
+        } catch (error) {
+            console.error("Error al obtener la programación del médico:", error);
+        } finally {
+            setEstadoGuardado(null);
+        }
+    }, [fechaActual]); 
+
+    // Disparador automático al cambiar de mes/año
+    useEffect(() => {
+        cargarProgramacionCompleta();
+    }, [cargarProgramacionCompleta]);
+
+    const prepararDatosParaEnvio = (horarioUI, plantillaOriginal) => {
+        // Recorremos la plantilla original (los 31 días que el backend nos envió)
+        return plantillaOriginal.map(diaOriginal => {
+            // 1. Obtenemos la clave de este día (ej: "2026-05-01")
+            const clave = diaOriginal.getClaveCalendario();
+            // 2. Buscamos qué seleccionó el usuario en el calendario de React
+            const seleccionUI = horarioUI[clave]; // Devuelve ['1'], ['2'] o ['libre']
+            // 3. Determinamos el ID del turno (0 si es libre)
+            const nuevoIdTurno = (seleccionUI && seleccionUI[0] !== 'libre') 
+                ? seleccionUI[0] 
+                : 0;
+            // 4. Usamos nuestro "Setter Inmutable" para crear el objeto actualizado
+            const diaActualizado = actualizarTurnoEnDia(diaOriginal, nuevoIdTurno);
+            // 5. IMPORTANTE: El backend no necesita la función 'getClaveCalendario'
+            // Extraemos solo los datos puros (data transfer object)
+            const { getClaveCalendario, ...datosLimpios } = diaActualizado;
+            return datosLimpios;
+        });
+    };
+
+    const guardarHorario = useCallback(async () => {
+        setEstadoGuardado('guardando');
+        try {
+            // Generamos el array final de 31 objetos perfectamente modelados
+            const datosFinales = prepararDatosParaEnvio(horarioCalendario, datosOriginalesBackend);
+
+            console.log("JSON listo para la API:", datosFinales);
+            // Llamada al servicio (POST / PUT)
+            const respuesta = await ProgramacionHorarioIndividualService.guardarProgramacionMes(datosFinales);
+            if (respuesta.status === 200) {
+                setEstadoGuardado('guardado');
+                // Opcional: Recargar datos del servidor para confirmar
+                // cargarProgramacionExistente();
+            }
+        } catch (error) {
+            console.error("Error al sincronizar con el backend:", error);
+            setEstadoGuardado(null);
+            alert("Hubo un error al guardar la programación.");
+        } finally {
+            // Quitamos el mensaje de "Guardado" después de 3 segundos
+            setTimeout(() => setEstadoGuardado(null), 3000);
+        }
+    }, [horarioCalendario, datosOriginalesBackend]);
+ 
+ */
+
+
+    /**........................................................................... */
+            // Estado para simular la programación actual de turnos en el calendario (Day: [Shift IDs])
+            /*const [calendarSchedule, setCalendarSchedule] = useState({
+                '3': ['morning', 'afternoon'],
+                '15': ['morning', 'afternoon', 'evening'],
+            });*/

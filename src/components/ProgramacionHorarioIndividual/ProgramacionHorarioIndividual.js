@@ -21,7 +21,7 @@ import TurnoService from "../Turno/TurnoService.js";
 import { cargarConfiguracionTurnos, MAPEO_TURNOS } from "./Programacion/Data/CargarConfiguracionTurnos.js";
 import ProgramacionHorarioIndividualService from "../ProgramacionHorarioIndividual/ProgramacionMedicaIndividualService.js";
 import { actualizarTurnoEnDia } from "../ProgramacionHorarioIndividual/Programacion/Modelos/ProgramacionHorarioDiaModelo.js";
-import { crearProgramacionHorarioDia, mapearListaAUI } from "../ProgramacionHorarioIndividual/Programacion/Modelos/ProgramacionHorarioDiaModelo.js";
+import { modelarMes,modelarDia} from "../ProgramacionHorarioIndividual/Programacion/Modelos/ProgramacionHorarioDiaModelo.js";
 
 
 
@@ -39,12 +39,8 @@ export default function ProgramacionHorarioIndividual() {
     const [diasMasivosSeleccionados, setDiasMasivosSeleccionados] = useState([]);
     const [turnosCargados, setTurnosCargados]  = useState([]);
     const [datosOriginalesBackend, setDatosOriginalesBackend] = useState([]);
+    const [envoltorioOriginal, setEnvoltorioOriginal] = useState([]);
 
-            // Estado para simular la programación actual de turnos en el calendario (Day: [Shift IDs])
-            /*const [calendarSchedule, setCalendarSchedule] = useState({
-                '3': ['morning', 'afternoon'],
-                '15': ['morning', 'afternoon', 'evening'],
-            });*/
 
     useEffect(() => {
         TurnoService.getTodos().then(res => {
@@ -53,107 +49,92 @@ export default function ProgramacionHorarioIndividual() {
             setTurnosCargados(turnosParaEstado);        });
     }, []);
 
-    //  console.log("todos los turnos fuera Useffec:  "+JSON.stringify(TODOS_LOS_TURNOS))
-  /*  const guardarHorario = useCallback((datosNuevos) => {
-        console.log("GUARDAR ===> "+JSON.stringify(datosNuevos));
-        setEstadoGuardado('guardando');
-        setTimeout(() => {
-            setEstadoGuardado('guardado');
-            setTimeout(() => setEstadoGuardado(null), 2000);
-        }, 600);
-    }, []);
-*/
+ 
     //...............................................................................
-    const cargarProgramacionCompleta = useCallback(async () => {
-        // 1. Preparar parámetros (estos vendrían de tus estados de filtros)
-        const mes = fechaActual.getMonth() + 1;
-        const anio = fechaActual.getFullYear();
-        const idEspecialidad = 9; // id de ejemplo
-        const idMedico = 1762;    // id de 
-        
-        console.log("DATA BLANCO cargarProgramacionCompleta   "+ mes+anio)
+const cargarProgramacionCompleta = useCallback(async () => {
+    // 1. Preparar parámetros desde el estado
+    const mes = fechaActual.getMonth() + 1;
+    const anio = fechaActual.getFullYear();
+    const idEspecialidad = 9; // idealmente usar estado
+    const idMedico = 1762;    // idealmente usar estado
+    setEstadoGuardado('cargando'); // Feedback visual de carga
 
-        setEstadoGuardado('guardando ');
+    try {
+        // 2. Llamada al Service (Axios)
+        const res = await ProgramacionHorarioIndividualService.obtenerProgramacionMesBlanco(
+            mes, anio, idEspecialidad, idMedico
+        );
+        // 3. El "Doble Data": res.data (Axios) -> .data (Java Wrapper)
+        const envoltorioBack = res.data; 
+        const listaRaw = envoltorioBack?.programacionMedicaDiaResponse;
+        if (envoltorioBack && Array.isArray(listaRaw)) {
+            // A. Guardamos el "envoltorio" completo (totalRegistros, numeroPagina, etc.)
+            // Esto es lo que usaremos después para el guardado simétrico.
+            setEnvoltorioOriginal(envoltorioBack);
 
-        try {
-            // 2. Llamada al Service
-            const res = await ProgramacionHorarioIndividualService.getProgramacionMedicoMesBlanco(
-                mes, anio, idEspecialidad, idMedico
-            );
-              console.log("DATA BLANCO "+JSON.stringify(res))
+            // B. Transformamos los días a Modelos Funcionales con getClaveCalendario()
+            const modelosProcesados = listaRaw.map(item => modelarDia(item));
+            setDatosOriginalesBackend(modelosProcesados);
 
-            if (res.data && Array.isArray(res.data)) {
-                // 3. TRANSFORMACIÓN A MODELOS (La clave del éxito)
-                // Convertimos cada objeto plano del JSON en un "Modelo Funcional"
-                console.log("DATA BLANCO "+JSON.stringify(res.data))
-                const modelosProcesados = res.data.map(item => crearProgramacionHorarioDia(item));
+            // C. Generamos el mapa visual para el calendario React { "2026-08-01": ["1"] }
+            // Usamos los modelos ya procesados para aprovechar sus métodos internos
+            const mapaParaUI = modelosProcesados.reduce((acc, dia) => {
+                const clave = dia.getClaveCalendario();
+                // Si el turno es 0 lo mostramos como 'libre', si no, el ID como string
+                acc[clave] = dia.idTurno !== 0 ? [String(dia.idTurno)] : ['libre'];
+                return acc;
+            }, {});
 
-                // 4. ACTUALIZAR ESTADOS
-                // Guardamos la lista completa de modelos (los 31 días)
-                setDatosOriginalesBackend(modelosProcesados);
-
-                // Generamos el mapa visual para el calendario { "2026-05-01": ["1"] }
-                const mapaParaUI = mapearListaAUI(res.data);
-                setHorarioCalendario(mapaParaUI);
-                
-                console.log("Datos cargados y modelados correctamente.");
-            }
-        } catch (error) {
-            console.error("Error al obtener la programación del médico:", error);
-        } finally {
-            setEstadoGuardado(null);
+            setHorarioCalendario(mapaParaUI);
+            
+            console.log("Programación modelada con éxito:", envoltorioBack);
         }
-    }, [fechaActual]); 
+    } catch (error) {
+        console.error("Error al cargar programación médica:", error);
+    } finally {
+        setEstadoGuardado(null);
+    }
+}, [fechaActual]); // Se dispara cuando cambias el mes en el calendario
 
     // Disparador automático al cambiar de mes/año
     useEffect(() => {
         cargarProgramacionCompleta();
     }, [cargarProgramacionCompleta]);
 
-    const prepararDatosParaEnvio = (horarioUI, plantillaOriginal) => {
-        // Recorremos la plantilla original (los 31 días que el backend nos envió)
-        return plantillaOriginal.map(diaOriginal => {
-            // 1. Obtenemos la clave de este día (ej: "2026-05-01")
-            const clave = diaOriginal.getClaveCalendario();
-            // 2. Buscamos qué seleccionó el usuario en el calendario de React
-            const seleccionUI = horarioUI[clave]; // Devuelve ['1'], ['2'] o ['libre']
-            // 3. Determinamos el ID del turno (0 si es libre)
-            const nuevoIdTurno = (seleccionUI && seleccionUI[0] !== 'libre') 
-                ? seleccionUI[0] 
-                : 0;
-            // 4. Usamos nuestro "Setter Inmutable" para crear el objeto actualizado
-            const diaActualizado = actualizarTurnoEnDia(diaOriginal, nuevoIdTurno);
-            // 5. IMPORTANTE: El backend no necesita la función 'getClaveCalendario'
-            // Extraemos solo los datos puros (data transfer object)
-            const { getClaveCalendario, ...datosLimpios } = diaActualizado;
-            return datosLimpios;
-        });
-    };
+    //...............................................................................
 
+
+
+    // Guardado de datos
     const guardarHorario = useCallback(async () => {
+// 1. Validación de seguridad
+    if (!datosOriginalesBackend || datosOriginalesBackend.length === 0) {
+        console.warn("No hay datos para guardar. datosOriginalesBackend está vacío.");
+        return; 
+    }        
         setEstadoGuardado('guardando');
         try {
-            // Generamos el array final de 31 objetos perfectamente modelados
-            const datosFinales = prepararDatosParaEnvio(horarioCalendario, datosOriginalesBackend);
+            const diasActualizados = datosOriginalesBackend.map(dia => {
+                const clave = dia.getClaveCalendario();
+                console.log("CLAVE "+clave);
+                const idTurno = (horarioCalendario[clave]?.[0] !== 'libre') 
+                    ? Number(horarioCalendario[clave][0]) : 0;
+                console.log("ID TURNO "+idTurno);
+                return actualizarTurnoEnDia(dia, idTurno);
+            });
 
-            console.log("JSON listo para la API:", datosFinales);
-            // Llamada al servicio (POST / PUT)
-            const respuesta = await ProgramacionHorarioIndividualService.guardarProgramacionMes(datosFinales);
-            if (respuesta.status === 200) {
-                setEstadoGuardado('guardado');
-                // Opcional: Recargar datos del servidor para confirmar
-                // cargarProgramacionExistente();
-            }
+            // Empaquetamos con el nombre de función corto pero estructura estricta
+            const payload = modelarMes(envoltorioOriginal, diasActualizados);
+            console.log("DATA BLANCO payload   "+JSON.stringify(payload));
+           // await ProgramacionHorarioIndividualService.crearProgramacionMes(payload);
+            
+            setEstadoGuardado('guardado');
         } catch (error) {
-            console.error("Error al sincronizar con el backend:", error);
             setEstadoGuardado(null);
-            alert("Hubo un error al guardar la programación.");
-        } finally {
-            // Quitamos el mensaje de "Guardado" después de 3 segundos
-            setTimeout(() => setEstadoGuardado(null), 3000);
         }
-    }, [horarioCalendario, datosOriginalesBackend]);
-    //...............................................................................
+    }, [horarioCalendario, datosOriginalesBackend, envoltorioOriginal]);    
+//.........................................
+
 
     const irMesAnterior = useCallback(() => {
         setFechaActual(prev => {

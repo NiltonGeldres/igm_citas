@@ -53,10 +53,7 @@ const ModalEditorTurnos = ({ estaAbierto, claveDia, alCerrar, horario, setHorari
     const manejarGuardado = () => {
         if (!claveDia) return; // Supervivencia: si no hay clave, no guardes nada
         const idsFinales = idsTurnosSeleccionados.length > 0 ? idsTurnosSeleccionados : ['libre'];
-        console.log("Horario =>  "+ JSON.stringify(horario))
-        console.log("Clave Dia =>  "+ JSON.stringify(claveDia))
         const nuevoHorario = { ...horario, [claveDia]: idsFinales};
-        console.log("Nuevo Horario =>  "+ JSON.stringify(nuevoHorario))
         setHorario(nuevoHorario);
         alGuardar(nuevoHorario);
         alCerrar();
