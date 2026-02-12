@@ -2,8 +2,6 @@
 
 import { useState, useEffect } from "react";
 import { Icono } from './Icono';
-//import { TODOS_LOS_TURNOS } from '../Constants/TODOS_LOS_TURNOS';
-import { useNavigate } from "react-router-dom";
 import { obtenerListaTurnos } from '../Constants/TODOS_LOS_TURNOS';
 
 
@@ -24,22 +22,6 @@ const ModalEditorTurnos = ({ estaAbierto, claveDia, alCerrar, horario, setHorari
 
     if (!estaAbierto || !claveDia) return null;
 
-    const alternarTurno = (turnoId) => {
-        if (turnoId === 'libre') {
-            setIdsTurnosSeleccionados(['libre']);
-        } else {
-            setIdsTurnosSeleccionados(prev => {
-                const filtrados = prev.filter(id => id !== 'libre');
-                if (filtrados.includes(turnoId)) {
-                    const nuevosIds = filtrados.filter(id => id !== turnoId);
-                    return nuevosIds.length > 0 ? nuevosIds : ['libre']; 
-                } else {
-                    return [...filtrados, turnoId];
-                }
-            });
-        }
-    };
-
     const seleccionarTurnoUnico = (turnoId) => {
     // Si el médico hace clic en el que ya está seleccionado, lo desmarcamos (pasa a libre)
     // Si hace clic en uno nuevo, reemplazamos el anterior
@@ -50,12 +32,17 @@ const ModalEditorTurnos = ({ estaAbierto, claveDia, alCerrar, horario, setHorari
     setIdsTurnosSeleccionados(nuevosSeleccionados);
 };
 
-    const manejarGuardado = () => {
+    const confirmarSeleccionDia = () => {
         if (!claveDia) return; // Supervivencia: si no hay clave, no guardes nada
         const idsFinales = idsTurnosSeleccionados.length > 0 ? idsTurnosSeleccionados : ['libre'];
-        const nuevoHorario = { ...horario, [claveDia]: idsFinales};
+
+        // 1. Actualizamos el mapa visual { "2026-02-12": ["1"] }
+        const nuevoHorario = { ...horario, [claveDia]: idsFinales };
         setHorario(nuevoHorario);
-        alGuardar(nuevoHorario);
+        
+        // 2. Notificamos al padre (si existe la prop alGuardar)
+        if (alGuardar) alGuardar(nuevoHorario); 
+        
         alCerrar();
     };
 
@@ -75,7 +62,7 @@ const ModalEditorTurnos = ({ estaAbierto, claveDia, alCerrar, horario, setHorari
                         <p className="text-secondary small mb-4">Selecciona los turnos para este día:</p>
                         <div className="d-grid gap-3">
                             {listaDeTurnos.map(turno => {
-                                const seleccionado = idsTurnosSeleccionados.includes(turno.idTurno);
+                                //const seleccionado = idsTurnosSeleccionados.includes(turno.idTurno);
                                 return (
                                         <button 
                                             onClick={() => seleccionarTurnoUnico(turno.idTurno)}
@@ -90,7 +77,7 @@ const ModalEditorTurnos = ({ estaAbierto, claveDia, alCerrar, horario, setHorari
                     
                     <div className="modal-footer bg-light border-0 rounded-bottom-4 p-3">
                         <button type="button" className="btn btn-link text-secondary text-decoration-none fw-bold" onClick={alCerrar}>Cancelar</button>
-                        <button type="button" onClick={manejarGuardado} className="btn btn-primary px-4 py-2 rounded-3 fw-bold shadow-sm d-flex align-items-center gap-2">
+                        <button type="button" onClick={confirmarSeleccionDia} className="btn btn-primary px-4 py-2 rounded-3 fw-bold shadow-sm d-flex align-items-center gap-2">
                             <Icono nombre="Save" size={18}/>
                             Guardar Cambios
                         </button>
@@ -102,17 +89,21 @@ const ModalEditorTurnos = ({ estaAbierto, claveDia, alCerrar, horario, setHorari
 };
 export default ModalEditorTurnos;
 
-/*
-                                    <button
-                                        key={turno.idTurno}
-                                        onClick={() => alternarTurno(turno.idTurno)}
-                                        className={`btn text-start d-flex justify-content-between align-items-center p-3 rounded-3 transition-all ${seleccionado ? 'btn-success fw-bold shadow-sm border-2' : 'btn-outline-light text-dark border-secondary-subtle'}`}
-                                    >
-                                        <div>
-                                            {turno.descripcion} 
-                                            <span className="badge rounded-pill bg-light text-secondary border ms-2" style={{fontSize: '0.7rem'}}>{turno.hora}</span>
-                                        </div>
-                                        {seleccionado && <Icono nombre="CheckCircle" size={20}/>}
-                                    </button>
 
-*/ 
+/*
+    const alternarTurno = (turnoId) => {
+        if (turnoId === 'libre') {
+            setIdsTurnosSeleccionados(['libre']);
+        } else {
+            setIdsTurnosSeleccionados(prev => {
+                const filtrados = prev.filter(id => id !== 'libre');
+                if (filtrados.includes(turnoId)) {
+                    const nuevosIds = filtrados.filter(id => id !== turnoId);
+                    return nuevosIds.length > 0 ? nuevosIds : ['libre']; 
+                } else {
+                    return [...filtrados, turnoId];
+                }
+            });
+        }
+    };
+*/

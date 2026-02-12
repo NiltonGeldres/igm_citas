@@ -158,10 +158,10 @@ const ProgramacionHorario = () => {
         ProgramacionHorarioService.getProgramacionMedicoMes(selectedMonth,selectedYear,idEspecialidad,idMedico)
         .then((response) => {
             if(response.data.programacionMedicaDiaResponse!==undefined ){
-                console.log("ENCONTRADO "+JSON.stringify(response.data.programacionMedicaDiaResponse));
+                console.log("ENCONTRADO LoadData"+JSON.stringify(response));
                 setProgramacion(response.data.programacionMedicaDiaResponse);
             } else {
-                console.log("VACIO");
+                console.log("VACIO LoadData");
                 setProgramacion([]);
             }
             setLoading(false);
@@ -181,12 +181,11 @@ const ProgramacionHorario = () => {
     setLoading(true);
     ProgramacionHorarioService.getProgramacionMedicoMesBlanco(selectedMonth,selectedYear,idEspecialidad,idMedico)
     .then((response) => {
-        console.log(JSON.stringify(response.data.programacionMedicaDiaResponse));
         if(response.data.programacionMedicaDiaResponse!=undefined ){
-                console.log("ENCONTRADO");
+                console.log("ENCONTRADO x LoadDataBlanco" +JSON.stringify(response));
                 setProgramacion(response.data.programacionMedicaDiaResponse);
         } else {
-            console.log("VACIO");
+            console.log("VACIO LoadDataBlanco");
             setProgramacion([]);
         }
         setLoading(false);

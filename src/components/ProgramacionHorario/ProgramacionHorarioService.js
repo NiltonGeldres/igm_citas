@@ -28,8 +28,7 @@ const getProgramacionMedicoMesBlanco = (mes,anio,idEspecialidad,idMedico) => {
 };
 
 const setProgramacionCrear = (fecha,idEspecialidad,idMedico,programacion,idServicio) => {
-  console.log("idServicio   "+idServicio)
-  console.log("SERVICE   "+JSON.stringify({fecha,idEspecialidad,idServicio,idMedico,programacion,usuario }))
+  console.log("DATA ENVIAR PARA CREAR   "+JSON.stringify({fecha,idEspecialidad,idServicio,idMedico,programacion,usuario }))
   return axios.post(API_URL+SERVICE_CREAR
     ,{fecha,idEspecialidad,idMedico,programacion,usuario,idServicio
        }

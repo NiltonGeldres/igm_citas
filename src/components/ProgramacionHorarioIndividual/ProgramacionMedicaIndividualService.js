@@ -15,16 +15,16 @@ const obtenerProgramacionMesBlanco = (mes, anio, idEspecialidad, idMedico) => {
     );
   };
 
-const  obtenerProgramacionMesUsuario = (mes,anio,idEspecialidad,idMedico) => {
+const  obtenerProgramacionMesUsuario = (mes,anio,idEspecialidad) => {
   return axios.post(API_URL+SERVICE 
       ,{mes,anio,usuario,idEspecialidad}
       ,{ headers: header()}
     );
   };
 
-const crearProgramacionMes = (fecha,idEspecialidad,idMedico,programacion,idServicio) => {
+const crearProgramacionMesUsuario = (payloadFinal) => {
   return axios.post(API_URL+SERVICE_CREAR
-      ,{fecha,idEspecialidad,idMedico,programacion,usuario,idServicio }
+      ,payloadFinal
       ,{ headers: header()}
     );  
   };
@@ -32,12 +32,20 @@ const crearProgramacionMes = (fecha,idEspecialidad,idMedico,programacion,idServi
 const ProgramacionHorarioIndividualService = {
     obtenerProgramacionMesUsuario,
     obtenerProgramacionMesBlanco,
-    crearProgramacionMes
+    crearProgramacionMesUsuario
 };
 export default ProgramacionHorarioIndividualService;
 
 
+/**
+ *const crearProgramacionMes = (fecha,idEspecialidad,idMedico,programacion,idServicio) => {
+  return axios.post(API_URL+SERVICE_CREAR
+      ,{fecha, idEspecialidad, idMedico, programacion, usuario, idServicio }
+      ,{ headers: header()}
+    );  
+  };
 
+ */
 
 
 

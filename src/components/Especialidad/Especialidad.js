@@ -103,6 +103,9 @@ const Especialidad = ({ valueEspecialidad, textEspecialidad }) => {
         shadow="sm" // Sombra sutil
         _focus={{ borderColor: 'blue.500', boxShadow: '0 0 0 1px var(--chakra-colors-blue-500)' }} // Estilo al enfocar
       >
+                        <option key={''} value={''}> 
+                            {'Especialidad'}
+                        </option>        
         {posts.map(post => (
           <option key={post.idEspecialidad} value={post.idEspecialidad}>
             {post.descripcionEspecialidad}

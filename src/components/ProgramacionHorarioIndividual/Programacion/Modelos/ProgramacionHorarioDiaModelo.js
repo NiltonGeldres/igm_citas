@@ -70,3 +70,27 @@ export const actualizarTurnoEnDia = (diaModelado, nuevoIdTurno) => {
         idTurno: nuevoIdTurno
     });
 };
+
+
+/**
+ * Modela el payload para CREAR una nueva programación.
+ * Estructura: { fecha, idEspecialidad, idServicio, idMedico, programacion: [], usuario }
+ */
+export const modelarCrearProgramacion = (datosContexto, listaDiasActualizada) => {
+    // 1. Limpiamos la lista de días para el backend
+        const programacionLimpia = listaDiasActualizada.map(dia => {
+        const m = dia.getClaveCalendario ? dia : modelarDia(dia);
+        const { getClaveCalendario, ...datosPuros } = m;
+        return datosPuros;
+    });
+
+    // 2. Construimos el objeto raíz con los nombres exactos que pide tu JSON
+    return {
+        fecha: datosContexto.fechaActualFormateada, // Ej: "11022026"
+        idEspecialidad: String(datosContexto.idEspecialidad || ""),
+        idServicio: String(datosContexto.idServicio || "1"),
+        idMedico: String(datosContexto.idMedico || ""),
+        programacion: programacionLimpia, // La lista de días
+        usuario: datosContexto.usuario || "macuna"
+    };
+};

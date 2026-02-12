@@ -307,3 +307,638 @@ export default App;
                 '3': ['morning', 'afternoon'],
                 '15': ['morning', 'afternoon', 'evening'],
             });*/
+
+
+/*..........................................
+
+//export default ProgramacionHorarioPersonal:
+
+/**
+ // Dentro de export default function ProgramacionHorarioIndividual() { ...
+
+// Función para obtener y formatear la data del servidor al estado del calendario
+const cargarDatosPrevios = useCallback(async () => {
+    setEstadoGuardado('guardando'); // Reutilizamos el estado para mostrar carga
+    const mes = fechaActual.getMonth() + 1;
+    const anio = fechaActual.getFullYear();
+    const idEspecialidad = 1; // Obtener de tus filtros
+    const idMedico = 1;       // Obtener de tu sesión o filtros
+    try {
+        const res = await ProgramacionHorarioIndividualService.getProgramacionMedicoMesBlanco(mes, anio, idEspecialidad, idMedico);
+        if (res.data) {
+
+
+            // Suponiendo que res.data viene en formato { "2024-05-01": ["turno1"], ... }
+            // Si el JSON viene diferente, aquí debes mapearlo al formato de tu estado
+            const dataConFormato = mapearAFormatoCalendario(res.data)
+            setHorarioCalendario(dataConFormato);
+        }
+    } catch (error) {
+        console.error("Error al cargar programación previa:", error);
+    } finally {
+        setEstadoGuardado(null);
+    }
+}, [fechaActual]);
+
+const mapearAFormatoCalendario = (data) => {
+    return data; 
+}
+
+
+// Efecto para cargar datos cada vez que la fecha (mes/año) cambia
+useEffect(() => {
+    cargarDatosPrevios();
+}, [cargarDatosPrevios]);
+
+
+
+// Actualizar la función guardarHorario para que sea real
+const guardarHorario = useCallback(async (datosNuevos) => {
+    setEstadoGuardado('guardando');
+    
+    try {
+        // Aquí llamarías a tu servicio de GUARDADO (no al de carga "Blanco")
+        // await ProgramacionService.guardar(datosNuevos);
+        
+        console.log("Datos a enviar:", datosNuevos);
+        
+        setEstadoGuardado('guardado');
+        setTimeout(() => setEstadoGuardado(null), 2000);
+    } catch (error) {
+        setEstadoGuardado(null);
+        alert("Error al guardar");
+    }
+}, []);
+
+
+    const alternarTurnoMasivo = useCallback((turnoId) => {
+        setTurnosMasivosSeleccionados(prev =>
+            prev.includes(turnoId) ? prev.filter(id => id !== turnoId) : [...prev, turnoId]
+        );
+    }, []);
+    
+
+ */
+
+    /*....................................................................*/
+
+    /*    
+        const cargarProgramacionCompleta = useCallback(async () => {
+            // 1. Preparar parámetros desde el estado
+            const mes = fechaActual.getMonth() + 1;
+            const anio = fechaActual.getFullYear();
+            const idEspecialidad = 9; // idealmente usar estado
+            const idMedico = 1762;    // idealmente usar estado
+            setEstadoGuardado('cargando'); // Feedback visual de carga
+    
+            try {
+                // 2. Llamada al Service (Axios)
+                const res = await ProgramacionHorarioIndividualService.obtenerProgramacionMesBlanco(
+                    mes, anio, idEspecialidad, idMedico
+                );
+                // 3. El "Doble Data": res.data (Axios) -> .data (Java Wrapper)
+                const envoltorioBack = res.data; 
+                const listaRaw = envoltorioBack?.programacionMedicaDiaResponse;
+                if (envoltorioBack && Array.isArray(listaRaw)) {
+                    // A. Guardamos el "envoltorio" completo (totalRegistros, numeroPagina, etc.)
+                    // Esto es lo que usaremos después para el guardado simétrico.
+                    setEnvoltorioOriginal(envoltorioBack);
+    
+                    // B. Transformamos los días a Modelos Funcionales con getClaveCalendario()
+                    const modelosProcesados = listaRaw.map(item => modelarDia(item));
+                    setDatosOriginalesBackend(modelosProcesados);
+    
+                    // C. Generamos el mapa visual para el calendario React { "2026-08-01": ["1"] }
+                    // Usamos los modelos ya procesados para aprovechar sus métodos internos
+                    const mapaParaUI = modelosProcesados.reduce((acc, dia) => {
+                        const clave = dia.getClaveCalendario();
+                        // Si el turno es 0 lo mostramos como 'libre', si no, el ID como string
+                        acc[clave] = dia.idTurno !== 0 ? [String(dia.idTurno)] : ['libre'];
+                        return acc;
+                    }, {});
+    
+                    setHorarioCalendario(mapaParaUI);
+                    
+                    console.log("Programación modelada con éxito:", envoltorioBack);
+                }
+            } catch (error) {
+                console.error("Error al cargar programación médica:", error);
+            } finally {
+                setEstadoGuardado(null);
+            }
+        }, [fechaActual]); // Se dispara cuando cambias el mes en el calendario
+    */
+
+{
+  "fecha":"12022026",
+  "idEspecialidad":"9",
+  "idServicio":"1",
+  "idMedico":"1762",
+  "programacion":[
+    {
+      "id":1,
+      "idProgramacion":412,
+      "horaInicio":null,
+      "horaFin":null,
+      "dia":1,
+      "diaSemana":"DO",
+      "fecha":"20260201",
+      "tiempoPromedioAtencion":0,
+      "idServicio":1,
+      "idEspecialidad":9,
+      "idMedico":1762,
+      "idDepartamento":0,
+      "idTurno":1,
+      "descripcionTurno":"Mañana",
+      "color":"lightgreen"
+    },
+    {
+
+    },
+     
+    
+    {
+    "fecha": "12022026",
+    "idEspecialidad": "9",
+    "idServicio": "1",
+    "idMedico": "1762",
+    "programacion": [
+        {
+            "id": 1,
+            "idProgramacion": 412,
+            "horaInicio": "",
+            "horaFin": "",
+            "dia": 1,
+            "diaSemana": "DO",
+            "fecha": "20260201",
+            "tiempoPromedioAtencion": 0,
+            "idServicio": 1,
+            "idEspecialidad": 9,
+            "idMedico": 1762,
+            "idDepartamento": 0,
+            "idTurno": 1,
+            "descripcionTurno": "Mañana",
+            "color": "lightgreen"
+        },
+        {
+            "id": 2,
+            "idProgramacion": 413,
+            "horaInicio": "",
+            "horaFin": "",
+            "dia": 2,
+            "diaSemana": "LU",
+            "fecha": "20260202",
+            "tiempoPromedioAtencion": 0,
+            "idServicio": 1,
+            "idEspecialidad": 9,
+            "idMedico": 1762,
+            "idDepartamento": 0,
+            "idTurno": 1,
+            "descripcionTurno": "Mañana",
+            "color": "lightgreen"
+        },
+        {
+            "id": 3,
+            "idProgramacion": 414,
+            "horaInicio": "",
+            "horaFin": "",
+            "dia": 3,
+            "diaSemana": "MA",
+            "fecha": "20260203",
+            "tiempoPromedioAtencion": 0,
+            "idServicio": 1,
+            "idEspecialidad": 9,
+            "idMedico": 1762,
+            "idDepartamento": 0,
+            "idTurno": 1,
+            "descripcionTurno": "Mañana",
+            "color": "lightgreen"
+        },
+        {
+            "id": 4,
+            "idProgramacion": 415,
+            "horaInicio": "",
+            "horaFin": "",
+            "dia": 4,
+            "diaSemana": "MI",
+            "fecha": "20260204",
+            "tiempoPromedioAtencion": 0,
+            "idServicio": 1,
+            "idEspecialidad": 9,
+            "idMedico": 1762,
+            "idDepartamento": 0,
+            "idTurno": 1,
+            "descripcionTurno": "Mañana",
+            "color": "lightgreen"
+        },
+        {
+            "id": 5,
+            "idProgramacion": 416,
+            "horaInicio": "",
+            "horaFin": "",
+            "dia": 5,
+            "diaSemana": "JU",
+            "fecha": "20260205",
+            "tiempoPromedioAtencion": 0,
+            "idServicio": 1,
+            "idEspecialidad": 9,
+            "idMedico": 1762,
+            "idDepartamento": 0,
+            "idTurno": 1,
+            "descripcionTurno": "Mañana",
+            "color": "lightgreen"
+        },
+        {
+            "id": 6,
+            "idProgramacion": 0,
+            "horaInicio": "",
+            "horaFin": "",
+            "dia": 6,
+            "diaSemana": "VI",
+            "fecha": "20260206",
+            "tiempoPromedioAtencion": 0,
+            "idServicio": 0,
+            "idEspecialidad": 9,
+            "idMedico": 1762,
+            "idDepartamento": 0,
+            "idTurno": 1,
+            "descripcionTurno": null,
+            "color": null
+        },
+        {
+            "id": 7,
+            "idProgramacion": 0,
+            "horaInicio": "",
+            "horaFin": "",
+            "dia": 7,
+            "diaSemana": "SA",
+            "fecha": "20260207",
+            "tiempoPromedioAtencion": 0,
+            "idServicio": 0,
+            "idEspecialidad": 9,
+            "idMedico": 1762,
+            "idDepartamento": 0,
+            "idTurno": 0,
+            "descripcionTurno": null,
+            "color": null
+        },
+        {
+            "id": 8,
+            "idProgramacion": 0,
+            "horaInicio": "",
+            "horaFin": "",
+            "dia": 8,
+            "diaSemana": "DO",
+            "fecha": "20260208",
+            "tiempoPromedioAtencion": 0,
+            "idServicio": 0,
+            "idEspecialidad": 9,
+            "idMedico": 1762,
+            "idDepartamento": 0,
+            "idTurno": 0,
+            "descripcionTurno": null,
+            "color": null
+        },
+        {
+            "id": 9,
+            "idProgramacion": 0,
+            "horaInicio": "",
+            "horaFin": "",
+            "dia": 9,
+            "diaSemana": "LU",
+            "fecha": "20260209",
+            "tiempoPromedioAtencion": 0,
+            "idServicio": 0,
+            "idEspecialidad": 9,
+            "idMedico": 1762,
+            "idDepartamento": 0,
+            "idTurno": 0,
+            "descripcionTurno": null,
+            "color": null
+        },
+        {
+            "id": 10,
+            "idProgramacion": 0,
+            "horaInicio": "",
+            "horaFin": "",
+            "dia": 10,
+            "diaSemana": "MA",
+            "fecha": "20260210",
+            "tiempoPromedioAtencion": 0,
+            "idServicio": 0,
+            "idEspecialidad": 9,
+            "idMedico": 1762,
+            "idDepartamento": 0,
+            "idTurno": 0,
+            "descripcionTurno": null,
+            "color": null
+        },
+        {
+            "id": 11,
+            "idProgramacion": 0,
+            "horaInicio": "",
+            "horaFin": "",
+            "dia": 11,
+            "diaSemana": "MI",
+            "fecha": "20260211",
+            "tiempoPromedioAtencion": 0,
+            "idServicio": 0,
+            "idEspecialidad": 9,
+            "idMedico": 1762,
+            "idDepartamento": 0,
+            "idTurno": 0,
+            "descripcionTurno": null,
+            "color": null
+        },
+        {
+            "id": 12,
+            "idProgramacion": 0,
+            "horaInicio": "",
+            "horaFin": "",
+            "dia": 12,
+            "diaSemana": "JU",
+            "fecha": "20260212",
+            "tiempoPromedioAtencion": 0,
+            "idServicio": 0,
+            "idEspecialidad": 9,
+            "idMedico": 1762,
+            "idDepartamento": 0,
+            "idTurno": 0,
+            "descripcionTurno": null,
+            "color": null
+        },
+        {
+            "id": 13,
+            "idProgramacion": 0,
+            "horaInicio": "",
+            "horaFin": "",
+            "dia": 13,
+            "diaSemana": "VI",
+            "fecha": "20260213",
+            "tiempoPromedioAtencion": 0,
+            "idServicio": 0,
+            "idEspecialidad": 9,
+            "idMedico": 1762,
+            "idDepartamento": 0,
+            "idTurno": 0,
+            "descripcionTurno": null,
+            "color": null
+        },
+        {
+            "id": 14,
+            "idProgramacion": 0,
+            "horaInicio": "",
+            "horaFin": "",
+            "dia": 14,
+            "diaSemana": "SA",
+            "fecha": "20260214",
+            "tiempoPromedioAtencion": 0,
+            "idServicio": 0,
+            "idEspecialidad": 9,
+            "idMedico": 1762,
+            "idDepartamento": 0,
+            "idTurno": 0,
+            "descripcionTurno": null,
+            "color": null
+        },
+        {
+            "id": 15,
+            "idProgramacion": 0,
+            "horaInicio": "",
+            "horaFin": "",
+            "dia": 15,
+            "diaSemana": "DO",
+            "fecha": "20260215",
+            "tiempoPromedioAtencion": 0,
+            "idServicio": 0,
+            "idEspecialidad": 9,
+            "idMedico": 1762,
+            "idDepartamento": 0,
+            "idTurno": 0,
+            "descripcionTurno": null,
+            "color": null
+        },
+        {
+            "id": 16,
+            "idProgramacion": 0,
+            "horaInicio": "",
+            "horaFin": "",
+            "dia": 16,
+            "diaSemana": "LU",
+            "fecha": "20260216",
+            "tiempoPromedioAtencion": 0,
+            "idServicio": 0,
+            "idEspecialidad": 9,
+            "idMedico": 1762,
+            "idDepartamento": 0,
+            "idTurno": 0,
+            "descripcionTurno": null,
+            "color": null
+        },
+        {
+            "id": 17,
+            "idProgramacion": 0,
+            "horaInicio": "",
+            "horaFin": "",
+            "dia": 17,
+            "diaSemana": "MA",
+            "fecha": "20260217",
+            "tiempoPromedioAtencion": 0,
+            "idServicio": 0,
+            "idEspecialidad": 9,
+            "idMedico": 1762,
+            "idDepartamento": 0,
+            "idTurno": 0,
+            "descripcionTurno": null,
+            "color": null
+        },
+        {
+            "id": 18,
+            "idProgramacion": 0,
+            "horaInicio": "",
+            "horaFin": "",
+            "dia": 18,
+            "diaSemana": "MI",
+            "fecha": "20260218",
+            "tiempoPromedioAtencion": 0,
+            "idServicio": 0,
+            "idEspecialidad": 9,
+            "idMedico": 1762,
+            "idDepartamento": 0,
+            "idTurno": 0,
+            "descripcionTurno": null,
+            "color": null
+        },
+        {
+            "id": 19,
+            "idProgramacion": 0,
+            "horaInicio": "",
+            "horaFin": "",
+            "dia": 19,
+            "diaSemana": "JU",
+            "fecha": "20260219",
+            "tiempoPromedioAtencion": 0,
+            "idServicio": 0,
+            "idEspecialidad": 9,
+            "idMedico": 1762,
+            "idDepartamento": 0,
+            "idTurno": 0,
+            "descripcionTurno": null,
+            "color": null
+        },
+        {
+            "id": 20,
+            "idProgramacion": 0,
+            "horaInicio": "",
+            "horaFin": "",
+            "dia": 20,
+            "diaSemana": "VI",
+            "fecha": "20260220",
+            "tiempoPromedioAtencion": 0,
+            "idServicio": 0,
+            "idEspecialidad": 9,
+            "idMedico": 1762,
+            "idDepartamento": 0,
+            "idTurno": 0,
+            "descripcionTurno": null,
+            "color": null
+        },
+        {
+            "id": 21,
+            "idProgramacion": 0,
+            "horaInicio": "",
+            "horaFin": "",
+            "dia": 21,
+            "diaSemana": "SA",
+            "fecha": "20260221",
+            "tiempoPromedioAtencion": 0,
+            "idServicio": 0,
+            "idEspecialidad": 9,
+            "idMedico": 1762,
+            "idDepartamento": 0,
+            "idTurno": 0,
+            "descripcionTurno": null,
+            "color": null
+        },
+        {
+            "id": 22,
+            "idProgramacion": 0,
+            "horaInicio": "",
+            "horaFin": "",
+            "dia": 22,
+            "diaSemana": "DO",
+            "fecha": "20260222",
+            "tiempoPromedioAtencion": 0,
+            "idServicio": 0,
+            "idEspecialidad": 9,
+            "idMedico": 1762,
+            "idDepartamento": 0,
+            "idTurno": 0,
+            "descripcionTurno": null,
+            "color": null
+        },
+        {
+            "id": 23,
+            "idProgramacion": 0,
+            "horaInicio": "",
+            "horaFin": "",
+            "dia": 23,
+            "diaSemana": "LU",
+            "fecha": "20260223",
+            "tiempoPromedioAtencion": 0,
+            "idServicio": 0,
+            "idEspecialidad": 9,
+            "idMedico": 1762,
+            "idDepartamento": 0,
+            "idTurno": 0,
+            "descripcionTurno": null,
+            "color": null
+        },
+        {
+            "id": 24,
+            "idProgramacion": 0,
+            "horaInicio": "",
+            "horaFin": "",
+            "dia": 24,
+            "diaSemana": "MA",
+            "fecha": "20260224",
+            "tiempoPromedioAtencion": 0,
+            "idServicio": 0,
+            "idEspecialidad": 9,
+            "idMedico": 1762,
+            "idDepartamento": 0,
+            "idTurno": 0,
+            "descripcionTurno": null,
+            "color": null
+        },
+        {
+            "id": 25,
+            "idProgramacion": 0,
+            "horaInicio": "",
+            "horaFin": "",
+            "dia": 25,
+            "diaSemana": "MI",
+            "fecha": "20260225",
+            "tiempoPromedioAtencion": 0,
+            "idServicio": 0,
+            "idEspecialidad": 9,
+            "idMedico": 1762,
+            "idDepartamento": 0,
+            "idTurno": 0,
+            "descripcionTurno": null,
+            "color": null
+        },
+        {
+            "id": 26,
+            "idProgramacion": 0,
+            "horaInicio": "",
+            "horaFin": "",
+            "dia": 26,
+            "diaSemana": "JU",
+            "fecha": "20260226",
+            "tiempoPromedioAtencion": 0,
+            "idServicio": 0,
+            "idEspecialidad": 9,
+            "idMedico": 1762,
+            "idDepartamento": 0,
+            "idTurno": 0,
+            "descripcionTurno": null,
+            "color": null
+        },
+        {
+            "id": 27,
+            "idProgramacion": 0,
+            "horaInicio": "",
+            "horaFin": "",
+            "dia": 27,
+            "diaSemana": "VI",
+            "fecha": "20260227",
+            "tiempoPromedioAtencion": 0,
+            "idServicio": 0,
+            "idEspecialidad": 9,
+            "idMedico": 1762,
+            "idDepartamento": 0,
+            "idTurno": 0,
+            "descripcionTurno": null,
+            "color": null
+        },
+        {
+            "id": 28,
+            "idProgramacion": 0,
+            "horaInicio": "",
+            "horaFin": "",
+            "dia": 28,
+            "diaSemana": "SA",
+            "fecha": "20260228",
+            "tiempoPromedioAtencion": 0,
+            "idServicio": 0,
+            "idEspecialidad": 9,
+            "idMedico": 1762,
+            "idDepartamento": 0,
+            "idTurno": 0,
+            "descripcionTurno": null,
+            "color": null
+        }
+    ],
+    "usuario": "macuna"
+}
