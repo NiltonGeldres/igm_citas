@@ -113,45 +113,39 @@ export default function ProgramacionHorarioIndividual() {
         setEstadoGuardado('guardando');
 
         try {
-                const fuenteDeDatos = horarioActualizado || horarioCalendario;
-
-                const diasConTurnos = datosOriginalesBackend.map(dia => {
-                    const clave = dia.getClaveCalendario();
-                    const seleccion = fuenteDeDatos[clave];
-                    const nuevoIdTurno = (seleccion && seleccion[0] !== 'libre') 
-                        ? Number(seleccion[0]) 
-                        : 0;
-                    return actualizarTurnoEnDia(dia, nuevoIdTurno);
-                 });
-
-            const hoy = new Date();
-            const contexto = {
-                fechaActualFormateada: hoy.toLocaleDateString('es-ES', { 
-                    day: '2-digit', month: '2-digit', year: 'numeric' 
-                }).replace(/\//g, ''),
-                idEspecialidad: 9, 
-                idServicio: 1,
-                idMedico: 1762,
-                usuario: "macuna"
-            };
-
-            const payloadFinal = modelarCrearProgramacion(contexto, diasConTurnos);
-///            console.log("payloadFinal "+JSON.stringify(payloadFinal));
-           
-            console.log("Payload generado con horarioActualizado:", payloadFinal);
-
-            const res =await ProgramacionHorarioIndividualService.crearProgramacionMesUsuario(payloadFinal);
-//            console.log("Devolucion "+JSON.stringify(res));
-            setEstadoGuardado('guardado');
+            // La fuente de datos es lo que el usuario ve ahora (Mayo)
+            const fuenteDeDatos = horarioActualizado || horarioCalendario;
             
-            // Limpiar el mensaje de éxito después de 3 segundos
-            setTimeout(() => setEstadoGuardado(null), 3000);
+            // Mapeamos usando la "foto" de los datos originales
+            const diasConTurnos = datosOriginalesBackend.map(dia => {
+                const clave = dia.getClaveCalendario();
+                const seleccion = fuenteDeDatos[clave];
+                const nuevoIdTurno = (seleccion && seleccion[0] !== 'libre') ? Number(seleccion[0]) : 0;
+                
+                // Retorna un objeto nuevo con el ID actualizado (idProgramacion se mantiene si existía)
+                return actualizarTurnoEnDia(dia, nuevoIdTurno);
+            });
 
+            // El payload necesita el contexto actual (Médico, Especialidad, Sede)
+            const payloadFinal = modelarCrearProgramacion(contexto, diasConTurnos);
+
+            const response = await ProgramacionHorarioIndividualService.crearProgramacionMes(payloadFinal);
+            
+            if (response.status === 200) {
+                // REFRESH: Llamamos a la versión actual de la función de carga
+                await cargarProgramacionCompleta(); 
+                setEstadoGuardado('guardado');
+            }
         } catch (error) {
-            console.error("Error en manejarGuardado:", error);
-            setEstadoGuardado(null);
+            console.error("Error al guardar:", error);
+            setEstadoGuardado('error');
+        } finally {
+            // Limpiamos el feedback visual
+            setTimeout(() => setEstadoGuardado(null), 3000);
         }
-    }, [horarioCalendario, datosOriginalesBackend]); 
+        // Agregamos 'contexto' porque si cambias de médico, la función debe renovarse
+    }, [horarioCalendario, datosOriginalesBackend, cargarProgramacionCompleta, contexto]);
+// ^ Importante agregar cargarProgramacionCompleta a las dependencias
 //.........................................
 
 

@@ -942,3 +942,49 @@ const guardarHorario = useCallback(async (datosNuevos) => {
     ],
     "usuario": "macuna"
 }
+
+/**
+ * 
+ *
+     const manejarGuardado = useCallback(async (horarioActualizado = null) => {
+         setEstadoGuardado('guardando');
+ 
+         try {
+                 const fuenteDeDatos = horarioActualizado || horarioCalendario;
+ 
+                 const diasConTurnos = datosOriginalesBackend.map(dia => {
+                     const clave = dia.getClaveCalendario();
+                     const seleccion = fuenteDeDatos[clave];
+                     const nuevoIdTurno = (seleccion && seleccion[0] !== 'libre') 
+                         ? Number(seleccion[0]) 
+                         : 0;
+                     return actualizarTurnoEnDia(dia, nuevoIdTurno);
+                  });
+ 
+             const hoy = new Date();
+             const contexto = {
+                 fechaActualFormateada: hoy.toLocaleDateString('es-ES', { 
+                     day: '2-digit', month: '2-digit', year: 'numeric' 
+                 }).replace(/\//g, ''),
+                 idEspecialidad: 9, 
+                 idServicio: 1,
+                 idMedico: 1762,
+                 usuario: "macuna"
+             };
+ 
+             const payloadFinal = modelarCrearProgramacion(contexto, diasConTurnos);
+ ///            console.log("payloadFinal "+JSON.stringify(payloadFinal));
+ 
+             const res =await ProgramacionHorarioIndividualService.crearProgramacionMesUsuario(payloadFinal);
+ //            console.log("Devolucion "+JSON.stringify(res));
+             setEstadoGuardado('guardado');
+             
+             // Limpiar el mensaje de éxito después de 3 segundos
+             setTimeout(() => setEstadoGuardado(null), 3000);
+ 
+         } catch (error) {
+             console.error("Error en manejarGuardado:", error);
+             setEstadoGuardado(null);
+         }
+     }, [horarioCalendario, datosOriginalesBackend]); 
+ */

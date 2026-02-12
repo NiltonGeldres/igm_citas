@@ -23,6 +23,7 @@ const  obtenerProgramacionMesUsuario = (mes,anio,idEspecialidad) => {
   };
 
 const crearProgramacionMesUsuario = (payloadFinal) => {
+  console.log("PARAMETRO ENVIO:  "+JSON.stringify(payloadFinal));
   return axios.post(API_URL+SERVICE_CREAR
       ,payloadFinal
       ,{ headers: header()}
