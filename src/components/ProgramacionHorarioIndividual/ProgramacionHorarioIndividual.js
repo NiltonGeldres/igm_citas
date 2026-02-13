@@ -40,6 +40,7 @@ export default function ProgramacionHorarioIndividual() {
     const [turnosCargados, setTurnosCargados]  = useState([]);
     const [datosOriginalesBackend, setDatosOriginalesBackend] = useState([]);
     const [envoltorioOriginal, setEnvoltorioOriginal] = useState([]);
+    const [contexto, setContexto] = useState([]);
 
 
     useEffect(() => {
