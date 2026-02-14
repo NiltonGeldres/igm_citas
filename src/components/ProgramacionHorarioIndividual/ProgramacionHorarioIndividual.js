@@ -41,7 +41,8 @@ export default function ProgramacionHorarioIndividual() {
     const [datosOriginalesBackend, setDatosOriginalesBackend] = useState([]);
     const [envoltorioOriginal, setEnvoltorioOriginal] = useState([]);
     const [contexto, setContexto] = useState([]);
-
+    const [idEspSeleccionada, setIdEspSeleccionada] = useState(null);
+    const [idServSeleccionado, setIdServSeleccionado] = useState(null);
 
     useEffect(() => {
         TurnoService.getTodos().then(res => {
@@ -293,6 +294,21 @@ export default function ProgramacionHorarioIndividual() {
                     </div>
 
                     <BarraFiltros />
+
+                    <Box p={5}>
+                                <Especialidad onEspecialidadChange={(id) => {
+                                    setIdEspSeleccionada(id);
+                                    setIdServSeleccionado(null); // Reset servicio al cambiar especialidad
+                                }} />
+                                
+                                <Servicio 
+                                    idEspecialidad={idEspSeleccionada} 
+                                    onServicioChange={(id) => setIdServSeleccionado(id)} 
+                                />
+                                
+                                {/* El calendario solo debería cargar si ambos están seleccionados */}
+                                {idServSeleccionado && <TuCalendario contexto={contexto} />}
+                            </Box>                    
 
                     <div className="row g-4">
                         {modoMasivo && (

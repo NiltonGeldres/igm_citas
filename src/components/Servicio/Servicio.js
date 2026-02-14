@@ -30,25 +30,6 @@ const Servicio = ({idEntidad,valueServicio, textServicio }) => {
             }
         });
     };
-/*
-   const LoadData = ()=>{
-       setLoading(true);
-        ServicioService.getXIdEspecialidad(idEspecialidad)
-        .then((response) => {
-            console.log(JSON.stringify(response.data.servicio))
-            setPosts(response.data.servicio);
-            setLoading(false);
-        },(error) => {
-            console.log("Servicio PostService Error page", error.response);
-            if (error.response && error.response.status === 403) {
-                AuthService.logout();
-                navigate("/login");
-                window.location.reload();
-            }
-        });
-    };
-
-*/
         if (loading) {
             return <h2>Loading...</h2>;
           }    
@@ -84,3 +65,23 @@ const Servicio = ({idEntidad,valueServicio, textServicio }) => {
 }
 export default Servicio;
 
+
+/*
+   const LoadData = ()=>{
+       setLoading(true);
+        ServicioService.getXIdEspecialidad(idEspecialidad)
+        .then((response) => {
+            console.log(JSON.stringify(response.data.servicio))
+            setPosts(response.data.servicio);
+            setLoading(false);
+        },(error) => {
+            console.log("Servicio PostService Error page", error.response);
+            if (error.response && error.response.status === 403) {
+                AuthService.logout();
+                navigate("/login");
+                window.location.reload();
+            }
+        });
+    };
+
+*/
