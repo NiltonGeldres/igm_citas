@@ -8,7 +8,7 @@
 
 // Importaciones de subcomponentes (Manteniendo rutas originales para simular la estructura)
 
-import  { useState, useCallback, useMemo, useEffect } from 'react';
+import  { useState, useCallback, useMemo, useEffect, Box} from 'react';
 import { Icono } from "../ProgramacionHorarioIndividual/Programacion/Components/Icono.js";
 import BarraFiltros from "../ProgramacionHorarioIndividual/Programacion/Components/BarraFiltros.js";
 import ProgramadorMasivo from "../ProgramacionHorarioIndividual/Programacion/Components/ProgramadorMasivo.js";
@@ -22,7 +22,8 @@ import { cargarConfiguracionTurnos, MAPEO_TURNOS } from "./Programacion/Data/Car
 import ProgramacionHorarioIndividualService from "../ProgramacionHorarioIndividual/ProgramacionMedicaIndividualService.js";
 import { actualizarTurnoEnDia } from "../ProgramacionHorarioIndividual/Programacion/Modelos/ProgramacionHorarioDiaModelo.js";
 import { modelarCrearProgramacion ,modelarDia} from "../ProgramacionHorarioIndividual/Programacion/Modelos/ProgramacionHorarioDiaModelo.js";
-
+import Especialidad from "../Especialidad/Especialidad.js"
+import Servicio from "../Servicio/Servicio.js"
 
 
 
@@ -283,6 +284,7 @@ export default function ProgramacionHorarioIndividual() {
                                     <Icono nombre="Loader" size={14} className="me-2 spin"/> Procesando
                                 </span>
                             )}
+
                             <button
                                 onClick={alternarModoMasivo}
                                 className={`btn ${modoMasivo ? 'btn-danger shadow-danger' : 'btn-primary shadow-primary'} px-4 py-2 rounded-3 fw-bold d-flex align-items-center gap-2 transition-all`}
@@ -294,21 +296,14 @@ export default function ProgramacionHorarioIndividual() {
                     </div>
 
                     <BarraFiltros />
-
-                    <Box p={5}>
-                                <Especialidad onEspecialidadChange={(id) => {
-                                    setIdEspSeleccionada(id);
-                                    setIdServSeleccionado(null); // Reset servicio al cambiar especialidad
-                                }} />
-                                
-                                <Servicio 
-                                    idEspecialidad={idEspSeleccionada} 
-                                    onServicioChange={(id) => setIdServSeleccionado(id)} 
-                                />
-                                
-                                {/* El calendario solo debería cargar si ambos están seleccionados */}
-                                {idServSeleccionado && <TuCalendario contexto={contexto} />}
-                            </Box>                    
+                    {!idServSeleccionado ? (
+                        <div className="text-center p-5 bg-white rounded-4 shadow-sm">
+                            <Icono nombre="Clock" size={48} className="text-muted mb-3" />
+                            <h3 className="text-secondary">Seleccione una especialidad y consultorio</h3>
+                            <p className="text-muted">Debe elegir el lugar de atención para gestionar el horario.</p>
+                        </div>
+                    ) : (
+                  
 
                     <div className="row g-4">
                         {modoMasivo && (
@@ -349,6 +344,7 @@ export default function ProgramacionHorarioIndividual() {
                             </div>
                         </div>
                     </div>
+                    )}
                 </div>
                 
                 <ModalEditorTurnos
@@ -360,6 +356,7 @@ export default function ProgramacionHorarioIndividual() {
                     alGuardar={manejarGuardado} 
                 />
             </div>
+     
         </>
     );
 };
