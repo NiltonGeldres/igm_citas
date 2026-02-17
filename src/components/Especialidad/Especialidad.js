@@ -7,9 +7,6 @@ import { Form} from "react-bootstrap";
 
 // Importaciones de Chakra UI
 import {
-  Select,      // Reemplaza Form.Select
-  FormLabel,   // Reemplaza FormLabel
-  Box,         // Contenedor general
   Spinner,     // Para el indicador de carga
   Flex,        // Para centrar el spinner
   Text,        // Para mensajes de texto

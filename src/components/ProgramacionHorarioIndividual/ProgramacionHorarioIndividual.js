@@ -32,19 +32,27 @@ export default function ProgramacionHorarioIndividual() {
     const [fechaActual, setFechaActual] = useState(new Date()); 
     const [horarioCalendario, setHorarioCalendario] = useState({}); 
     const [estadoGuardado, setEstadoGuardado] = useState(null);
-
     const [modoMasivo, setModoMasivo] = useState(false);
     const [modalAbierto, setModalAbierto] = useState(false);
     const [diaSeleccionadoParaEdicion, setDiaSeleccionadoParaEdicion] = useState(null);
     const [turnosMasivosSeleccionados, setTurnosMasivosSeleccionados] = useState([]);
     const [diasMasivosSeleccionados, setDiasMasivosSeleccionados] = useState([]);
-    const [turnosCargados, setTurnosCargados]  = useState([]);
     const [datosOriginalesBackend, setDatosOriginalesBackend] = useState([]);
-    const [envoltorioOriginal, setEnvoltorioOriginal] = useState([]);
     const [contexto, setContexto] = useState([]);
-    const [idEspSeleccionada, setIdEspSeleccionada] = useState(null);
     const [idServSeleccionado, setIdServSeleccionado] = useState(null);
+    const [idEntidad, setIdEntidad] = useState(''); 
+    
+    const [idEspecialidad, setIdEspecialidad] = useState(''); 
+    const [idServicio, setIdServicio] = useState(""); 
+    const [turnosCargados, setTurnosCargados]  = useState([]);
+    const [envoltorioOriginal, setEnvoltorioOriginal] = useState([]);
+    const [idEspSeleccionada, setIdEspSeleccionada] = useState(null);
+    const [nombreMedico, setNombreMedico] = useState('');
+    const [nombreEntidad, setNombreEntidad] = useState(""); 
+    const [descripcionEspecialidad, setDescripcionEspecialidad] = useState(""); 
+    const [nombreServicio, setNombreServicio] = useState(""); 
 
+    
     useEffect(() => {
         TurnoService.getTodos().then(res => {
             cargarConfiguracionTurnos(res.data);
@@ -259,6 +267,22 @@ export default function ProgramacionHorarioIndividual() {
         return { celdas, nombreMes: MESES_ES[mes], año };
     }, [fechaActual, diasMasivosSeleccionados, horarioCalendario, manejarClickDia]);
 
+    /*parametros especialidad */
+    const valueEspecialidad = val => {
+      setIdEspecialidad(val) ;
+    }
+    const textEspecialidad = txt => {
+     setDescripcionEspecialidad(txt);
+    }
+
+    /* parametro de Servicio  */
+    const valueServicio = val => { 
+    setIdServicio(val); 
+    }
+    const textServicio = txt => { 
+    setNombreServicio(txt);
+    }    
+
     return (
         <>
             <style dangerouslySetInnerHTML={{ __html: ESTILOS_PERSONALIZADOS }} />
@@ -294,8 +318,23 @@ export default function ProgramacionHorarioIndividual() {
                             </button>
                         </div>
                     </div>
+                    <div className='mb-1' style={{width:400}}>
+                        <Especialidad
+                                valueEspecialidad={valueEspecialidad}
+                                textEspecialidad={textEspecialidad}
+                            />
+                    </div>           
+            
+                    <div className='mb-1' style={{width:400}}>
+                            <Servicio    
+                                idEntidad = {idEntidad}
+                                valueServicio  = {valueServicio}
+                                textServicio   = {textServicio}
+                            />
+                    </div>     
+ 
 
-                    <BarraFiltros />
+    
                     {!idServSeleccionado ? (
                         <div className="text-center p-5 bg-white rounded-4 shadow-sm">
                             <Icono nombre="Clock" size={48} className="text-muted mb-3" />

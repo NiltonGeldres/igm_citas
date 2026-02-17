@@ -76,9 +76,25 @@ const login = (user, password) => {
     .post(API_URL+LOGIN,{ user, password })
     .then((response) => {
         if(response.data.jwtToken){
+
             const decoded = jwtDecode(response.data.jwtToken);
             let a = decoded.rol.authority
             let u = decoded.sub
+
+            // Guardamos el token para las cabeceras de Axios
+            sessionStorage.setItem('token', response.data.jwtToken);
+            
+            // Creamos un objeto de perfil con lo que el JWT nos da
+            const perfil = {
+                username: decoded.sub,
+                rol: decoded.rol.authority,
+                idMedico: decoded.idMedico, // <-- Asegúrate que el backend lo envíe
+                idEntidad: decoded.idEntidad,     // <-- Asegúrate que el backend lo envíe
+                nombreCompleto: decoded.usuarioNombre // Opcional para la UI
+            };
+            
+            sessionStorage.setItem('user_profile', JSON.stringify(perfil));
+
             sessionStorage.setItem('username',  u) ;    
             sessionStorage.setItem('authority',  a) ;    
             sessionStorage.setItem('user',  JSON.stringify(response.data)) ;
@@ -101,6 +117,19 @@ const logout = () => {
 
 
 }
+
+// AuthService.js o un archivo similar
+export const getContextoActual = () => {
+    const profile = JSON.parse(sessionStorage.getItem('user_profile'));
+    if (!profile) return null;
+
+    return {
+        idMedico: profile.idMedico,
+        idEntidad: profile.idEntidad,
+        nombreCompleto: profile.nombreCompleto || "", // Valor por defecto si no viene
+    };
+};
+
 
 const getCurrentUser = () => {
    return  JSON.parse(sessionStorage.getItem('user'));
@@ -148,7 +177,6 @@ const actualizaUsuario = (usuarioData) => {
 
 
 const AuthService = {
-    
     login,
     signup,
     logout,
@@ -158,6 +186,7 @@ const AuthService = {
     actualizaUsuario   , 
     leerUsuarioUsername,
     getCurrentAuthority,
+    getContextoActual,
 };
 
 export default AuthService;

@@ -38,10 +38,11 @@ const Login = () => {
     e.preventDefault();
     try {
         await AuthService.login(email, password)
-        .then(() => { 
+        .then(() => {
+          
             UsuarioService.leerUsuario()
             navigate("/private");
-            window.location.reload();
+          //  window.location.reload();
           }
         ,(error) => {
             AuthService.logout();
