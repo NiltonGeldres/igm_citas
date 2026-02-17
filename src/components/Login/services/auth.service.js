@@ -93,11 +93,11 @@ const login = (user, password) => {
                 nombreCompleto: decoded.usuarioNombre // Opcional para la UI
             };
             
-            sessionStorage.setItem('user_profile', JSON.stringify(perfil));
-
             sessionStorage.setItem('username',  u) ;    
             sessionStorage.setItem('authority',  a) ;    
             sessionStorage.setItem('user',  JSON.stringify(response.data)) ;
+            sessionStorage.setItem('user_profile', JSON.stringify(perfil));
+
             }
         return response.data;
     });

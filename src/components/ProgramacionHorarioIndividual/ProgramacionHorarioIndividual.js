@@ -1,13 +1,3 @@
-//src/components/ProgramacionHorarioIndividual/ProgramacionHorarioIndividual.js
-//import { cargarConfiguracionTurnos } from './Programacion/Data/CargarConfiguracionTurnos.js';
-//import { TODOS_LOS_TURNOS } from "../ProgramacionHorarioIndividual/Programacion/Constants/TODOS_LOS_TURNOS.js";
-//import { TODOS_LOS_TURNOS } from "../ProgramacionHorarioIndividual/Programacion/Constants/TODOS_LOS_TURNOS.js";
-//import { MONTHS_ES, WEEKDAYS, ALL_SHIFTS, SHIFT_MAPPING, firebaseConfig, appId, initialAuthToken} from "../ProgramacionHorarioIndividual/Programacion/Data/Constants.js"
-//import { MONTHS_ES} from "../ProgramacionHorarioIndividual/Programacion/Data/Constants.js"
-//import { CalendarCheck, ChevronLeft, ChevronRight, X, PlusCircle, Clock, CheckCircle } from 'lucide-react';
-
-// Importaciones de subcomponentes (Manteniendo rutas originales para simular la estructura)
-
 import  { useState, useCallback, useMemo, useEffect, Box} from 'react';
 import { Icono } from "../ProgramacionHorarioIndividual/Programacion/Components/Icono.js";
 import BarraFiltros from "../ProgramacionHorarioIndividual/Programacion/Components/BarraFiltros.js";
@@ -38,20 +28,19 @@ export default function ProgramacionHorarioIndividual() {
     const [turnosMasivosSeleccionados, setTurnosMasivosSeleccionados] = useState([]);
     const [diasMasivosSeleccionados, setDiasMasivosSeleccionados] = useState([]);
     const [datosOriginalesBackend, setDatosOriginalesBackend] = useState([]);
-    const [contexto, setContexto] = useState([]);
-    const [idServSeleccionado, setIdServSeleccionado] = useState(null);
-    const [idEntidad, setIdEntidad] = useState(''); 
     
+    const [idEntidad, setIdEntidad] = useState(''); 
+    const [descripcionEntidad, setDescipcionEntidad] = useState(""); 
     const [idEspecialidad, setIdEspecialidad] = useState(''); 
+    const [descripcionEspecialidad, setDescripcionEspecialidad] = useState(""); 
     const [idServicio, setIdServicio] = useState(""); 
+    const [descripcionServicio, setDescripcionServicio] = useState(""); 
+
     const [turnosCargados, setTurnosCargados]  = useState([]);
     const [envoltorioOriginal, setEnvoltorioOriginal] = useState([]);
-    const [idEspSeleccionada, setIdEspSeleccionada] = useState(null);
     const [nombreMedico, setNombreMedico] = useState('');
-    const [nombreEntidad, setNombreEntidad] = useState(""); 
-    const [descripcionEspecialidad, setDescripcionEspecialidad] = useState(""); 
-    const [nombreServicio, setNombreServicio] = useState(""); 
-
+    const [idEspSeleccionada, setIdEspSeleccionada] = useState(null);
+//    const [idServSeleccionado, setIdServSeleccionado] = useState(null);
     
     useEffect(() => {
         TurnoService.getTodos().then(res => {
@@ -60,12 +49,39 @@ export default function ProgramacionHorarioIndividual() {
             setTurnosCargados(turnosParaEstado);        });
     }, []);
 
+
+    // Se carga/actualiza cada vez que cambie la especialidad, el servicio o el mes
+    const contexto = useMemo(() => {
+        const perfil = JSON.parse(sessionStorage.getItem('user_profile'));
+        return {
+            // Datos del Login (JWT)
+            idEntidad: perfil?.idEntidad,
+            idMedico: perfil?.idMedico,
+            usuarioNombres: perfil?.usuarioNombres,
+            
+            // Datos de la Selección Actual (Tus componentes independientes)
+            idEspecialidad: idEspecialidad,
+            nombreEspecialidad: descripcionEspecialidad,
+            idServicio: idServicio,
+            nombreServicio: descripcionServicio,
+            
+            // Datos del Calendario
+            mes: fechaActual.getMonth() + 1,
+            anio: fechaActual.getFullYear()
+        };
+    }, [idEspecialidad, idServicio, fechaActual]);
+
     //...............................................................................
     const cargarProgramacionCompleta = useCallback(async () => {
-        const mes = fechaActual.getMonth() + 1;
+/*        const mes = contextofechaActual.getMonth() + 1;
         const anio = fechaActual.getFullYear();
         const idEspecialidad = 9; 
         const idMedico = 1762; 
+ */       
+        const mes = contexto.mes;
+        const anio = contexto.anio;
+        const idEspecialidad = contexto.idEspecialidad; 
+        const idMedico = contexto.idMedico; 
         
         setEstadoGuardado('cargando');
 
@@ -113,10 +129,14 @@ export default function ProgramacionHorarioIndividual() {
             setEstadoGuardado(null);
         }
     }, [fechaActual]);
+
     // Disparador automático al cambiar de mes/año
     useEffect(() => {
+        if (contexto.idMedico && contexto.idEspecialidad && contexto.idServicio) {
         cargarProgramacionCompleta();
-    }, [cargarProgramacionCompleta]);
+        }
+    }, [contexto, cargarProgramacionCompleta]);
+
 
     //...............................................................................
     // Guardado de datos
@@ -140,7 +160,7 @@ export default function ProgramacionHorarioIndividual() {
             // El payload necesita el contexto actual (Médico, Especialidad, Sede)
             const payloadFinal = modelarCrearProgramacion(contexto, diasConTurnos);
 
-            const response = await ProgramacionHorarioIndividualService.crearProgramacionMes(payloadFinal);
+            const response = await ProgramacionHorarioIndividualService.crearProgramacionMesUsuario(payloadFinal);
             
             if (response.status === 200) {
                 // REFRESH: Llamamos a la versión actual de la función de carga
@@ -229,7 +249,7 @@ export default function ProgramacionHorarioIndividual() {
             setModalAbierto(true);
         }
     }, [modoMasivo]);
-
+    
     const datosCalendario = useMemo(() => {
         const año = fechaActual.getFullYear();
         const mes = fechaActual.getMonth();
@@ -239,12 +259,9 @@ export default function ProgramacionHorarioIndividual() {
         const celdas = [];
         const claveHoy = new Date().toISOString().slice(0, 10);
         console.log("Clave Hoy ===> "+claveHoy);
-
-
         for (let i = 0; i < offsetInicio; i++) {
             celdas.push(<CeldaCalendario key={`vacia-${i}`} dia={null} />);
         }
-
         for (let d = 1; d <= diasEnMes; d++) {
             const dPadded = String(d).padStart(2, '0');
             const mPadded = String(mes + 1).padStart(2, '0');
@@ -267,24 +284,18 @@ export default function ProgramacionHorarioIndividual() {
         return { celdas, nombreMes: MESES_ES[mes], año };
     }, [fechaActual, diasMasivosSeleccionados, horarioCalendario, manejarClickDia]);
 
-    /*parametros especialidad */
-    const valueEspecialidad = val => {
-      setIdEspecialidad(val) ;
+    const handleEspecialidadChange = (id, texto) => {
+        setIdEspecialidad(id);
+        if (texto) setDescripcionEspecialidad(texto);
+            setIdServicio(null); 
+            setDescripcionServicio("");
     }
-    const textEspecialidad = txt => {
-     setDescripcionEspecialidad(txt);
-    }
-
-    /* parametro de Servicio  */
-    const valueServicio = val => { 
-    setIdServicio(val); 
-    }
-    const textServicio = txt => { 
-    setNombreServicio(txt);
-    }    
+    
+    const listoParaProgramar = idEspecialidad && idServicio;
 
     return (
         <>
+        
             <style dangerouslySetInnerHTML={{ __html: ESTILOS_PERSONALIZADOS }} />
             <div className={`p-4 p-md-5 ${modoMasivo ? 'bulk-mode' : ''} min-vh-100`}>
                 <div className="container-xl">
@@ -296,7 +307,37 @@ export default function ProgramacionHorarioIndividual() {
                             </h1>
                             <p className="text-secondary small fw-medium mb-0">Configuración mensual y programación en lote por servicio.</p>
                         </div>
-                        
+
+                        <div className='mb-1' style={{width:400}}>
+                            <Especialidad
+                                valueEspecialidad={(val) => handleEspecialidadChange(val, null)}
+                                textEspecialidad={(txt) => setDescripcionEspecialidad(txt)}                                />
+                        </div>           
+                
+                        <div className='mb-1' style={{width:400}}>
+                                <Servicio    
+                                    idEntidad={contexto.idEntidad} // Viene de tu perfil/contexto
+                                    valueServicio={(id) => setIdServicio(id)} // Solo actualiza el ID
+                                    textServicio={(txt) => setDescripcionServicio(txt)}                                
+                                />
+                        </div>                             
+                    </div>
+
+                    
+
+ 
+
+    
+                    {!listoParaProgramar ? (
+                        <div className="text-center p-5 bg-white rounded-4 shadow-sm">
+                            <Icono nombre="Clock" size={48} className="text-muted mb-3" />
+                            <h3 className="text-secondary">Seleccione una especialidad y consultorio</h3>
+                            <p className="text-muted">Debe elegir el lugar de atención para gestionar el horario.</p>
+                        </div>
+                    ) : (
+                  
+
+                    <div className="row g-4">
                         <div className="d-flex align-items-center gap-3">
                             {estadoGuardado === 'guardado' && (
                                 <span className="badge bg-success-subtle text-success px-3 py-2 rounded-pill d-flex align-items-center animate-in fade-in">
@@ -317,34 +358,8 @@ export default function ProgramacionHorarioIndividual() {
                                 {modoMasivo ? 'Cancelar Lote' : 'Programación Masiva'}
                             </button>
                         </div>
-                    </div>
-                    <div className='mb-1' style={{width:400}}>
-                        <Especialidad
-                                valueEspecialidad={valueEspecialidad}
-                                textEspecialidad={textEspecialidad}
-                            />
-                    </div>           
-            
-                    <div className='mb-1' style={{width:400}}>
-                            <Servicio    
-                                idEntidad = {idEntidad}
-                                valueServicio  = {valueServicio}
-                                textServicio   = {textServicio}
-                            />
-                    </div>     
- 
 
-    
-                    {!idServSeleccionado ? (
-                        <div className="text-center p-5 bg-white rounded-4 shadow-sm">
-                            <Icono nombre="Clock" size={48} className="text-muted mb-3" />
-                            <h3 className="text-secondary">Seleccione una especialidad y consultorio</h3>
-                            <p className="text-muted">Debe elegir el lugar de atención para gestionar el horario.</p>
-                        </div>
-                    ) : (
-                  
 
-                    <div className="row g-4">
                         {modoMasivo && (
                             <div className="col-12 col-lg-3 animate-in slide-in-from-left duration-300">
                                 <ProgramadorMasivo

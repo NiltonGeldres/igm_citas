@@ -42,7 +42,7 @@ const Login = () => {
           
             UsuarioService.leerUsuario()
             navigate("/private");
-          //  window.location.reload();
+            window.location.reload();
           }
         ,(error) => {
             AuthService.logout();
