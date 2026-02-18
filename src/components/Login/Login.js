@@ -34,13 +34,13 @@ const Login = () => {
         fecha_modificacion  :""
       });    
 
-  const handleLogin = async (e) => {
+/*  const handleLogin = async (e) => {
     e.preventDefault();
     try {
         await AuthService.login(email, password)
         .then(() => {
           
-            UsuarioService.leerUsuario()
+         //   UsuarioService.leerUsuario()
             navigate("/private");
             window.location.reload();
           }
@@ -57,7 +57,44 @@ const Login = () => {
         alert("Comuniquese con el soporte tecnico: "+err)
     }
   };
-  
+ */ 
+
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    
+    try {
+        await AuthService.login(email, password);
+        navigate("/private");
+         window.location.reload();
+    } catch (err) {
+        // 1. Obtenemos el código de error del backend (ej: 401, 403, 500)
+        const statusCode = err.response?.status;
+        const serverMessage = err.response?.data?.message; // Si tu API devuelve un mensaje
+
+        let mensajeParaUsuario = "";
+
+        if (statusCode === 401) {
+            mensajeParaUsuario = "La contraseña o el correo son incorrectos. Por favor, verifica tus datos.";
+        } else if (statusCode === 403) {
+            mensajeParaUsuario = "Tu cuenta está desactivada o no tienes permisos para acceder. Contacta al administrador.";
+        } else if (statusCode === 404) {
+            mensajeParaUsuario = "El usuario ingresado no existe.";
+        } else if (statusCode >= 500) {
+            mensajeParaUsuario = "Tenemos problemas con nuestro servidor. Inténtalo más tarde.";
+        } else {
+            mensajeParaUsuario = "No se pudo conectar con el servidor. Revisa tu conexión a internet.";
+        }
+
+        // Mostramos el error en tu modal especializado
+        setErrorMessage(mensajeParaUsuario);
+        setShowErrorModal(true);
+        
+        AuthService.logout(); // Limpiamos por seguridad
+    } finally {
+        setLoading(false);
+    }
+};
   return (
     <div style={Styles.loginContainer}>
       <form onSubmit={handleLogin} style={Styles.loginForm}>

@@ -47,15 +47,11 @@ function App() {
     const user = AuthService.getCurrentUser();
     if (user && user.jwtToken) {
       setCurrentUser(user);
-   //   
+    
       try {
         const decodedToken = jwtDecode(user.jwtToken);
         setUserId(decodedToken.userId); 
         setUserRoles(decodedToken.roles || []); 
-      //let username = sessionStorage.getItem('nombres');
-  //      alert('User ID '+userId)
-   //     alert('User Roles  '+userRoles)
-
         const storedProfile = sessionStorage.getItem("userProfile");
         if (storedProfile) {
           setUserProfileData(JSON.parse(storedProfile));

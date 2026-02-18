@@ -8,25 +8,6 @@ const LOGIN = "/auth";
 const SIGNUP = "/signin";
 const GETUSUARIO = "/getUsuarioUsername";
 const UPDATEUSUARIO = "/updateUsuario";
-/*const usuarioData = ({
-    apellido_materno    :"",
-    apellido_paterno    :"",
-    email               :"",
-    estado              :"" ,
-    fecha_alta          :"",
-    fecha_baja          :"",
-    fecha_modificacion  :"",
-    id_sexo             :"",
-    id_tipo_documento   :"",
-    id_usuario          : 0,
-    numero_celular      :"",
-    numero_documento    :"",
-    password            :"",
-    primer_nombre       :"",
-    segundo_nombre      :"r",
-    username            :""        
-  });    
-*/
 
 const signup = (
      username ,

@@ -81,6 +81,7 @@ export default function ProgramacionHorarioIndividual() {
         const mes = contexto.mes;
         const anio = contexto.anio;
         const idEspecialidad = contexto.idEspecialidad; 
+        const idServicio = contexto.idServicio; 
         const idMedico = contexto.idMedico; 
         
         setEstadoGuardado('cargando');
