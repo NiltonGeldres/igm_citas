@@ -385,6 +385,8 @@ const Cita = ({ modoCita = "paciente", medicoIdPreseleccionado, especialidadIdPr
           />
         </Box>
 
+
+
         {/* Sección de Horas Disponibles (Ahora debajo del calendario) */}
         <Box flex="1" p={5} shadow="md" borderWidth="1px" borderRadius="lg" bg="white">
           <ProgramacionHoras
