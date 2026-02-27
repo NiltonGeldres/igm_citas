@@ -5,6 +5,7 @@ import Login from "./components/Login/Login";
 import Signup from "./components/Login/Signup";
 import Home from "./components/Home"; // Página de marketing pública
 import Private from "./components/Private"; // Componente que gestiona el dashboard según el rol
+import CitaV2 from "./components/Cita/CitaV2";
 //import "bootstrap/dist/css/bootstrap.min.css"; // Mantener si usas estilos de Bootstrap
 
 // Importa los componentes de las secciones que tendrán sus propias rutas
@@ -143,7 +144,7 @@ function App() {
           La altura de la navbar (Styles.navbar) es aproximadamente 60px. */}
       <div style={{ flexGrow: 1, width: '100%', paddingTop: '60px' }}>
         <Routes>
-          <Route path="/home" element={<ProgramacionHorarioIndividual/>} />
+          <Route path="/home" element={<CitaV2/>} />
           <Route path="/home" element={<Home />} />
           <Route path="/login" element={<Login setCurrentUser={setCurrentUser} setUserName={setUserName} />} />
           <Route path="/signup" element={<Signup/>} />
@@ -160,6 +161,7 @@ function App() {
               <Route path="/Cita" element={<Cita/>} />
               <Route path="/CitaSeparada" element={<CitaSeparada />} />
               <Route path="/Usuario" element={<Usuario/>} />
+              <Route path="/CitaV2" element={<CitaV2/>} />
               <Route path="*" element={<Private />} />
             </>
           ) : (

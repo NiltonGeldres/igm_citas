@@ -1,25 +1,24 @@
 //cargarConfiguracionTurnos.js
 
 // Esta es tu única "Constante", pero es dinámica
-export let MAPEO_TURNOS = {
+export let ENTIDADES = {
     'libre': { 
-        idTurno: 'libre', 
-        descripcion: 'Libre', 
-        hora: 'Libre', 
+        idEntidad: 'Seleccione', 
+        nombre: 'Seleccione', 
         claseColor: 'bg-light text-secondary border' 
     }
 };
 
 
-export const obtenerTodosLosTurnos = () => Object.values(MAPEO_TURNOS);
+export const obtenerTodasLasEntidades = () => Object.values(ENTIDADES);
 
 // Esta función la llamas al iniciar la App o el Calendario
-export const cargarConfiguracionTurnos = (turnosDesdeApi) => {
-    turnosDesdeApi.forEach((turno, index) => {
-        MAPEO_TURNOS[turno.idTurno] = {
-                    idTurno:     turno.idTurno,
-                    descripcion: turno.descripcion,
-                    hora:        turno.horaInicio+"-"+ turno.horaFin,
+export const cargarConfiguracionEntidades = (EntidadDesdeApi) => {
+    alert(JSON.stringify(EntidadDesdeApi));
+    EntidadDesdeApi.forEach((entidad, index) => {
+        ENTIDADES[entidad.idEntidad] = {
+                    idEntidad:    entidad.idEntidad,
+                    nombre:       entidad.nombre,
             // Generamos colores dinámicos o los traemos de la API si los tienes
             claseColor: obtenerColorPorIndice(index)
         };
