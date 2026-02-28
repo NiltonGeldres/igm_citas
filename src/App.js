@@ -19,6 +19,8 @@ import ProgramacionHorarioIndividual from "./components/ProgramacionHorarioIndiv
 import { jwtDecode } from "jwt-decode"; 
 import UsuarioService from '../src/components/Usuario/UsuarioService'
 import ProgramacionHorario from "./components/ProgramacionHorario/ProgramacionHorario";
+import EntidadService from "./components/Entidad/EntidadService";
+import { cargarConfiguracionEntidades, ENTIDADES } from "./components/Entidad/EntidadData";
 
 function App() {
   const navigate = useNavigate();
@@ -28,56 +30,59 @@ function App() {
   const [userRoles, setUserRoles] = useState([]); 
   const [userProfileData, setUserProfileData] = useState(null); 
 
+  const [userProfile, setUserProfile] = useState(null); 
+  const [entidadNombre, setEntidadNombre] = useState(""); 
+  const [entidadesCargados, setEntidadesCargados] = useState(false);
+
   // Función auxiliar para obtener el nombre completo del perfil
   const getFullNameForHeader = (profile) => {
     if (!profile) return 'Usuario'; // Fallback si no hay perfil
-    
-    const primerNombre = profile.primer_nombre || '';
-    const apellidoPaterno = profile.apellido_paterno || '';
-    const apellidoMaterno = profile.apellido_materno || '';
-
-    // Concatenar y limpiar espacios extra
-    const fullName = `${primerNombre} ${apellidoPaterno} ${apellidoMaterno}`.trim();
-
-    // Si el nombre completo está vacío después de la concatenación, usar el username
+    const usuarioNombres = profile.usuarioNombres || '';
+    const fullName = `${usuarioNombres}`.trim();
     return fullName || profile.username || 'Usuario';
+    
+          //   const primerNombre = profile.primer_nombre || '';
+          //   const apellidoPaterno = profile.apellido_paterno || '';
+          //   const apellidoMaterno = profile.apellido_materno || '';
+
+              // Concatenar y limpiar espacios extra
+              //const fullName = `${primerNombre} ${apellidoPaterno} ${apellidoMaterno}`.trim();
+          //  const fullName = `${primerNombre} ${apellidoPaterno} ${apellidoMaterno}`.trim();
+
+              // Si el nombre completo está vacío después de la concatenación, usar el username
   };
 
-
+  const getEntidadForHeader = () => {
+    return entidadNombre;;
+    
+  };
   useEffect(() => {
     const user = AuthService.getCurrentUser();
-    if (user && user.jwtToken) {
-      setCurrentUser(user);
-    
+    const perfil = AuthService.leerPerfil();
+    if (perfil) {
       try {
-        const decodedToken = jwtDecode(user.jwtToken);
-        setUserId(decodedToken.userId); 
-        setUserRoles(decodedToken.roles || []); 
-        const storedProfile = sessionStorage.getItem("userProfile");
-        if (storedProfile) {
-          setUserProfileData(JSON.parse(storedProfile));
-        } 
-        else {
-          const usernameFromToken = decodedToken.sub; 
-          if (usernameFromToken) {
-            UsuarioService.leerUsuario(usernameFromToken)
-              .then(response => {
-                setUserProfileData(response.data);
-                sessionStorage.setItem("userProfile", JSON.stringify(response.data));
-              })
-              .catch(error => {
-                console.error("Error al recargar perfil en App.js:", error);
-              });
-          }
-        }
+        setCurrentUser(perfil);
+        setUserProfileData(perfil);
+        /*  Nombre de Entidad*/
+        setTimeout(() => {
+            EntidadService.getEntidad().then(res => {
+                cargarConfiguracionEntidades(res.data);
+              alert("Datos API "+JSON.stringify(res.data))
+                const entidadesParaEstado = Object.values(ENTIDADES);
+              setEntidadesCargados(entidadesParaEstado);
+              setEntidadNombre(ENTIDADES.nombre);
+              alert("Datos API "+entidadesCargados.nombre+ "   ---" +JSON.stringify(entidadesCargados))
+            });
+
+         // setEntidadNombre("Clínica San Pablo - Sede Central");
+        }, 1000);
+
       } catch (e) {
-        console.error("Error decoding token on app load:", e);
-        AuthService.logout(); 
-        navigate("/login");
+        console.error("Error al procesar el token:", e);
       }
- //           
     }
-  }, [navigate]);
+
+  }, []);
 
   const logOut = () => {
     AuthService.logout();
@@ -110,6 +115,9 @@ function App() {
             <li className="nav-item">
               <span style={{ color: "white", padding: '8px 12px', display: 'block' }}>
                  {getFullNameForHeader(userProfileData)}
+              </span>
+              <span style={{ color: "white", padding: '8px 12px', display: 'block' }}>
+                 {entidadNombre}
               </span>
             </li>
           )}
@@ -144,7 +152,6 @@ function App() {
           La altura de la navbar (Styles.navbar) es aproximadamente 60px. */}
       <div style={{ flexGrow: 1, width: '100%', paddingTop: '60px' }}>
         <Routes>
-          <Route path="/home" element={<CitaV2/>} />
           <Route path="/home" element={<Home />} />
           <Route path="/login" element={<Login setCurrentUser={setCurrentUser} setUserName={setUserName} />} />
           <Route path="/signup" element={<Signup/>} />
@@ -174,3 +181,58 @@ function App() {
 }
 
 export default App;
+
+
+
+
+/*
+//        setUserProfileData(perfil);
+        // Simulación de la API de Entidad (Context-aware)
+        setTimeout(() => {
+            EntidadService.getEntidad().then(res => {
+                cargarConfiguracionEntidades(res.data);
+                const entidadesParaEstado = Object.values(ENTIDADES);
+              setEntidadesCargados(entidadesParaEstado);
+              setEntidadNombre(ENTIDADES.nombre);
+//              alert("Datos API "+entidadesCargados.nombre+ "   ---" +JSON.stringify(entidadesCargados))
+            });
+
+         // setEntidadNombre("Clínica San Pablo - Sede Central");
+        }, 1000);
+  */
+/*
+  useEffect(() => {
+    const user = AuthService.getCurrentUser();
+    if (user && user.jwtToken) {
+      setCurrentUser(user);
+    
+      try {
+        const decodedToken = jwtDecode(user.jwtToken);
+        setUserId(decodedToken.userId); 
+        setUserRoles(decodedToken.roles || []); 
+        const storedProfile = sessionStorage.getItem("userProfile");
+        if (storedProfile) {
+          setUserProfileData(JSON.parse(storedProfile));
+        } 
+        else {
+          const usernameFromToken = decodedToken.sub; 
+          if (usernameFromToken) {
+            UsuarioService.leerUsuario(usernameFromToken)
+              .then(response => {
+                setUserProfileData(response.data);
+                sessionStorage.setItem("userProfile", JSON.stringify(response.data));
+              })
+              .catch(error => {
+                console.error("Error al recargar perfil en App.js:", error);
+              });
+          }
+        }
+      } catch (e) {
+        console.error("Error decoding token on app load:", e);
+        AuthService.logout(); 
+        navigate("/login");
+      }
+ //           
+    }
+  }, [navigate]);
+*/

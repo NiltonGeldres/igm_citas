@@ -56,6 +56,7 @@ const login = (user, password) => {
     return axios
     .post(API_URL+LOGIN,{ user, password })
     .then((response) => {
+
         if(response.data.jwtToken){
 
             const decoded = jwtDecode(response.data.jwtToken);
@@ -64,16 +65,14 @@ const login = (user, password) => {
 
             // Guardamos el token para las cabeceras de Axios
             sessionStorage.setItem('token', response.data.jwtToken);
-            
             // Creamos un objeto de perfil con lo que el JWT nos da
             const perfil = {
                 username: decoded.sub,
                 rol: decoded.rol.authority,
                 idMedico: decoded.idMedico, // <-- Asegúrate que el backend lo envíe
                 idEntidad: decoded.idEntidad,     // <-- Asegúrate que el backend lo envíe
-                nombreCompleto: decoded.usuarioNombre // Opcional para la UI
+                usuarioNombres: decoded.usuarioNombres // Opcional para la UI
             };
-            
             sessionStorage.setItem('username',  u) ;    
             sessionStorage.setItem('authority',  a) ;    
             sessionStorage.setItem('user',  JSON.stringify(response.data)) ;
@@ -87,12 +86,13 @@ const login = (user, password) => {
 const logout = () => {
     sessionStorage.removeItem('user');
     // Eliminar TODOS los ítems de sessionStorage relacionados con el usuario
-    sessionStorage.removeItem('user'); // Objeto de usuario con el token
     sessionStorage.removeItem('username'); // Username guardado aparte
     sessionStorage.removeItem('authority'); // Autoridad/rol guardado aparte
-    sessionStorage.removeItem('nombres'); // Nombres completos
-    sessionStorage.removeItem('idusuario'); // ID de usuario
-    sessionStorage.removeItem('userProfile'); // Objeto de perfil completo
+    sessionStorage.removeItem('user'); // Objeto de usuario con el token
+    sessionStorage.removeItem('user_profile'); // Objeto de perfil completo
+//    sessionStorage.removeItem('nombres'); // Nombres completos
+//    sessionStorage.removeItem('idusuario'); // ID de usuario
+//    sessionStorage.removeItem('userProfile'); // Objeto de perfil completo
     // Si usas localStorage para algo, también deberías limpiarlo aquí
     // localStorage.removeItem('someOtherUserSetting');
 
@@ -154,6 +154,9 @@ const actualizaUsuario = (usuarioData) => {
  
 };
 
+const leerPerfil = () => {
+   return  JSON.parse(sessionStorage.getItem('user_profile'));
+};
 
 
 
@@ -168,6 +171,7 @@ const AuthService = {
     leerUsuarioUsername,
     getCurrentAuthority,
     getContextoActual,
+    leerPerfil,
 };
 
 export default AuthService;

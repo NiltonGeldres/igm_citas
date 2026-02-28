@@ -138,13 +138,13 @@ export default function App() {
   const [entidadesCargados, setEntidadesCargados] = useState(false);
 
     useEffect(() => {
-        EntidadService.getEntidad().then(res => {
-            //alert(JSON.stringify(ENTIDADES))
 
-            
+        EntidadService.getEntidad().then(res => {
             cargarConfiguracionEntidades(res.data);
             const entidadesParaEstado = Object.values(ENTIDADES);
           setEntidadesCargados(entidadesParaEstado);
+          alert("entodades  "+ JSON.stringify(ENTIDADES))
+          alert("Datos API "+entidadesCargados.nombre+ "   ---" +JSON.stringify(entidadesCargados))
          });
     }, []);
 
@@ -209,6 +209,15 @@ export default function App() {
             )}
           </div>
         </div>
+         <div  className="card-custom bg-white p-3 shadow-sm d-flex align-items-center gap-3 cursor-pointer">
+             <div className={`${entidadesCargados.color} text-white p-3 rounded-4`}><Building2 size={20} /></div>
+                <div className="flex-grow-1">
+                  <p className="mb-0 fw-bold small">{entidadesCargados.nombre}</p>
+                 <p className="mb-0 text-secondary" style={{fontSize: '11px'}}>{entidadesCargados.direccion}</p>
+             </div>
+
+         </div>
+
       </header>
 
       <main className="px-4 py-4" style={{maxWidth: '480px', margin: '0 auto'}}>
@@ -347,14 +356,6 @@ export default function App() {
                     </div>
 
                     <div className="d-flex flex-column gap-2">
-                        <div key={ENTIDADES.idEntidad} onClick={() => manejarSeleccion('entidad', ENTIDADES)} className="card-custom bg-white p-3 shadow-sm d-flex align-items-center gap-3 cursor-pointer">
-                          <div className={`${ENTIDADES.color} text-white p-3 rounded-4`}><Building2 size={20} /></div>
-                          <div className="flex-grow-1">
-                            <p className="mb-0 fw-bold small">{ENTIDADES.nombre}</p>
-                            <p className="mb-0 text-secondary" style={{fontSize: '11px'}}>{ENTIDADESentidad.direccion}</p>
-                          </div>
-                          <ChevronRight size={18} className="text-light" />
-                        </div>
 
                       {pasoActual === 2 && ESPECIALIDADES.map(espec => (
                         <div key={espec.id} onClick={() => manejarSeleccion('especialidad', espec)} className="card-custom bg-white p-4 shadow-sm d-flex align-items-center gap-3 cursor-pointer">
@@ -534,13 +535,3 @@ export default function App() {
 }
 
 
-/**
-     useEffect(() => {
-        EntidadService.getTodos().then(res => {
-            cargarConfiguracionEntidades(res.data);
-            const EntidadesParaEstado = Object.values(MAPEO_ENTIDADES);
-            setEntidadesCargados(entidadesturnosParaEstado);        });
-    }, []);
-* 
- * 
- */
