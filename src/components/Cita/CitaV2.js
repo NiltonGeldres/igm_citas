@@ -139,7 +139,9 @@ export default function App() {
 
     useEffect(() => {
         EntidadService.getEntidad().then(res => {
-            alert(JSON.stringify(ENTIDADES))
+            //alert(JSON.stringify(ENTIDADES))
+
+            
             cargarConfiguracionEntidades(res.data);
             const entidadesParaEstado = Object.values(ENTIDADES);
           setEntidadesCargados(entidadesParaEstado);
