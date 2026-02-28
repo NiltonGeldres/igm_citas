@@ -24,7 +24,7 @@ import {
 } from 'lucide-react';
 
 import EntidadService from '../Entidad/EntidadService';
-import { cargarConfiguracionEntidades, MAPEO_ENTIDADES } from '../Entidad/EntidadData';
+import { cargarConfiguracionEntidades, ENTIDADES } from '../Entidad/EntidadData';
 
 // --- ESTILOS PERSONALIZADOS ---
 const ESTILOS_CSS = `
@@ -102,11 +102,11 @@ const ESTILOS_CSS = `
 `;
 
 // --- DATOS MOCK ---
-const ENTIDADES = [
+/*const ENTIDADES = [
   { id: 'e1', nombre: 'Clínica San Pablo', direccion: 'Av. Encalada 101, Surco', color: 'bg-primary' },
   { id: 'e2', nombre: 'Clínica Internacional', direccion: 'Sede San Borja', color: 'bg-info' },
   { id: 'e3', nombre: 'Clínica Delgado', direccion: 'Miraflores, Lima', color: 'bg-primary' }
-];
+];*/
 
 const ESPECIALIDADES = [
   { id: 's1', nombre: 'Medicina General', icono: <Activity size={20} />, precio: 80.00 },
@@ -138,9 +138,9 @@ export default function App() {
   const [entidadesCargados, setEntidadesCargados] = useState(false);
 
     useEffect(() => {
-        EntidadService.getXUsuario().then(res => {
-            alert(JSON.stringify(res))
-            cargarConfiguracionEntidades(res.entidad);
+        EntidadService.getEntidad().then(res => {
+            alert(JSON.stringify(ENTIDADES))
+            cargarConfiguracionEntidades(res.data);
             const entidadesParaEstado = Object.values(ENTIDADES);
           setEntidadesCargados(entidadesParaEstado);
          });
@@ -345,16 +345,14 @@ export default function App() {
                     </div>
 
                     <div className="d-flex flex-column gap-2">
-                      {pasoActual === 1 && ENTIDADES.map(entidad => (
-                        <div key={entidad.id} onClick={() => manejarSeleccion('entidad', entidad)} className="card-custom bg-white p-3 shadow-sm d-flex align-items-center gap-3 cursor-pointer">
-                          <div className={`${entidad.color} text-white p-3 rounded-4`}><Building2 size={20} /></div>
+                        <div key={ENTIDADES.idEntidad} onClick={() => manejarSeleccion('entidad', ENTIDADES)} className="card-custom bg-white p-3 shadow-sm d-flex align-items-center gap-3 cursor-pointer">
+                          <div className={`${ENTIDADES.color} text-white p-3 rounded-4`}><Building2 size={20} /></div>
                           <div className="flex-grow-1">
-                            <p className="mb-0 fw-bold small">{entidad.nombre}</p>
-                            <p className="mb-0 text-secondary" style={{fontSize: '11px'}}>{entidad.direccion}</p>
+                            <p className="mb-0 fw-bold small">{ENTIDADES.nombre}</p>
+                            <p className="mb-0 text-secondary" style={{fontSize: '11px'}}>{ENTIDADESentidad.direccion}</p>
                           </div>
                           <ChevronRight size={18} className="text-light" />
                         </div>
-                      ))}
 
                       {pasoActual === 2 && ESPECIALIDADES.map(espec => (
                         <div key={espec.id} onClick={() => manejarSeleccion('especialidad', espec)} className="card-custom bg-white p-4 shadow-sm d-flex align-items-center gap-3 cursor-pointer">
