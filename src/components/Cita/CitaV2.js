@@ -25,6 +25,8 @@ import {
 
 import EspecialidadService from '../Especialidad/EspecialidadService';
 import {transformarEspecialidades} from "../Cita/Data/CitaEspecialidad"
+import MedicoService from '../Medico/MedicoService';
+import { transformarMedicos } from './Data/CitaMedicoUI';
 
 // --- ESTILOS PERSONALIZADOS (Mantenidos intactos) ---
 const ESTILOS_CSS = `
@@ -145,17 +147,17 @@ export default function App({
 
     switch(nombre) {
       case "obtenerEspecialidadesService":
-        return [
+        /*return [
           { id: 'e1', nombre: 'Medicina General', icono: <Activity size={20} />, precio: 80.00 },
           { id: 'e2', nombre: 'Odontología', icono: <Smile size={20} />, precio: 150.00 },
           { id: 'e3', nombre: 'Cardiología', icono: <Heart size={20} />, precio: 220.00 },
           { id: 'e4', nombre: 'Pediatría', icono: <User size={20} />, precio: 120.00 }
-        ];
-      case "obtenerMedicosService":
+        ];*/
+      /*case "obtenerMedicosService":
         return [
           { id: 'd1', nombre: 'Dr. Roberto Gómez', calificacion: 4.8 },
           { id: 'd2', nombre: 'Dra. Elena Martínez', calificacion: 4.9 }
-        ];
+        ];*/
       case "obtenerProgramacionMedicaService":
         // Devuelve días disponibles en el mes
         return [10, 11, 12, 15, 16, 18, 20, 22, 25];
@@ -167,27 +169,43 @@ export default function App({
     }
   };
 
-  // 1. CARGAR ESPECIALIDADES (Al entrar a Citas)
-const [especialidades, setEspecialidades] = useState([]);
+// 1. CARGAR ESPECIALIDADES (Al entrar a Citas)
 
 useEffect(() => {
   const cargar = async () => {
-    const data =await EspecialidadService.getXEntidad();
-    // Aplicamos la transformación inmediatamente
-    const dataListaParaUI = transformarEspecialidades(data);
-    setEspecialidades(dataListaParaUI);
-  }
-  cargar();
-}, []);
+    // 1. Verificamos si ya existen especialidades en el caché
+    if (cache.especialidades.length > 0) {
+      console.log("Cargando especialidades desde el caché...");
+      return; 
+    }
+    try {
+      console.log("Iniciando petición a la API...");
+      const data = await EspecialidadService.getXEntidad();
+      // 2. Transformamos la data
+      const dataListaParaUI = transformarEspecialidades(data);
+      // 3. Guardamos en el estado de caché
+      setCache(prev => ({
+        ...prev,
+        especialidades: dataListaParaUI
+      }));
+    } catch (error) {
+      console.error("Error cargando especialidades:", error);
+    }
+  };
 
+  cargar();
+}, [cache.especialidades.length]);
 
 
   // 2. SELECCIONAR ESPECIALIDAD -> CARGAR MÉDICOS
   const seleccionarEspecialidad = async (espec) => {
     setDatosReserva(prev => ({ ...prev, especialidad: espec, doctor: null }));
-    if (!cache.medicos[espec.id]) {
-      const data = await ejecutarAPI("obtenerMedicosService", { espId: espec.id });
-      setCache(prev => ({ ...prev, medicos: { ...prev.medicos, [espec.id]: data } }));
+    if (!cache.medicos[espec.idEspecialidad]) {
+      const data = await   MedicoService.obtenerTodosEspecialidad(espec.idEspecialidad)
+      const dataListaMedicosParaUI = transformarMedicos(data);
+
+//      const data = await ejecutarAPI("obtenerMedicosService", { espId: espec.id });
+      setCache(prev => ({ ...prev, medicos: { ...prev.medicos, [espec.id]: dataListaMedicosParaUI } }));
     }
     setPasoActual(2);
   };
@@ -396,11 +414,16 @@ useEffect(() => {
                     <div className={`d-flex flex-column gap-2 ${cargando ? 'opacity-25' : ''}`}>
                       {/* PASO 1: ESPECIALIDADES (API 1) */}
                       {pasoActual === 1 && cache.especialidades.map(espec => (
-                        <div key={espec.idEspecialidad} onClick={() => seleccionarEspecialidad(espec)} className="tarjeta-personalizada bg-white p-4 shadow-sm d-flex align-items-center gap-3 cursor-pointer">
-                          <div className="bg-primary bg-opacity-10 text-primary p-3 rounded-4">{espec.icono}</div>
+                        <div key={espec.idEspecialidad} 
+                              onClick={() => seleccionarEspecialidad(espec)} 
+                              className="tarjeta-personalizada bg-white p-4 shadow-sm d-flex align-items-center gap-3 cursor-pointer">
+                          <div className="bg-primary bg-opacity-10 text-primary p-3 rounded-4"
+                              >{espec.icono}
+                          </div>
                           <div className="flex-grow-1">
-                            <p className="mb-0 fw-bold small text-dark">{espec.descripcionEspecialidad}</p>
-                            <p className="mb-0 text-primary fw-bold" style={{fontSize: '12px'}}>S/ {}</p>
+                            <p className="mb-0 fw-bold small text-dark">
+                                {espec.descripcionEspecialidad}
+                             </p>
                           </div>
                           <ChevronRight size={18} className="text-light" />
                         </div>
@@ -411,10 +434,8 @@ useEffect(() => {
                         <div key={doctor.id} onClick={() => seleccionarMedico(doctor)} className="tarjeta-personalizada bg-white p-3 shadow-sm d-flex align-items-center gap-3 cursor-pointer">
                           <div className="bg-light rounded-circle p-2 text-secondary"><User size={24} /></div>
                           <div className="flex-grow-1">
-                            <p className="mb-0 fw-bold small text-dark">{doctor.nombre}</p>
-                            <div className="text-warning fw-bold d-flex align-items-center gap-1" style={{fontSize: '10px'}}>
-                              <Star size={10} fill="currentColor" /> {doctor.calificacion}
-                            </div>
+                            <p className="mb-0 fw-bold small text-dark">{doctor.nombres}</p>
+                            <p className="mb-0 text-primary fw-bold" style={{fontSize: '15px'}}>{doctor.montoFormateado}</p>                            
                           </div>
                           <ChevronRight size={18} className="text-light" />
                         </div>

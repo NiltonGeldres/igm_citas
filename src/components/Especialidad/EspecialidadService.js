@@ -1,6 +1,7 @@
 import header from "../Security/Header";
 import axios from "axios";
 import AuthService from "../Login/services/auth.service";
+import { EspecialidadMapper } from "./EspecialidadMapper";
 
 const API_URL = process.env.REACT_APP_URL_API;
 const SERVICE = "/especialidad";
@@ -12,7 +13,10 @@ const SERVICE_X_ENTIDAD = "/especialidadxidentidad";
 const ejecutarAPI = async (endpoint, data = {}) => {
     try {
         const response = await axios.post(API_URL + endpoint, data, { headers: header() });
-        return response.data;
+        const rawData =response.data.especialidad;
+        return rawData.map(EspecialidadMapper.toEntity);
+
+
     } catch (error) {
         // Centralizamos el manejo de errores de seguridad
         if (error.response && error.response.status === 403) {
@@ -25,24 +29,12 @@ const ejecutarAPI = async (endpoint, data = {}) => {
     }
 };
 
-const getTodos = () => ejecutarAPI(SERVICE);
-
-const getXUsuario = () => {
-    const usuario = sessionStorage.getItem('username');
-    return ejecutarAPI(SERVICE_X_USUARIO, { usuario });
-};
 
 const getXEntidad = () => ejecutarAPI(SERVICE_X_ENTIDAD);
 
-const EspecialidadService = {
-    getTodos,
-    getXEntidad,
-    getXUsuario,
-};
-export default EspecialidadService;
 
 
-/*
+
 const getTodos = () => {
     return axios.post(API_URL+SERVICE
          ,{}
@@ -53,6 +45,7 @@ const getTodos = () => {
 };
 
 const getXUsuario = () => {
+   const usuario = sessionStorage.getItem('username');
   return axios.post(API_URL+SERVICE_X_USUARIO
        ,{usuario}
         ,{ headers: header()}
@@ -61,13 +54,13 @@ const getXUsuario = () => {
       });
 };
 
-const getXEntidad = () => {
-    return axios.post(API_URL+SERVICE_X_ENTIDAD
-         ,{}
-          ,{ headers: header()}
-        ).catch(function (error) {
-          console.log(error.toJSON());
-        });
-};
 
-*///const usuario = sessionStorage.getItem('username');
+
+
+const EspecialidadService = {   
+  getTodos,   
+  getXEntidad,  
+  getXUsuario,
+};
+export default EspecialidadService;
+
