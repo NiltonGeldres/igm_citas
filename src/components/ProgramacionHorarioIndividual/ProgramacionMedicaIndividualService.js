@@ -15,9 +15,11 @@ const obtenerProgramacionMesBlanco = (mes, anio, idEspecialidad, idMedico) => {
     );
   };
 
-const  obtenerProgramacionMesUsuario = (mes,anio,idEspecialidad) => {
+const  obtenerProgramacionMesUsuario = (mes,anio,idEspecialidad,idMedico,idServicio) => {
+  console.log("obtenerProgramacionMesUsuario parametros "+mes+"---"+anio+"----"+idEspecialidad+"----"+idMedico+"----"+idServicio)
+
   return axios.post(API_URL+SERVICE 
-      ,{mes,anio,usuario,idEspecialidad}
+      ,{mes,anio,idEspecialidad,idMedico,idServicio}
       ,{ headers: header()}
     );
   };

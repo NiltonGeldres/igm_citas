@@ -27,9 +27,9 @@ import EspecialidadService from '../Especialidad/EspecialidadService';
 import {transformarEspecialidades} from "../Cita/Data/CitaEspecialidad"
 import MedicoService from '../Medico/MedicoService';
 import { transformarMedicos } from './Data/CitaMedicoUI';
-import ProgramacionMedicaService from '../ProgramacionMedica/ProgramacionMedicaService';
+//import ProgramacionMedicaService from '../ProgramacionMedica/ProgramacionMedicaService';
 import { transformarProgramacion } from './Data/CitaProgramacionMedicaUI';
-
+import ProgramacionHorarioIndividualService from '../ProgramacionHorarioIndividual/ProgramacionMedicaIndividualService';
 // --- ESTILOS PERSONALIZADOS (Mantenidos intactos) ---
 const ESTILOS_CSS = `
   @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap');
@@ -189,66 +189,68 @@ export default function App({  nombreClinica = "MediFlow Center",  direccionClin
       setPasoActual(2);
     };
 
-  const seleccionarMedico = async (med) => { // 1. Hacemos la función principal async
-    // 2. Obtenemos los datos directamente del médico seleccionado (med) y la especialidad actual
-    const medId = med.id;
-    const espId = datosReserva.especialidad?.idEspecialidad || datosReserva.especialidad?.id;
+      const seleccionarMedico = async (med) => { // 1. Hacemos la función principal async
+        // 2. Obtenemos los datos directamente del médico seleccionado (med) y la especialidad actual
+        const medId = med.id;
+        const espId = datosReserva.especialidad?.idEspecialidad || datosReserva.especialidad?.id;
 
-    // 3. Actualizamos el estado con el médico elegido y pasamos al paso 3
-    setDatosReserva(prev => ({ 
-      ...prev, 
-      doctor: med, 
-      hora: '',
-      fechaObjeto: { ...prev.fechaObjeto, dia: null } 
-    }));
-    
-    setPasoActual(3);
-
-    // 4. Cargamos la programación inmediatamente
-    if (medId && espId) {
-      const { mes, anio } = datosReserva.fechaObjeto;
-      setCargando(true);
-      
-      try {
-        console.log(`Cargando para Medico ${medId} en Mes ${mes + 1}`);
-        // Nota: Asegúrate de enviar mes+1 y anio si tu API lo requiere
-        const data = await ProgramacionMedicaService.obtenerDias(medId, espId,);
-        const dataProgramacionUI = transformarProgramacion(data);
+        // 3. Actualizamos el estado con el médico elegido y pasamos al paso 3
+        setDatosReserva(prev => ({ 
+          ...prev, 
+          doctor: med, 
+          hora: '',
+          fechaObjeto: { ...prev.fechaObjeto, dia: null } 
+        }));
         
-        setProgramacionMensual(dataProgramacionUI);
-      } catch (error) {
-        console.error("Error al cargar programación:", error);
-        setProgramacionMensual([]); 
-      } finally {
-        setCargando(false);
+        setPasoActual(3);
+
+        // 4. Cargamos la programación inmediatamente
+        if (medId && espId) {
+          const { mes, anio } = datosReserva.fechaObjeto;
+          obtenerProgramacionMedicaMes(mes+1,anio,espId)      
+        }
+      };
+
+    const obtenerProgramacionMedicaMes = async (mes,anio,idEspecialidad) =>{
+          setCargando(true);
+          try {
+            // Nota: Asegúrate de enviar mes+1 y anio si tu API lo requiere
+            const data = await ProgramacionHorarioIndividualService.obtenerProgramacionMesUsuario(mes, anio, idEspecialidad,);
+            console.log("obtenerProgramacionMedicaMes   "+JSON.stringify(data))
+            const dataProgramacionUI = transformarProgramacion(data);
+            setProgramacionMensual(dataProgramacionUI);
+
+          } catch (error) {
+            console.error("Error al cargar programación:", error);
+            setProgramacionMensual([]); 
+          } finally {
+            setCargando(false);
+          }
+    }  
+
+    const seleccionarDia = async (dia) => {
+      const { mes, anio } = datosReserva.fechaObjeto;
+      // Formato para mostrar en el UI (ej: "15 de Marzo")
+      const fechaStr = `${dia} ${new Intl.DateTimeFormat('es-ES', { month: 'short' }).format(new Date(anio, mes))}`;
+      
+      const keyHora = `${datosReserva.doctor.id}-${fechaStr}`;
+      
+      setDatosReserva(prev => ({ 
+        ...prev, 
+        fecha: fechaStr, 
+        fechaObjeto: { ...prev.fechaObjeto, dia } 
+      }));
+      
+      // Si no hay horas en caché para este médico y esta fecha específica
+      if (!cache.horasDisponibles[keyHora]) {
+        // Aquí llamarías a la API 4 (Horas), enviando la fecha completa
+        const data = await ejecutarAPI("obtenerProgramacionMedicaHorasService", { 
+          medId: datosReserva.doctor.id, 
+          fecha: `${anio}-${String(mes+1).padStart(2,'0')}-${String(dia).padStart(2,'0')}` 
+        });
+        setCache(prev => ({ ...prev, horasDisponibles: { ...prev.horasDisponibles, [keyHora]: data } }));
       }
-    }
-  };
-
-  const seleccionarDia = async (dia) => {
-    const { mes, anio } = datosReserva.fechaObjeto;
-    // Formato para mostrar en el UI (ej: "15 de Marzo")
-    const fechaStr = `${dia} ${new Intl.DateTimeFormat('es-ES', { month: 'short' }).format(new Date(anio, mes))}`;
-    
-    const keyHora = `${datosReserva.doctor.id}-${fechaStr}`;
-    
-    setDatosReserva(prev => ({ 
-      ...prev, 
-      fecha: fechaStr, 
-      fechaObjeto: { ...prev.fechaObjeto, dia } 
-    }));
-    
-    // Si no hay horas en caché para este médico y esta fecha específica
-    if (!cache.horasDisponibles[keyHora]) {
-      // Aquí llamarías a la API 4 (Horas), enviando la fecha completa
-      const data = await ejecutarAPI("obtenerProgramacionMedicaHorasService", { 
-        medId: datosReserva.doctor.id, 
-        fecha: `${anio}-${String(mes+1).padStart(2,'0')}-${String(dia).padStart(2,'0')}` 
-      });
-      setCache(prev => ({ ...prev, horasDisponibles: { ...prev.horasDisponibles, [keyHora]: data } }));
-    }
-  };
-
+    };
 
     // 5. GUARDAR CITA
     const finalizarReserva = async () => {
@@ -281,9 +283,13 @@ export default function App({  nombreClinica = "MediFlow Center",  direccionClin
     };
 
   const cambiarMes = (direccion) => {
+        //const espId = datosReserva.especialidad.idEspecialidad ;
+//        const espId = datosReserva.especialidad?.idEspecialidad || datosReserva.especialidad?.id;
     setDatosReserva(prev => {
       // Calculamos el nuevo mes/año basado en el actual
       const nuevaFecha = new Date(prev.fechaObjeto.anio, prev.fechaObjeto.mes + direccion, 1);
+      const espId = prev.especialidad ;
+      obtenerProgramacionMedicaMes(nuevaFecha.getMonth(),nuevaFecha.getFullYear(),9);
       return {
         ...prev,
         fechaObjeto: {

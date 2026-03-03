@@ -12,6 +12,7 @@ const CONFIG_VISUAL_PROGRAMACION = {
 };
 
 export const transformarProgramacion = (apiData) => {
+//console.log("transformarProgramacion:    "+JSON.stringify(apiData))  
   if (!Array.isArray(apiData)) return [];
 
   return apiData.map((prog) => {
@@ -39,7 +40,7 @@ export const transformarProgramacion = (apiData) => {
       ...prog,
 
       // 2. Mapeo simplificado e IDs
-      id: prog.idProgramacionMedica,
+      id: prog.idProgramacion,
       
       // 3. CAMPOS NUEVOS PARA EL CALENDARIO (Uso en el .some())
       fechadia: parseInt(diaStr),
