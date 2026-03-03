@@ -27,6 +27,8 @@ import EspecialidadService from '../Especialidad/EspecialidadService';
 import {transformarEspecialidades} from "../Cita/Data/CitaEspecialidad"
 import MedicoService from '../Medico/MedicoService';
 import { transformarMedicos } from './Data/CitaMedicoUI';
+import ProgramacionMedicaService from '../ProgramacionMedica/ProgramacionMedicaService';
+import { transformarProgramacion } from './Data/CitaProgramacionMedicaUI';
 
 // --- ESTILOS PERSONALIZADOS (Mantenidos intactos) ---
 const ESTILOS_CSS = `
@@ -108,16 +110,16 @@ const ESTILOS_CSS = `
 
 const DIAS_CABECERA = ['D', 'L', 'M', 'M', 'J', 'V', 'S'];
 
-export default function App({ 
-  nombreClinica = "MediFlow Center", 
-  direccionClinica = "Sede Central" 
-}) {
+export default function App({  nombreClinica = "MediFlow Center",  direccionClinica = "Sede Central" }) {
+
   const [pestanaActual, setPestanaActual] = useState('inicio');
   const [modoReserva, setModoReserva] = useState(false);
   const [pasoActual, setPasoActual] = useState(1);
   const [cargando, setCargando] = useState(false);
   const [mostrarExito, setMostrarExito] = useState(false);
-
+  const [programacionMensual, setProgramacionMensual] = useState([]);
+  const [medicosActuales, setMedicosActuales] = useState([]);
+  
   // --- ESTADO DE CACHÉ Y DATOS ---
   const [cache, setCache] = useState({
     especialidades: [],
@@ -137,8 +139,6 @@ export default function App({
   const [misCitas, setMisCitas] = useState([]);
   const [misPagos, setMisPagos] = useState([]);
 
-  
-
   // --- MOCK DE LAS 5 APIS ---
   const ejecutarAPI = async (nombre, params) => {
     setCargando(true);
@@ -146,21 +146,6 @@ export default function App({
     setCargando(false);
 
     switch(nombre) {
-      case "obtenerEspecialidadesService":
-        /*return [
-          { id: 'e1', nombre: 'Medicina General', icono: <Activity size={20} />, precio: 80.00 },
-          { id: 'e2', nombre: 'Odontología', icono: <Smile size={20} />, precio: 150.00 },
-          { id: 'e3', nombre: 'Cardiología', icono: <Heart size={20} />, precio: 220.00 },
-          { id: 'e4', nombre: 'Pediatría', icono: <User size={20} />, precio: 120.00 }
-        ];*/
-      /*case "obtenerMedicosService":
-        return [
-          { id: 'd1', nombre: 'Dr. Roberto Gómez', calificacion: 4.8 },
-          { id: 'd2', nombre: 'Dra. Elena Martínez', calificacion: 4.9 }
-        ];*/
-      case "obtenerProgramacionMedicaService":
-        // Devuelve días disponibles en el mes
-        return [10, 11, 12, 15, 16, 18, 20, 22, 25];
       case "obtenerProgramacionMedicaHorasService":
         return ["09:00 AM", "10:30 AM", "03:00 PM", "04:30 PM"];
       case "GuardarCitaService":
@@ -169,98 +154,147 @@ export default function App({
     }
   };
 
-// 1. CARGAR ESPECIALIDADES (Al entrar a Citas)
+  // 1. CARGAR ESPECIALIDADES (Al entrar a Citas)
+  useEffect(() => {
+    const cargar = async () => {
+      // 1. Verificamos si ya existen especialidades en el caché
+      if (cache.especialidades.length > 0) {
+        console.log("Cargando especialidades desde el caché...");
+        return; 
+      }
+      try {
+        console.log("Iniciando petición a la API...");
+        const data = await EspecialidadService.getXEntidad();
+        // 2. Transformamos la data
+        const dataListaParaUI = transformarEspecialidades(data);
+        // 3. Guardamos en el estado de caché
+        setCache(prev => ({
+          ...prev,
+          especialidades: dataListaParaUI
+        }));
+      } catch (error) {
+        console.error("Error cargando especialidades:", error);
+      }
+    };
 
-useEffect(() => {
-  const cargar = async () => {
-    // 1. Verificamos si ya existen especialidades en el caché
-    if (cache.especialidades.length > 0) {
-      console.log("Cargando especialidades desde el caché...");
-      return; 
-    }
-    try {
-      console.log("Iniciando petición a la API...");
-      const data = await EspecialidadService.getXEntidad();
-      // 2. Transformamos la data
-      const dataListaParaUI = transformarEspecialidades(data);
-      // 3. Guardamos en el estado de caché
-      setCache(prev => ({
-        ...prev,
-        especialidades: dataListaParaUI
-      }));
-    } catch (error) {
-      console.error("Error cargando especialidades:", error);
-    }
-  };
-
-  cargar();
-}, [cache.especialidades.length]);
-
+    cargar();
+  }, [cache.especialidades.length]);
 
   // 2. SELECCIONAR ESPECIALIDAD -> CARGAR MÉDICOS
   const seleccionarEspecialidad = async (espec) => {
-    setDatosReserva(prev => ({ ...prev, especialidad: espec, doctor: null }));
-    if (!cache.medicos[espec.idEspecialidad]) {
+      setDatosReserva(prev => ({ ...prev, especialidad: espec, doctor: null }));
       const data = await   MedicoService.obtenerTodosEspecialidad(espec.idEspecialidad)
       const dataListaMedicosParaUI = transformarMedicos(data);
+      setMedicosActuales(dataListaMedicosParaUI);
+      setPasoActual(2);
+    };
 
-//      const data = await ejecutarAPI("obtenerMedicosService", { espId: espec.id });
-      setCache(prev => ({ ...prev, medicos: { ...prev.medicos, [espec.id]: dataListaMedicosParaUI } }));
-    }
-    setPasoActual(2);
-  };
+  const seleccionarMedico = async (med) => { // 1. Hacemos la función principal async
+    // 2. Obtenemos los datos directamente del médico seleccionado (med) y la especialidad actual
+    const medId = med.id;
+    const espId = datosReserva.especialidad?.idEspecialidad || datosReserva.especialidad?.id;
 
-  // 3. SELECCIONAR MÉDICO -> CARGAR PROGRAMACIÓN MENSUAL
-  const seleccionarMedico = async (med) => {
-    const key = `${med.id}-${datosReserva.fechaObjeto.mes}-${datosReserva.fechaObjeto.anio}`;
-    setDatosReserva(prev => ({ ...prev, doctor: med, hora: '' }));
-    if (!cache.programacionMensual[key]) {
-      const data = await ejecutarAPI("obtenerProgramacionMedicaService", { medId: med.id, mes: datosReserva.fechaObjeto.mes });
-      setCache(prev => ({ ...prev, programacionMensual: { ...prev.programacionMensual, [key]: data } }));
-    }
-    setPasoActual(3);
-  };
-
-  // 4. SELECCIONAR DÍA -> CARGAR HORAS
-  const seleccionarDia = async (dia) => {
-    const fechaStr = `${dia} Feb`; // Simplificado para el UI
-    const key = `${datosReserva.doctor.id}-${fechaStr}`;
-    setDatosReserva(prev => ({ ...prev, fecha: fechaStr, fechaObjeto: { ...prev.fechaObjeto, dia } }));
+    // 3. Actualizamos el estado con el médico elegido y pasamos al paso 3
+    setDatosReserva(prev => ({ 
+      ...prev, 
+      doctor: med, 
+      hora: '',
+      fechaObjeto: { ...prev.fechaObjeto, dia: null } 
+    }));
     
-    if (!cache.horasDisponibles[key]) {
-      const data = await ejecutarAPI("obtenerProgramacionMedicaHorasService", { medId: datosReserva.doctor.id, fecha: fechaStr });
-      setCache(prev => ({ ...prev, horasDisponibles: { ...prev.horasDisponibles, [key]: data } }));
-    }
-  };
+    setPasoActual(3);
 
-  // 5. GUARDAR CITA
-  const finalizarReserva = async () => {
-    const res = await ejecutarAPI("GuardarCitaService", datosReserva);
-    if (res.success) {
-      const idCita = `CTA-${Math.floor(Math.random() * 10000)}`;
-      const nuevaCita = { ...datosReserva, id: idCita };
-      setMisCitas([nuevaCita, ...misCitas]);
+    // 4. Cargamos la programación inmediatamente
+    if (medId && espId) {
+      const { mes, anio } = datosReserva.fechaObjeto;
+      setCargando(true);
       
-      const nuevoPago = {
-        id: `TRX-${Math.floor(Math.random() * 999999)}`,
-        idCita: idCita,
-        fecha: new Date().toLocaleDateString(),
-        monto: datosReserva.especialidad.precio,
-        concepto: `Cita: ${datosReserva.especialidad.nombre}`,
-        metodo: 'Visa **** 4242',
-        estado: 'Completado'
-      };
-      setMisPagos([nuevoPago, ...misPagos]);
-      setMostrarExito(true);
+      try {
+        console.log(`Cargando para Medico ${medId} en Mes ${mes + 1}`);
+        // Nota: Asegúrate de enviar mes+1 y anio si tu API lo requiere
+        const data = await ProgramacionMedicaService.obtenerDias(medId, espId,);
+        const dataProgramacionUI = transformarProgramacion(data);
+        
+        setProgramacionMensual(dataProgramacionUI);
+      } catch (error) {
+        console.error("Error al cargar programación:", error);
+        setProgramacionMensual([]); 
+      } finally {
+        setCargando(false);
+      }
     }
   };
 
-  const reiniciarFlujo = () => {
-    setModoReserva(false);
-    setPasoActual(1);
-    setMostrarExito(false);
-    setDatosReserva({ especialidad: null, doctor: null, fecha: '', fechaObjeto: { mes: new Date().getMonth(), anio: new Date().getFullYear(), dia: null }, hora: '' });
-    setPestanaActual('inicio');
+  const seleccionarDia = async (dia) => {
+    const { mes, anio } = datosReserva.fechaObjeto;
+    // Formato para mostrar en el UI (ej: "15 de Marzo")
+    const fechaStr = `${dia} ${new Intl.DateTimeFormat('es-ES', { month: 'short' }).format(new Date(anio, mes))}`;
+    
+    const keyHora = `${datosReserva.doctor.id}-${fechaStr}`;
+    
+    setDatosReserva(prev => ({ 
+      ...prev, 
+      fecha: fechaStr, 
+      fechaObjeto: { ...prev.fechaObjeto, dia } 
+    }));
+    
+    // Si no hay horas en caché para este médico y esta fecha específica
+    if (!cache.horasDisponibles[keyHora]) {
+      // Aquí llamarías a la API 4 (Horas), enviando la fecha completa
+      const data = await ejecutarAPI("obtenerProgramacionMedicaHorasService", { 
+        medId: datosReserva.doctor.id, 
+        fecha: `${anio}-${String(mes+1).padStart(2,'0')}-${String(dia).padStart(2,'0')}` 
+      });
+      setCache(prev => ({ ...prev, horasDisponibles: { ...prev.horasDisponibles, [keyHora]: data } }));
+    }
+  };
+
+
+    // 5. GUARDAR CITA
+    const finalizarReserva = async () => {
+      const res = await ejecutarAPI("GuardarCitaService", datosReserva);
+      if (res.success) {
+        const idCita = `CTA-${Math.floor(Math.random() * 10000)}`;
+        const nuevaCita = { ...datosReserva, id: idCita };
+        setMisCitas([nuevaCita, ...misCitas]);
+        
+        const nuevoPago = {
+          id: `TRX-${Math.floor(Math.random() * 999999)}`,
+          idCita: idCita,
+          fecha: new Date().toLocaleDateString(),
+          monto: datosReserva.especialidad.precio,
+          concepto: `Cita: ${datosReserva.especialidad.nombre}`,
+          metodo: 'Visa **** 4242',
+          estado: 'Completado'
+        };
+        setMisPagos([nuevoPago, ...misPagos]);
+        setMostrarExito(true);
+      }
+    };
+
+    const reiniciarFlujo = () => {
+      setModoReserva(false);
+      setPasoActual(1);
+      setMostrarExito(false);
+      setDatosReserva({ especialidad: null, doctor: null, fecha: '', fechaObjeto: { mes: new Date().getMonth(), anio: new Date().getFullYear(), dia: null }, hora: '' });
+      setPestanaActual('inicio');
+    };
+
+  const cambiarMes = (direccion) => {
+    setDatosReserva(prev => {
+      // Calculamos el nuevo mes/año basado en el actual
+      const nuevaFecha = new Date(prev.fechaObjeto.anio, prev.fechaObjeto.mes + direccion, 1);
+      return {
+        ...prev,
+        fechaObjeto: {
+          ...prev.fechaObjeto,
+          mes: nuevaFecha.getMonth(),
+          anio: nuevaFecha.getFullYear(),
+          dia: null // Resetear día al cambiar de mes
+        },
+        hora: '' // Resetear hora
+      };
+    });
   };
 
   return (
@@ -430,7 +464,7 @@ useEffect(() => {
                       ))}
 
                       {/* PASO 2: MÉDICOS (API 2) */}
-                      {pasoActual === 2 && (cache.medicos[datosReserva.especialidad?.id] || []).map(doctor => (
+                      {pasoActual === 2 && (medicosActuales || []).map(doctor => (
                         <div key={doctor.id} onClick={() => seleccionarMedico(doctor)} className="tarjeta-personalizada bg-white p-3 shadow-sm d-flex align-items-center gap-3 cursor-pointer">
                           <div className="bg-light rounded-circle p-2 text-secondary"><User size={24} /></div>
                           <div className="flex-grow-1">
@@ -441,39 +475,63 @@ useEffect(() => {
                         </div>
                       ))}
 
-                      {/* PASO 3: FECHA Y HORA (API 3 y API 4) */}
-                      {pasoActual === 3 && (
-                        <div className="fade-in">
-                          <div className="tarjeta-personalizada bg-white p-4 shadow-sm mb-4">
-                            <div className="calendario-grid">
-                              {DIAS_CABECERA.map((d, i) => <div key={i} className="text-center text-secondary fw-bold mb-2" style={{fontSize: '10px'}}>{d}</div>)}
-                              {Array.from({length: 28}).map((_, i) => {
-                                const dia = i + 1;
-                                const key = `${datosReserva.doctor.id}-${datosReserva.fechaObjeto.mes}-${datosReserva.fechaObjeto.anio}`;
-                                const disponible = cache.programacionMensual[key]?.includes(dia);
-                                return (
-                                  <button 
-                                    key={i} 
-                                    disabled={!disponible}
-                                    onClick={() => seleccionarDia(dia)}
-                                    className={`calendario-celda border-0 bg-transparent ${datosReserva.fechaObjeto.dia === dia ? 'seleccion-masiva' : ''} ${!disponible ? 'text-muted opacity-25' : 'text-dark'}`}
-                                  >
-                                    {dia}
-                                  </button>
-                                );
-                              })}
-                            </div>
-                          </div>
-                          <div className="row g-2">
-                            {datosReserva.fechaObjeto.dia && (cache.horasDisponibles[`${datosReserva.doctor.id}-${datosReserva.fecha}`] || []).map(hora => (
-                              <div key={hora} className="col-6">
-                                <button onClick={() => { setDatosReserva({...datosReserva, hora: hora}); setPasoActual(4); }} className={`btn ${datosReserva.hora === hora ? 'btn-primary' : 'btn-outline-primary'} w-100 rounded-4 fw-bold p-3 small`}>{hora}</button>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
+   {/* --- paso 3  --- */}
+  {pasoActual === 3 && (() => {
+    const { mes, anio } = datosReserva.fechaObjeto;
+    const diasEnMes = new Date(anio, mes + 1, 0).getDate();
+    const primerDiaMes = new Date(anio, mes, 1).getDay(); 
+    const offset = (primerDiaMes + 6) % 7; 
+    // IMPORTANTE: La KEY debe ser idéntica a la del useEffect para encontrar los datos
+    const medId = datosReserva.doctor?.id;
+    const espId = datosReserva.especialidad?.idEspecialidad || datosReserva.especialidad?.id;
+    const key = `${medId}-${espId}-${mes}-${anio}`;
+    console.log("programacionMensual  "+JSON.stringify(programacionMensual))
+    const diasDisponiblesAPI = programacionMensual;
+    const nombreMes = new Intl.DateTimeFormat('es-ES', { month: 'long' }).format(new Date(anio, mes));
 
+    return (
+      <div className="fade-in">
+        <div className="tarjeta-personalizada bg-white p-4 shadow-sm mb-4">
+          <div className="d-flex justify-content-between align-items-center mb-4">
+            <button onClick={() => cambiarMes(-1)} className="btn btn-sm btn-outline-secondary border-0"><ChevronLeft/></button>
+            <h6 className="fw-bold mb-0 text-capitalize">{nombreMes} {anio}</h6>
+            <button onClick={() => cambiarMes(1)} className="btn btn-sm btn-outline-secondary border-0"><ChevronRight/></button>
+          </div>
+
+          <div className="calendario-grid">
+            {DIAS_CABECERA.map((d, i) => (
+              <div key={i} className="text-center text-secondary fw-bold mb-2" style={{fontSize: '10px'}}>{d}</div>
+            ))}
+
+            {Array.from({ length: offset }).map((_, i) => (
+              <div key={`vacia-${i}`} className="calendario-celda opacity-0"></div>
+            ))}
+
+            {Array.from({ length: diasEnMes }).map((_, i) => {
+              const dia = i + 1;
+              // Buscamos si el día existe en la data transformada de la API
+              const tieneProgramacion = diasDisponiblesAPI.some(p => parseInt(p.fechadia) === dia);
+
+              return (
+                <button 
+                  key={dia} 
+                  disabled={!tieneProgramacion || cargando}
+                  onClick={() => seleccionarDia(dia)}
+                  className={`calendario-celda border-0 
+                    ${datosReserva.fechaObjeto.dia === dia ? 'seleccion-masiva text-white' : 'bg-transparent'} 
+                    ${!tieneProgramacion ? 'text-muted opacity-25' : 'text-dark fw-bold'}`}
+                >
+                  {dia}
+                  {tieneProgramacion && <div className="dot-disponible" style={{width: '4px', height: '4px', backgroundColor: '#0ea5e9', borderRadius: '50%', position: 'absolute', bottom: '5px'}}></div>}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+        {/* ... Resto del renderizado de horas */}
+      </div>
+    );
+  })()}
                       {/* PASO 4: CONFIRMACIÓN Y PAGO (API 5) */}
                       {pasoActual === 4 && (
                         <div className="fade-in">
@@ -601,3 +659,115 @@ useEffect(() => {
     </div>
   );
 }
+
+
+
+/**
+ * 
+   useEffect(() => {
+          setDatosReserva(prev => ({
+          ...prev,
+          fecha: '', // Limpia el string de fecha
+          hora: '',  // Limpia la hora seleccionada
+          fechaObjeto: { ...prev.fechaObjeto, dia: null } // Deselecciona el día en el calendario
+        }));
+    
+      // 1. Verificamos que estemos en el paso de calendario y tengamos los IDs necesarios
+      const medId = datosReserva.doctor?.id;
+      const espId = datosReserva.especialidad?.idEspecialidad || datosReserva.especialidad?.id;
+      console.log("Datos de Reserva  "+medId+"-----"+espId)
+      if (pasoActual === 3 && medId && espId) {
+        const cargarProgramacionDelMes = async () => {
+        const { mes, anio } = datosReserva.fechaObjeto;
+        const key = `${medId}-${espId}-${mes}-${anio}`;
+        // Eliminamos el if (!cache.programacionMensual[key]) para ignorar el caché
+        setCargando(true);
+      try {
+          console.log(`Solicitando API para: Mes ${mes + 1}, Año ${anio}`);
+          // Llamada directa a la API
+          const data = await ProgramacionMedicaService.obtenerDias(medId, espId);
+          const dataUI = transformarProgramacion(data);
+                  //        console.log(`Solicitando API para: Mes data `+JSON.stringify(dataUI));
+          // Actualizamos el estado para que el calendario se renderice con la nueva data
+          setCache(prev => ({
+            ...prev,
+            programacionMensual: { 
+              ...prev.programacionMensual, 
+              [key]: dataUI 
+            }
+          }));
+        } catch (error) {
+          console.error("Error al cargar programación desde la API:", error);
+        } finally {
+          setCargando(false);
+        }
+      };
+
+      cargarProgramacionDelMes();
+    }
+    // El efecto reacciona al cambio de mes, año, doctor o paso
+  }, [
+    datosReserva.fechaObjeto.mes, 
+    datosReserva.fechaObjeto.anio, 
+    datosReserva.doctor?.id, 
+    pasoActual
+  ]);
+
+
+ */
+
+    /*
+    // 4. SELECCIONAR DÍA -> CARGAR HORAS
+    const seleccionarDia = async (dia) => {
+      const fechaStr = `${dia} Feb`; // Simplificado para el UI
+      const key = `${datosReserva.doctor.id}-${fechaStr}`;
+      setDatosReserva(prev => ({ ...prev, fecha: fechaStr, fechaObjeto: { ...prev.fechaObjeto, dia } }));
+      
+      if (!cache.horasDisponibles[key]) {
+        const data = await ejecutarAPI("obtenerProgramacionMedicaHorasService", { medId: datosReserva.doctor.id, fecha: fechaStr });
+        setCache(prev => ({ ...prev, horasDisponibles: { ...prev.horasDisponibles, [key]: data } }));
+      }
+    };
+  */
+
+
+    /**
+     * 
+     * 
+         
+  const seleccionarMedico = (med) => {
+  //---------------------------------------------
+      // 1. Verificamos que estemos en el paso de calendario y tengamos los IDs necesarios
+      const medId = datosReserva.doctor?.id;
+      const espId = datosReserva.especialidad?.idEspecialidad || datosReserva.especialidad?.id;
+      console.log("Datos de Reserva  "+medId+"-----"+espId)
+      if (pasoActual === 3 && medId && espId) {
+        async () => {
+            const { mes, anio } = datosReserva.fechaObjeto;
+  //          const key = `${medId}-${espId}-${mes}-${anio}`;
+            setCargando(true);
+            try {
+                  console.log(`Solicitando API para: Mes ${mes + 1}, Año ${anio}`);
+                  // Llamada directa a la API
+                  const data = await ProgramacionMedicaService.obtenerDias(medId, espId);
+                  const dataProgramacionUI = transformarProgramacion(data);
+                  setProgramacionMensual(dataProgramacionUI)
+                  setDatosReserva(prev => ({ 
+                    ...prev, 
+                    doctor: med, 
+                    hora: '',
+                    fechaObjeto: { ...prev.fechaObjeto, dia: null } // Reset día
+                  }));
+                  setPasoActual(3); // El useEffect detectará el paso 3 y el medId y disparará la API sola.              
+                // Actualizamos el estado para que el calendario se renderice con la nueva data
+              } catch (error) {
+                console.error("Error al cargar programación desde la API:", error);
+              } finally {
+                setCargando(false);
+              }
+      };
+
+  };
+};
+
+     */

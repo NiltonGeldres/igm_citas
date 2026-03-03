@@ -5,7 +5,9 @@ const SERVICE = "/programacionMedicoMes";
 const SERVICE_BLANCO = "/programacionMedicoMesBlanco";
 const SERVICE_CREAR = "/programacionMedicaCrear";
 const usuario = sessionStorage.getItem('username');
-//const idEspecialidad = 9;
+
+
+
 
 const getProgramacionMedicoMes = (mes,anio,idEspecialidad,idMedico) => {
     return axios.post(API_URL+SERVICE

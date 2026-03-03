@@ -15,7 +15,6 @@ const usuario = sessionStorage.getItem('username');
 const ejecutarAPI = async (endpoint, data = {}) => {
     try {
         const response = await axios.post(API_URL + endpoint, data, { headers: header() });
-       console.log("SERVICE "+JSON.stringify(response))
         const rawData =response.data.medico;
         return rawData.map(MedicoMapper.toEntity);
     } catch (error) {
