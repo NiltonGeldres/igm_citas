@@ -13,8 +13,10 @@ const ProgramadorMasivo = ({
                             aplicarProgramacionMasiva, 
                             idEntidad,
                             idServ,
-                            desServ
+                            desServ,
+                            idServicioActual
                         }) => {
+console.log("turnosSeleccionados"+JSON.stringify(turnosSeleccionados))                            
 
     const cantidadSeleccionada = turnosSeleccionados.length;
     const estaListoParaAplicar = cantidadSeleccionada > 0;
@@ -32,11 +34,18 @@ const ProgramadorMasivo = ({
             <div className="card-body">
                  <h5 className="h6 fw-bold mb-3 text-dark">1. Selecciona Consultorio :</h5>
                 <div className="d-grid gap-4 mb-4">
-                    <Servicio   
-                        idEntidad={idEntidad} // Viene de tu perfil/contexto
-                        valueServicio={(id) => {  idServ(id)}} // Solo actualiza el ID
-                        textServicio={(txt) =>    desServ(txt)}                                
-                  />
+                    <Servicio    
+                        idEntidad={idEntidad}
+                        value={idServicio} 
+                        valueServicio={(id) => { 
+                            setIdServicio(id);
+                            idServ(id);
+                        }}
+                        textServicio={(txt) => {
+                            setDescripcionServicio(txt);
+                            desServ(txt);
+                        }}                                
+                    />                    
                 </div>
                  <h5 className="h6 fw-bold mb-3 text-dark">2. Selecciona Turnos:</h5>
                 <div className="d-grid gap-2">

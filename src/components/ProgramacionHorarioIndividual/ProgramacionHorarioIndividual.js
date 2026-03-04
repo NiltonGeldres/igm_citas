@@ -68,9 +68,10 @@ export default function ProgramacionHorarioIndividual() {
             mes: fechaActual.getMonth() + 1,
             anio: fechaActual.getFullYear()
         };
-    }, [idEspecialidad, idServicio, fechaActual]);
+    }, [idEspecialidad,  fechaActual]);
+//    }, [idEspecialidad, idServicio, fechaActual]);
 //...............................................................................
-    // Obtener la progrmacion del mes y su UssEffect
+    // Obtener la programacion del mes y su UssEffect
     //...............................................................................
     const cargarProgramacionCompleta = useCallback(async () => {
             // Extraemos los datos del contexto justo cuando se ejecuta la función
@@ -103,7 +104,11 @@ export default function ProgramacionHorarioIndividual() {
                         const mapaParaUI = modelosProcesados.reduce((acc, dia) => {
                             const clave = dia.getClaveCalendario();
                             // Si idTurno es 0, es 'libre'. Si tiene ID (ej: 1, 2), se guarda como string.
-                            acc[clave] = (dia.idTurno && dia.idTurno !== 0) ? [String(dia.idTurno)] : ['libre'];
+                            //acc[clave] = (dia.idTurno && dia.idTurno !== 0) ? [String(dia.idTurno)] : ['libre'];
+                            acc[clave] = {
+                               idTurno: (dia.idTurno && dia.idTurno !== 0) ? String(dia.idTurno) : 'libre',
+                               idServicio: dia.idServicio // Guardamos el servicio que viene del backend para cada día
+                            };
                             return acc;
                         }, {});
 
@@ -125,7 +130,8 @@ export default function ProgramacionHorarioIndividual() {
             if (contexto.idMedico && contexto.idEspecialidad ) {
                 cargarProgramacionCompleta();
             }
-    }, [contexto.idMedico, contexto.idEspecialidad, contexto.idServicio, contexto.mes, cargarProgramacionCompleta]);
+    }, [contexto.idMedico, contexto.idEspecialidad,  contexto.mes, cargarProgramacionCompleta]);
+//    }, [contexto.idMedico, contexto.idEspecialidad, contexto.idServicio, contexto.mes, cargarProgramacionCompleta]);
 
     //...............................................................................
     // Guardado de datos
@@ -141,10 +147,17 @@ export default function ProgramacionHorarioIndividual() {
             const diasConTurnos = datosOriginalesBackend.map(dia => {
                 const clave = dia.getClaveCalendario();
                 const seleccion = fuenteDeDatos[clave];
-                const nuevoIdTurno = (seleccion && seleccion[0] !== 'libre') ? Number(seleccion[0]) : 0;
                 
+                //const nuevoIdTurno = (seleccion && seleccion[0] !== 'libre') ? Number(seleccion[0]) : 0;
+                const nuevoIdTurno = (seleccion && seleccion.idTurno !== 'libre') ? Number(seleccion.idTurno) : 0;
+                const servicioDeEsteDia = seleccion?.idServicio || contexto.idServicio; // Fallback al global si no hay                
+                
+                const diaActualizado = actualizarTurnoEnDia(dia, nuevoIdTurno);
+                diaActualizado.idServicio = servicioDeEsteDia;                
+
                 // Retorna un objeto nuevo con el ID actualizado (idProgramacion se mantiene si existía)
-                return actualizarTurnoEnDia(dia, nuevoIdTurno);
+//                return actualizarTurnoEnDia(dia, nuevoIdTurno);
+                return diaActualizado;
             });
 
             // El payload necesita el contexto actual (Médico, Especialidad, Sede)
@@ -217,9 +230,22 @@ export default function ProgramacionHorarioIndividual() {
 
     const aplicarProgramacionMasiva = useCallback(() => {
         if (diasMasivosSeleccionados.length === 0 || turnosMasivosSeleccionados.length === 0) return;
+        //const nuevoHorario = { ...horarioCalendario };
+        //const turnosAAplicar = turnosMasivosSeleccionados.length === 0 ? ['libre'] : turnosMasivosSeleccionados;
+        //diasMasivosSeleccionados.forEach(clave => { nuevoHorario[clave] = turnosAAplicar; });
+
+        //---ultima modificacion------------//
         const nuevoHorario = { ...horarioCalendario };
-        const turnosAAplicar = turnosMasivosSeleccionados.length === 0 ? ['libre'] : turnosMasivosSeleccionados;
-        diasMasivosSeleccionados.forEach(clave => { nuevoHorario[clave] = turnosAAplicar; });
+        const turnoId = turnosMasivosSeleccionados[0] || 'libre';
+
+        diasMasivosSeleccionados.forEach(clave => { 
+            nuevoHorario[clave] = {
+                idTurno: turnoId,
+                idServicio: idServicio // Aquí usamos el ID global del filtro/barra lateral
+            }; 
+        });
+        //---------------------------------
+
         setHorarioCalendario(nuevoHorario);
         manejarGuardado(nuevoHorario);
         setTurnosMasivosSeleccionados([]);
@@ -239,6 +265,7 @@ export default function ProgramacionHorarioIndividual() {
     }, [modoMasivo]);
     
     const datosCalendario = useMemo(() => {
+        
         const año = fechaActual.getFullYear();
         const mes = fechaActual.getMonth();
         const diasEnMes = new Date(año, mes + 1, 0).getDate();
@@ -246,16 +273,26 @@ export default function ProgramacionHorarioIndividual() {
         const offsetInicio = (primerDiaMes.getDay() - 1 + 7) % 7; 
         const celdas = [];
         const claveHoy = new Date().toISOString().slice(0, 10);
-     //   console.log("Clave Hoy ===> "+claveHoy);
         for (let i = 0; i < offsetInicio; i++) {
             celdas.push(<CeldaCalendario key={`vacia-${i}`} dia={null} />);
         }
+        console.log("datosCalendario diasEnMes ===> "+JSON.stringify(diasEnMes));
         for (let d = 1; d <= diasEnMes; d++) {
             const dPadded = String(d).padStart(2, '0');
             const mPadded = String(mes + 1).padStart(2, '0');
             const clave = `${año}-${mPadded}-${dPadded}`;
             const turnos = horarioCalendario[clave];
-            const tieneDatos = turnos && turnos.length > 0 && !(turnos.length === 1 && turnos[0] === 'libre');
+            //const tieneDatos = turnos && turnos.length > 0 && !(turnos.length === 1 && turnos[0] === 'libre');
+
+            const dataDia = horarioCalendario[clave];
+            const tieneDatos = dataDia && dataDia.idTurno !== 'libre';        
+
+            console.log("datosCalendario dPadded ===> "+JSON.stringify(dPadded)
+                +" mPadded ===> "+JSON.stringify(mPadded)
+                +" clave ===> "+JSON.stringify(clave)
+                +" turnos ===> "+JSON.stringify(turnos)
+                +" tieneDatos ===> "+JSON.stringify(tieneDatos)
+            );
             celdas.push(
                 <CeldaCalendario
                     key={clave}
@@ -354,7 +391,8 @@ export default function ProgramacionHorarioIndividual() {
                                     aplicarProgramacionMasiva={aplicarProgramacionMasiva}
                                     idEntidad={contexto.idEntidad}
                                     idServ={(id) => {  setIdServicio(id)}} // Solo actualiza el ID
-                                    desServ={(txt) => setDescripcionServicio(txt)}                                
+                                    desServ={(txt) => setDescripcionServicio(txt)}    
+                                    idServicio={idServicio}                            
                                 />
                             </div>
                         )}

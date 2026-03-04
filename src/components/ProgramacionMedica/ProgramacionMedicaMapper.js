@@ -16,6 +16,7 @@ export const ProgramacionMedicaMapper = {
       // Metadatos adicionales que podrían ser útiles
       idTurno: raw.idTurno,
       nombreServicio: raw.nombreServicio,
+      codigoServicio: raw.codigoServicio,
       idProgramacionMedicaCabecera: raw.idProgramacionMedicaCabecera
     };
   },

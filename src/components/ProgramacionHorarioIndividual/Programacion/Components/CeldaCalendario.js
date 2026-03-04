@@ -12,8 +12,23 @@ const CeldaCalendario = React.memo(({ dia, claveFecha, esHoy, tieneHorario, esta
     }
  
 
-    const turnosActuales = horario[claveFecha] || [MAPEO_TURNOS.libre.id]; 
+    //const turnosActuales = horario[claveFecha] || [MAPEO_TURNOS.libre.id]; 
+    //const esLibre = turnosActuales.length === 1 && turnosActuales[0] === MAPEO_TURNOS.libre.id;
+
+    // --- CORRECCIÓN DE DATOS ---
+    const dataDelDia = horario[claveFecha];
+    
+    // Normalizamos: si es un objeto, extraemos idTurno en un array. Si es array, lo usamos. Si no hay nada, 'libre'.
+    const turnosActuales = dataDelDia 
+        ? (Array.isArray(dataDelDia) ? dataDelDia : [dataDelDia.idTurno]) 
+        : [MAPEO_TURNOS.libre.id];
+
+    // Extraemos el código/ID del servicio para mostrarlo
+    const codigoServicio = dataDelDia?.idServicio; 
+
     const esLibre = turnosActuales.length === 1 && turnosActuales[0] === MAPEO_TURNOS.libre.id;
+    // --- FIN CORRECCIÓN ---
+
     const claseFondo = estaSeleccionadoMasivo ? 'bg-primary-subtle border-primary shadow-sm' : 'bg-white border-light';
     const clasesDia = `
         calendar-cell
@@ -49,6 +64,7 @@ turnosActuales.map(turnoId => {
     // Si el ID es 'libre', no queremos solo la "L", queremos el texto o un icono
     const esLibre = turnoId === 'libre';
     const textoMostrar = esLibre ? "Libre" : (t.descripcion || '').substring(0, 1);
+    const codigoServicio = t.codigoServicio;
 
     return (
         <span 

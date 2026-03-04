@@ -41,6 +41,7 @@ export const transformarProgramacion = (apiData) => {
 
       // 2. Mapeo simplificado e IDs
       id: prog.idProgramacion,
+      codigoServicio: prog.codigoServicio,
       
       // 3. CAMPOS NUEVOS PARA EL CALENDARIO (Uso en el .some())
       fechadia: parseInt(diaStr),

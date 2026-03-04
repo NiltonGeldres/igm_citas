@@ -6,36 +6,77 @@ import { obtenerListaTurnos } from '../Constants/TODOS_LOS_TURNOS';
 import Servicio from "../../../Servicio/Servicio";
 
 
-const ModalEditorTurnos = ({ estaAbierto, claveDia, alCerrar, horario, setHorario, alGuardar,idEntidad,idServ,desServ }) => {
-    const turnosIniciales = horario[claveDia] || ['libre'];
-    const [idsTurnosSeleccionados, setIdsTurnosSeleccionados] = useState(turnosIniciales);
+//const ModalEditorTurnos = ({ estaAbierto, claveDia, alCerrar, horario, setHorario, alGuardar,idEntidad,idServ,desServ }) => {
+const ModalEditorTurnos = ({ estaAbierto, claveDia, alCerrar, horario, setHorario, alGuardar, idEntidad, idServ, desServ }) => {    
+// 1. Extraemos de forma segura el turno y servicio actual del objeto o array
+    const dataActual = horario[claveDia];
+    const idTurnoInicial = dataActual?.idTurno || (Array.isArray(dataActual) ? dataActual[0] : 'libre');
+    const idServicioInicial = dataActual?.idServicio || "";
+
+    // Estados locales del modal
+    const [idsTurnosSeleccionados, setIdsTurnosSeleccionados] = useState([idTurnoInicial]);
+    const [servicioIdLocal, setServicioIdLocal] = useState(idServicioInicial);
+
     const diaActual = new Date(claveDia + 'T00:00:00').getDate();
-    //  Carga de Turnos
     const listaDeTurnos = obtenerListaTurnos();
 
+    //const turnosIniciales = horario[claveDia] || ['libre'];
+    //const [idsTurnosSeleccionados, setIdsTurnosSeleccionados] = useState(turnosIniciales);
+    //const diaActual = new Date(claveDia + 'T00:00:00').getDate();
+    //  Carga de Turnos
+    //const listaDeTurnos = obtenerListaTurnos();
+
     useEffect(() => {
-        if (claveDia) {
+            const d = horario[claveDia];
+            // En lugar de [...d], extraemos el valor específico
+            const t = d?.idTurno || (Array.isArray(d) ? d[0] : 'libre');
+            const s = d?.idServicio || "";
+            
+            setIdsTurnosSeleccionados([t]);
+            setServicioIdLocal(s);
+       /* if (claveDia) {
             setIdsTurnosSeleccionados(horario[claveDia] ? [...horario[claveDia]] : ['libre']);
-        }
-    }, [claveDia, horario]);
+        }*/
+    }, [claveDia, horario, estaAbierto]);
 
 
     if (!estaAbierto || !claveDia) return null;
 
-const turnoActualObj = listaDeTurnos.find(t => String(t.idTurno) === String(idsTurnosSeleccionados[0]));
+    const turnoActualObj = listaDeTurnos.find(t => String(t.idTurno) === String(idsTurnosSeleccionados[0]));
 
     const seleccionarTurnoUnico = (turnoId) => {
+        const nuevosSeleccionados = idsTurnosSeleccionados.includes(turnoId) 
+                    ? ['libre'] 
+                    : [turnoId];
+                setIdsTurnosSeleccionados(nuevosSeleccionados);        
     // Si el médico hace clic en el que ya está seleccionado, lo desmarcamos (pasa a libre)
     // Si hace clic en uno nuevo, reemplazamos el anterior
-    const nuevosSeleccionados = idsTurnosSeleccionados.includes(turnoId) 
+    /*const nuevosSeleccionados = idsTurnosSeleccionados.includes(turnoId) 
         ? ['libre'] 
         : [turnoId];
     
-    setIdsTurnosSeleccionados(nuevosSeleccionados);
+    setIdsTurnosSeleccionados(nuevosSeleccionados);*/
 };
 
     const confirmarSeleccionDia = () => {
-        if (!claveDia) return; // Supervivencia: si no hay clave, no guardes nada
+        if (!claveDia) return;
+        
+        const turnoFinal = idsTurnosSeleccionados[0] || 'libre';
+
+        // 3. ESTRUCTURA DE GUARDADO: Guardamos como objeto para soportar el código de servicio
+        const nuevoHorario = { 
+            ...horario, 
+            [claveDia]: { 
+                idTurno: turnoFinal, 
+                idServicio: servicioIdLocal 
+            } 
+        };
+
+        setHorario(nuevoHorario);
+        if (alGuardar) alGuardar(nuevoHorario); 
+        alCerrar()
+
+        /*if (!claveDia) return; // Supervivencia: si no hay clave, no guardes nada
         const idsFinales = idsTurnosSeleccionados.length > 0 ? idsTurnosSeleccionados : ['libre'];
 
         // 1. Actualizamos el mapa visual { "2026-02-12": ["1"] }
@@ -45,9 +86,10 @@ const turnoActualObj = listaDeTurnos.find(t => String(t.idTurno) === String(idsT
         // 2. Notificamos al padre (si existe la prop alGuardar)
         if (alGuardar) alGuardar(nuevoHorario); 
         
-        alCerrar();
+        alCerrar();*/
     };
 
+    
     return (
         <div className="modal d-block" tabIndex="-1" style={{ backgroundColor: 'rgba(15, 23, 42, 0.7)', backdropFilter: 'blur(4px)' }}>
             <div className="modal-dialog modal-dialog-centered">
@@ -64,10 +106,13 @@ const turnoActualObj = listaDeTurnos.find(t => String(t.idTurno) === String(idsT
                        <h5 className="h6 fw-bold mb-3 text-dark">1. Selecciona Consultorios:</h5>
                         <div className="d-grid gap-3 mb-4 ">
                             <Servicio    
-                                    idEntidad={idEntidad} // Viene de tu perfil/contexto
-                                    valueServicio={(id) => {  idServ(id)}} // Solo actualiza el ID
-                                    textServicio={(txt) =>    desServ(txt)}                                
-                            />
+                                idEntidad={idEntidad}
+                                value={servicioIdLocal} 
+                                valueServicio={(id) => { setServicioIdLocal(id);
+                                                         idServ(id);
+                                                        }}
+                                textServicio={(txt) => desServ(txt)}                                
+                            />                             
                         </div>
                         <h5 className="h6 fw-bold mb-3 text-dark">2. Selecciona Turnos:</h5>
                         <div className="d-grid gap-3">
@@ -166,3 +211,13 @@ export default ModalEditorTurnos;
                     </div>
 
 */
+
+/**
+ * 
+                             <Servicio    
+                                    idEntidad={idEntidad} // Viene de tu perfil/contexto
+                                    valueServicio={(id) => {  idServ(id)}} // Solo actualiza el ID
+                                    textServicio={(txt) =>    desServ(txt)}                                
+                            />
+
+ */
