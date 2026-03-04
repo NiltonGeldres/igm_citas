@@ -46,9 +46,8 @@ const Servicio = ({idEntidad,valueServicio, textServicio }) => {
                       }    
                     } 
                     >
-
                         <option key={''} value={''}> 
-                            {'Servicio'}
+                            {'Seleccione Consultorio/Servicio'}
                         </option>
                     {
                         posts.map(post => (
@@ -57,9 +56,6 @@ const Servicio = ({idEntidad,valueServicio, textServicio }) => {
                         </option>
                     ))}
                 </Form.Select>
-
-
-
          </>
     )
 }

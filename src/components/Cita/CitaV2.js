@@ -123,13 +123,14 @@ export default function App({  nombreClinica = "MediFlow Center",  direccionClin
   // --- ESTADO DE CACHÉ Y DATOS ---
   const [cache, setCache] = useState({
     especialidades: [],
-    medicos: {},             // key: espId
-    programacionMensual: {}, // key: medId-mes-anio
+//    medicos: {},             // key: espId
+//    programacionMensual: {}, // key: medId-mes-anio
     horasDisponibles: {}     // key: medId-fecha
   });
 
   const [datosReserva, setDatosReserva] = useState({ 
     especialidad: null, 
+    servicio: null, 
     doctor: null, 
     fecha: '', 
     fechaObjeto: { mes: new Date().getMonth(), anio: new Date().getFullYear(), dia: null },
@@ -193,6 +194,7 @@ export default function App({  nombreClinica = "MediFlow Center",  direccionClin
         // 2. Obtenemos los datos directamente del médico seleccionado (med) y la especialidad actual
         const medId = med.id;
         const espId = datosReserva.especialidad?.idEspecialidad || datosReserva.especialidad?.id;
+        const serId = datosReserva.servicio?.idServicio || datosReserva.servicio?.id;
 
         // 3. Actualizamos el estado con el médico elegido y pasamos al paso 3
         setDatosReserva(prev => ({ 
@@ -205,9 +207,9 @@ export default function App({  nombreClinica = "MediFlow Center",  direccionClin
         setPasoActual(3);
 
         // 4. Cargamos la programación inmediatamente
-        if (medId && espId) {
+        if (medId && espId && serId) {
           const { mes, anio } = datosReserva.fechaObjeto;
-          obtenerProgramacionMedicaMes(mes+1,anio,espId)      
+          obtenerProgramacionMedicaMes(mes+1,anio,espId,medId, 1)      
         }
       };
 

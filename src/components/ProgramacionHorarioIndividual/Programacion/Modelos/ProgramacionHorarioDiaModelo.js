@@ -79,8 +79,8 @@ export const actualizarTurnoEnDia = (diaModelado, nuevoIdTurno) => {
 export const modelarCrearProgramacion = (datosContexto, listaDiasActualizada) => {
     // 1. Limpiamos la lista de días para el backend
         const programacionLimpia = listaDiasActualizada.map(dia => {
-        const m = dia.getClaveCalendario ? dia : modelarDia(dia);
-        const { getClaveCalendario, ...datosPuros } = m;
+            const m = dia.getClaveCalendario ? dia : modelarDia(dia);
+            const { getClaveCalendario, ...datosPuros } = m;
         return datosPuros;
     });
 

@@ -3,10 +3,10 @@
 import { useState, useEffect } from "react";
 import { Icono } from './Icono';
 import { obtenerListaTurnos } from '../Constants/TODOS_LOS_TURNOS';
+import Servicio from "../../../Servicio/Servicio";
 
 
-
-const ModalEditorTurnos = ({ estaAbierto, claveDia, alCerrar, horario, setHorario, alGuardar }) => {
+const ModalEditorTurnos = ({ estaAbierto, claveDia, alCerrar, horario, setHorario, alGuardar,idEntidad,idServ,desServ }) => {
     const turnosIniciales = horario[claveDia] || ['libre'];
     const [idsTurnosSeleccionados, setIdsTurnosSeleccionados] = useState(turnosIniciales);
     const diaActual = new Date(claveDia + 'T00:00:00').getDate();
@@ -61,7 +61,15 @@ const turnoActualObj = listaDeTurnos.find(t => String(t.idTurno) === String(idsT
                     </div>
 
                     <div className="modal-body p-4">
-                        <p className="text-secondary small mb-4">Selecciona los turnos para este día:</p>
+                       <h5 className="h6 fw-bold mb-3 text-dark">1. Selecciona Consultorios:</h5>
+                        <div className="d-grid gap-3 mb-4 ">
+                            <Servicio    
+                                    idEntidad={idEntidad} // Viene de tu perfil/contexto
+                                    valueServicio={(id) => {  idServ(id)}} // Solo actualiza el ID
+                                    textServicio={(txt) =>    desServ(txt)}                                
+                            />
+                        </div>
+                        <h5 className="h6 fw-bold mb-3 text-dark">2. Selecciona Turnos:</h5>
                         <div className="d-grid gap-3">
                             {listaDeTurnos.map(turno => {
                                 const estaSeleccionado = idsTurnosSeleccionados.includes(turno.idTurno);
@@ -84,7 +92,6 @@ const turnoActualObj = listaDeTurnos.find(t => String(t.idTurno) === String(idsT
                                 );
                             })}
                         </div>
-
 
                     </div>
                     

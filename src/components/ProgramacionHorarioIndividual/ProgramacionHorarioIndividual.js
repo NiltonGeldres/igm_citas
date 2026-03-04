@@ -50,10 +50,8 @@ export default function ProgramacionHorarioIndividual() {
     }, []);
 
 
-    // Se carga/actualiza cada vez que cambie la especialidad, el servicio o el mes
     const contexto = useMemo(() => {
         const perfil = JSON.parse(sessionStorage.getItem('user_profile'));
-        console.log("Actualizando contexto "+ idServicio)
         return {
             // Datos del Login (JWT)
             idEntidad: perfil?.idEntidad,
@@ -71,15 +69,13 @@ export default function ProgramacionHorarioIndividual() {
             anio: fechaActual.getFullYear()
         };
     }, [idEspecialidad, idServicio, fechaActual]);
-
-
-        // 1. La función vive afuera y "observa" al contexto
-        const cargarProgramacionCompleta = useCallback(async () => {
+//...............................................................................
+    // Obtener la progrmacion del mes y su UssEffect
+    //...............................................................................
+    const cargarProgramacionCompleta = useCallback(async () => {
             // Extraemos los datos del contexto justo cuando se ejecuta la función
             const { mes, anio, idEspecialidad, idServicio, idMedico } = contexto;
-
-            if (!idMedico || !idEspecialidad || !idServicio) return;
-
+            if (!idMedico || !idEspecialidad ) return;
             setEstadoGuardado('cargando');
             console.log("EJECUTANDO API CON:", mes, anio, idEspecialidad, idMedico, idServicio);
 
@@ -87,7 +83,6 @@ export default function ProgramacionHorarioIndividual() {
                 let res = await ProgramacionHorarioIndividualService.obtenerProgramacionMesUsuario(
                     mes, anio, idEspecialidad, idMedico, idServicio
                 );
-                console.log("RESPONSE   "+JSON.stringify(res))
                 // ... resto de tu lógica de procesamiento (res.data, etc.) ...
                 
                     if (!res.data.programacionMedicaDiaResponse?.length) {
@@ -121,139 +116,26 @@ export default function ProgramacionHorarioIndividual() {
             } finally {
                 setEstadoGuardado(null);
             }
-        }, [contexto]); // <--- IMPORTANTE: Se recrea solo cuando el contexto cambia
+    }, [contexto]); // <--- IMPORTANTE: Se recrea solo cuando el contexto cambia
 
-        // 2. El useEffect solo da la orden de ejecutar
-        useEffect(() => {
+    useEffect(() => {
             // Aquí el log siempre será el actual
             console.log("REVISANDO CONTEXTO:", contexto.idMedico, contexto.idEspecialidad, contexto.idServicio);
 
-            if (contexto.idMedico && contexto.idEspecialidad && contexto.idServicio) {
+            if (contexto.idMedico && contexto.idEspecialidad ) {
                 cargarProgramacionCompleta();
             }
-        }, [contexto.idMedico, contexto.idEspecialidad, contexto.idServicio, contexto.mes, cargarProgramacionCompleta]);
+    }, [contexto.idMedico, contexto.idEspecialidad, contexto.idServicio, contexto.mes, cargarProgramacionCompleta]);
 
-
-    // Disparador automático al cambiar de mes/año
-/*    useEffect(() => {
-        console.log(contexto.idMedico +"---"+ contexto.idEspecialidad +"---"+ contexto.idServicio)
-        if (contexto.idMedico && contexto.idEspecialidad && contexto.idServicio) {
-            const cargarProgramacionCompleta = useCallback(async () => {
-                    const p_mes = contexto.mes;
-                    const p_anio = contexto.anio;
-                    const p_idEspecialidad = contexto.idEspecialidad; 
-                    const p_idServicio = contexto.idServicio; 
-                    const p_idMedico = contexto.idMedico; 
-                    setEstadoGuardado('cargando');
-                    console.log(" CARGAR ProgramacionCompleta parametros "+p_mes+"---"+p_anio+"----"+p_idEspecialidad+"----"+p_idMedico+"----"+p_idServicio)
-
-                try {
-                    let res = await ProgramacionHorarioIndividualService.obtenerProgramacionMesUsuario(
-                        p_mes, p_anio, p_idEspecialidad, p_idMedico,p_idServicio
-                    );
-
-                    if (!res.data.programacionMedicaDiaResponse?.length) {
-                        res = await ProgramacionHorarioIndividualService.obtenerProgramacionMesBlanco(
-                            p_mes, p_anio, p_idEspecialidad, p_idMedico,p_idServicio
-                        );
-                    }
-
-                    const envoltorioBack = res.data; 
-                    const listaRaw = envoltorioBack?.programacionMedicaDiaResponse;
-
-                    if (envoltorioBack && Array.isArray(listaRaw)) {
-                        setEnvoltorioOriginal(envoltorioBack);
-
-                        const modelosProcesados = listaRaw.map(item => modelarDia(item));
-                        setDatosOriginalesBackend(modelosProcesados);
-
-                        const mapaParaUI = modelosProcesados.reduce((acc, dia) => {
-                            const clave = dia.getClaveCalendario();
-                            // Si idTurno es 0, es 'libre'. Si tiene ID (ej: 1, 2), se guarda como string.
-                            acc[clave] = (dia.idTurno && dia.idTurno !== 0) ? [String(dia.idTurno)] : ['libre'];
-                            return acc;
-                        }, {});
-
-                        setHorarioCalendario(mapaParaUI);
-                        console.log("Programación cargada y sincronizada:", envoltorioBack);
-                    }
-
-                } catch (error) {
-                    console.error("Error fatal en el flujo de carga:", error);
-                    // Opcional: Podrías setear un estado de error para mostrar un mensaje al usuario
-                } finally {
-                    setEstadoGuardado(null);
-                }
-            }, [fechaActual]);
-            ;
-        }
-        cargarProgramacionCompleta()
-    }, [contexto]);*/
-
-
-    //...............................................................................
-  /*  const cargarProgramacionCompleta = useCallback(async () => {
-        const p_mes = contexto.mes;
-        const p_anio = contexto.anio;
-        const p_idEspecialidad = contexto.idEspecialidad; 
-        const p_idServicio = contexto.idServicio; 
-        const p_idMedico = contexto.idMedico; 
-        setEstadoGuardado('cargando');
-        console.log(" CARGAR ProgramacionCompleta parametros "+p_mes+"---"+p_anio+"----"+p_idEspecialidad+"----"+p_idMedico+"----"+p_idServicio)
-
-        try {
-            // 1. INTENTO PRIMARIO: Cargar programación existente
-            // (Asumo que tienes un service para obtener lo ya guardado)
-            let res = await ProgramacionHorarioIndividualService.obtenerProgramacionMesUsuario(
-                p_mes, p_anio, p_idEspecialidad, p_idMedico,p_idServicio
-            );
-
-            // 2. FALLBACK: Si el backend devuelve 200 pero la lista está vacía, pedimos el "Blanco"
-            // Nota: Ajusta 'programacionMedicaDiaResponse' según el nombre exacto de tu API de consulta
-            if (!res.data.programacionMedicaDiaResponse?.length) {
-                res = await ProgramacionHorarioIndividualService.obtenerProgramacionMesBlanco(
-                    p_mes, p_anio, p_idEspecialidad, p_idMedico,p_idServicio
-                );
-            }
-
-            // 3. PROCESAMIENTO ÚNICO (Para ambos casos)
-            // Axios -> Wrapper Java (.data) -> Objeto con lista (.data)
-            const envoltorioBack = res.data; 
-            const listaRaw = envoltorioBack?.programacionMedicaDiaResponse;
-
-            if (envoltorioBack && Array.isArray(listaRaw)) {
-                setEnvoltorioOriginal(envoltorioBack);
-
-                const modelosProcesados = listaRaw.map(item => modelarDia(item));
-                setDatosOriginalesBackend(modelosProcesados);
-
-                const mapaParaUI = modelosProcesados.reduce((acc, dia) => {
-                    const clave = dia.getClaveCalendario();
-                    // Si idTurno es 0, es 'libre'. Si tiene ID (ej: 1, 2), se guarda como string.
-                    acc[clave] = (dia.idTurno && dia.idTurno !== 0) ? [String(dia.idTurno)] : ['libre'];
-                    return acc;
-                }, {});
-
-                setHorarioCalendario(mapaParaUI);
-                console.log("Programación cargada y sincronizada:", envoltorioBack);
-            }
-
-        } catch (error) {
-            console.error("Error fatal en el flujo de carga:", error);
-            // Opcional: Podrías setear un estado de error para mostrar un mensaje al usuario
-        } finally {
-            setEstadoGuardado(null);
-        }
-    }, [fechaActual]);
-*/
     //...............................................................................
     // Guardado de datos
+    //...............................................................................
     const manejarGuardado = useCallback(async (horarioActualizado = null) => {
         setEstadoGuardado('guardando');
 
         try {
-            // La fuente de datos es lo que el usuario ve ahora (Mayo)
             const fuenteDeDatos = horarioActualizado || horarioCalendario;
+            console.log("fuenteDeDatos  :  "+JSON.stringify(fuenteDeDatos))
             
             // Mapeamos usando la "foto" de los datos originales
             const diasConTurnos = datosOriginalesBackend.map(dia => {
@@ -267,8 +149,8 @@ export default function ProgramacionHorarioIndividual() {
 
             // El payload necesita el contexto actual (Médico, Especialidad, Sede)
             const payloadFinal = modelarCrearProgramacion(contexto, diasConTurnos);
-
             const response = await ProgramacionHorarioIndividualService.crearProgramacionMesUsuario(payloadFinal);
+//            console.log("payload final  :  "+JSON.stringify(payloadFinal))
             
             if (response.status === 200) {
                 // REFRESH: Llamamos a la versión actual de la función de carga
@@ -284,8 +166,6 @@ export default function ProgramacionHorarioIndividual() {
         }
         // Agregamos 'contexto' porque si cambias de médico, la función debe renovarse
     }, [horarioCalendario, datosOriginalesBackend, cargarProgramacionCompleta, contexto]);
-// ^ Importante agregar cargarProgramacionCompleta a las dependencias
-//.........................................
 
 
     const irMesAnterior = useCallback(() => {
@@ -408,7 +288,7 @@ export default function ProgramacionHorarioIndividual() {
             setDescripcionServicio("");*/
     }
     
-    const listoParaProgramar = idEspecialidad && idServicio;
+    const listoParaProgramar = idEspecialidad ;
 
     return (
         <>
@@ -431,19 +311,7 @@ export default function ProgramacionHorarioIndividual() {
                                 textEspecialidad={(txt) => setDescripcionEspecialidad(txt)}                                />
                         </div>           
                 
-                        <div className='mb-1' style={{width:400}}>
-                                <Servicio    
-                                    idEntidad={contexto.idEntidad} // Viene de tu perfil/contexto
-                                    valueServicio={(id) => {  setIdServicio(id)}} // Solo actualiza el ID
-                                    textServicio={(txt) => setDescripcionServicio(txt)}                                
-                                />
-                        </div>                             
                     </div>
-
-                    
-
- 
-
     
                     {!listoParaProgramar ? (
                         <div className="text-center p-5 bg-white rounded-4 shadow-sm">
@@ -484,6 +352,9 @@ export default function ProgramacionHorarioIndividual() {
                                     alternarTurno={alternarTurnoMasivo}
                                     aplicarATodosLosDias={seleccionarTodoElMes}
                                     aplicarProgramacionMasiva={aplicarProgramacionMasiva}
+                                    idEntidad={contexto.idEntidad}
+                                    idServ={(id) => {  setIdServicio(id)}} // Solo actualiza el ID
+                                    desServ={(txt) => setDescripcionServicio(txt)}                                
                                 />
                             </div>
                         )}
@@ -525,6 +396,9 @@ export default function ProgramacionHorarioIndividual() {
                     horario={horarioCalendario}
                     setHorario={setHorarioCalendario}
                     alGuardar={manejarGuardado} 
+                    idEntidad={contexto.idEntidad}
+                    idServ={(id) => {  setIdServicio(id)}} // Solo actualiza el ID
+                    desServ={(txt) => setDescripcionServicio(txt)}                                
                 />
             </div>
      
@@ -532,3 +406,131 @@ export default function ProgramacionHorarioIndividual() {
     );
 };
 
+
+
+
+    // Disparador automático al cambiar de mes/año
+/*    useEffect(() => {
+        console.log(contexto.idMedico +"---"+ contexto.idEspecialidad +"---"+ contexto.idServicio)
+        if (contexto.idMedico && contexto.idEspecialidad && contexto.idServicio) {
+            const cargarProgramacionCompleta = useCallback(async () => {
+                    const p_mes = contexto.mes;
+                    const p_anio = contexto.anio;
+                    const p_idEspecialidad = contexto.idEspecialidad; 
+                    const p_idServicio = contexto.idServicio; 
+                    const p_idMedico = contexto.idMedico; 
+                    setEstadoGuardado('cargando');
+                    console.log(" CARGAR ProgramacionCompleta parametros "+p_mes+"---"+p_anio+"----"+p_idEspecialidad+"----"+p_idMedico+"----"+p_idServicio)
+
+                try {
+                    let res = await ProgramacionHorarioIndividualService.obtenerProgramacionMesUsuario(
+                        p_mes, p_anio, p_idEspecialidad, p_idMedico,p_idServicio
+                    );
+
+                    if (!res.data.programacionMedicaDiaResponse?.length) {
+                        res = await ProgramacionHorarioIndividualService.obtenerProgramacionMesBlanco(
+                            p_mes, p_anio, p_idEspecialidad, p_idMedico,p_idServicio
+                        );
+                    }
+
+                    const envoltorioBack = res.data; 
+                    const listaRaw = envoltorioBack?.programacionMedicaDiaResponse;
+
+                    if (envoltorioBack && Array.isArray(listaRaw)) {
+                        setEnvoltorioOriginal(envoltorioBack);
+
+                        const modelosProcesados = listaRaw.map(item => modelarDia(item));
+                        setDatosOriginalesBackend(modelosProcesados);
+
+                        const mapaParaUI = modelosProcesados.reduce((acc, dia) => {
+                            const clave = dia.getClaveCalendario();
+                            // Si idTurno es 0, es 'libre'. Si tiene ID (ej: 1, 2), se guarda como string.
+                            acc[clave] = (dia.idTurno && dia.idTurno !== 0) ? [String(dia.idTurno)] : ['libre'];
+                            return acc;
+                        }, {});
+
+                        setHorarioCalendario(mapaParaUI);
+                        console.log("Programación cargada y sincronizada:", envoltorioBack);
+                    }
+
+                } catch (error) {
+                    console.error("Error fatal en el flujo de carga:", error);
+                    // Opcional: Podrías setear un estado de error para mostrar un mensaje al usuario
+                } finally {
+                    setEstadoGuardado(null);
+                }
+            }, [fechaActual]);
+            ;
+        }
+        cargarProgramacionCompleta()
+    }, [contexto]);*/
+
+
+    //...............................................................................
+  /*  const cargarProgramacionCompleta = useCallback(async () => {
+        const p_mes = contexto.mes;
+        const p_anio = contexto.anio;
+        const p_idEspecialidad = contexto.idEspecialidad; 
+        const p_idServicio = contexto.idServicio; 
+        const p_idMedico = contexto.idMedico; 
+        setEstadoGuardado('cargando');
+        console.log(" CARGAR ProgramacionCompleta parametros "+p_mes+"---"+p_anio+"----"+p_idEspecialidad+"----"+p_idMedico+"----"+p_idServicio)
+
+        try {
+            // 1. INTENTO PRIMARIO: Cargar programación existente
+            // (Asumo que tienes un service para obtener lo ya guardado)
+            let res = await ProgramacionHorarioIndividualService.obtenerProgramacionMesUsuario(
+                p_mes, p_anio, p_idEspecialidad, p_idMedico,p_idServicio
+            );
+
+            // 2. FALLBACK: Si el backend devuelve 200 pero la lista está vacía, pedimos el "Blanco"
+            // Nota: Ajusta 'programacionMedicaDiaResponse' según el nombre exacto de tu API de consulta
+            if (!res.data.programacionMedicaDiaResponse?.length) {
+                res = await ProgramacionHorarioIndividualService.obtenerProgramacionMesBlanco(
+                    p_mes, p_anio, p_idEspecialidad, p_idMedico,p_idServicio
+                );
+            }
+
+            // 3. PROCESAMIENTO ÚNICO (Para ambos casos)
+            // Axios -> Wrapper Java (.data) -> Objeto con lista (.data)
+            const envoltorioBack = res.data; 
+            const listaRaw = envoltorioBack?.programacionMedicaDiaResponse;
+
+            if (envoltorioBack && Array.isArray(listaRaw)) {
+                setEnvoltorioOriginal(envoltorioBack);
+
+                const modelosProcesados = listaRaw.map(item => modelarDia(item));
+                setDatosOriginalesBackend(modelosProcesados);
+
+                const mapaParaUI = modelosProcesados.reduce((acc, dia) => {
+                    const clave = dia.getClaveCalendario();
+                    // Si idTurno es 0, es 'libre'. Si tiene ID (ej: 1, 2), se guarda como string.
+                    acc[clave] = (dia.idTurno && dia.idTurno !== 0) ? [String(dia.idTurno)] : ['libre'];
+                    return acc;
+                }, {});
+
+                setHorarioCalendario(mapaParaUI);
+                console.log("Programación cargada y sincronizada:", envoltorioBack);
+            }
+
+        } catch (error) {
+            console.error("Error fatal en el flujo de carga:", error);
+            // Opcional: Podrías setear un estado de error para mostrar un mensaje al usuario
+        } finally {
+            setEstadoGuardado(null);
+        }
+    }, [fechaActual]);
+*/
+
+
+/**
+                         <div className='mb-1' style={{width:400}}>
+                                <Servicio    
+                                    idEntidad={contexto.idEntidad} // Viene de tu perfil/contexto
+                                    valueServicio={(id) => {  setIdServicio(id)}} // Solo actualiza el ID
+                                    textServicio={(txt) => setDescripcionServicio(txt)}                                
+                                />
+                        </div>                             
+
+ * 
+ */

@@ -25,8 +25,7 @@ const  obtenerProgramacionMesUsuario = (mes,anio,idEspecialidad,idMedico,idServi
   };
 
 const crearProgramacionMesUsuario = (payloadFinal) => {
-  console.log("PARAMETRO ENVIO:  "+JSON.stringify(payloadFinal));
-  return axios.post(API_URL+SERVICE_CREAR
+    return axios.post(API_URL+SERVICE_CREAR
       ,payloadFinal
       ,{ headers: header()}
     );  

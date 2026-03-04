@@ -1,14 +1,27 @@
+import  { useState} from 'react';
 import { SHIFTS_DATA } from "../Data/Data";
 import { Icono } from "./Icono";
 //import {TODOS_LOS_TURNOS} from "../Constants/TODOS_LOS_TURNOS"
 import { obtenerListaTurnos } from '../Constants/TODOS_LOS_TURNOS';
+import Servicio from "../../../Servicio/Servicio";
 
 
-const ProgramadorMasivo = ({ turnosSeleccionados, alternarTurno, aplicarATodosLosDias, aplicarProgramacionMasiva }) => {
+const ProgramadorMasivo = ({ 
+                            turnosSeleccionados, 
+                            alternarTurno, 
+                            aplicarATodosLosDias, 
+                            aplicarProgramacionMasiva, 
+                            idEntidad,
+                            idServ,
+                            desServ
+                        }) => {
+
     const cantidadSeleccionada = turnosSeleccionados.length;
     const estaListoParaAplicar = cantidadSeleccionada > 0;
     //  Carga de Turnos
     const listaDeTurnos = obtenerListaTurnos();
+    const [idServicio, setIdServicio] = useState(""); 
+    const [descripcionServicio, setDescripcionServicio] = useState(""); 
     
     return (
         <div className="card shadow-lg bg-white h-100 border-0">
@@ -17,7 +30,15 @@ const ProgramadorMasivo = ({ turnosSeleccionados, alternarTurno, aplicarATodosLo
                 Configurar Lote
             </div>
             <div className="card-body">
-                <h5 className="h6 fw-bold mb-3 text-dark">1. Selecciona Turnos:</h5>
+                 <h5 className="h6 fw-bold mb-3 text-dark">1. Selecciona Consultorio :</h5>
+                <div className="d-grid gap-4 mb-4">
+                    <Servicio   
+                        idEntidad={idEntidad} // Viene de tu perfil/contexto
+                        valueServicio={(id) => {  idServ(id)}} // Solo actualiza el ID
+                        textServicio={(txt) =>    desServ(txt)}                                
+                  />
+                </div>
+                 <h5 className="h6 fw-bold mb-3 text-dark">2. Selecciona Turnos:</h5>
                 <div className="d-grid gap-2">
                     {listaDeTurnos.map(turno => {
                         const estaSeleccionado = turnosSeleccionados.includes(turno.idTurno);
@@ -34,8 +55,9 @@ const ProgramadorMasivo = ({ turnosSeleccionados, alternarTurno, aplicarATodosLo
                     })}
                 </div>
 
+
                 <div className="d-grid gap-2 mt-4">
-                    <h5 className="h6 fw-bold mb-3 text-dark">2. Seleccionar Días:</h5>
+                    <h5 className="h6 fw-bold mb-3 text-dark">3. Seleccionar Días:</h5>
                     <button onClick={aplicarATodosLosDias} className="btn btn-outline-info btn-sm fw-bold">
                         <Icono nombre="CalendarCheck" className="me-2" style={{width: '16px', height: '16px'}} />
                         Todo el Mes
