@@ -13,6 +13,7 @@ export const modelarDia = (data = {}) => {
         fecha: String(data.fecha || ""),
         tiempoPromedioAtencion: Number(data.tiempoPromedioAtencion || 0),
         idServicio: Number(data.idServicio || 0),
+        codigoServicio: String(data.codigoServicio || ""),
         idEspecialidad: Number(data.idEspecialidad || 0),
         idMedico: Number(data.idMedico || 0),
         idDepartamento: Number(data.idDepartamento || 0),
@@ -78,10 +79,10 @@ export const actualizarTurnoEnDia = (diaModelado, nuevoIdTurno) => {
  */
 export const modelarCrearProgramacion = (datosContexto, listaDiasActualizada) => {
     // 1. Limpiamos la lista de días para el backend
-        const programacionLimpia = listaDiasActualizada.map(dia => {
+    const programacionLimpia = listaDiasActualizada.map(dia => {
             const m = dia.getClaveCalendario ? dia : modelarDia(dia);
             const { getClaveCalendario, ...datosPuros } = m;
-        return datosPuros;
+            return datosPuros;
     });
 
     // 2. Construimos el objeto raíz con los nombres exactos que pide tu JSON
@@ -89,6 +90,7 @@ export const modelarCrearProgramacion = (datosContexto, listaDiasActualizada) =>
         fecha: datosContexto.fechaActualFormateada, // Ej: "11022026"
         idEspecialidad: String(datosContexto.idEspecialidad || ""),
         idServicio: String(datosContexto.idServicio || "1"),
+        codigoServicio: String(datosContexto.codigoServicio || ""),
         idMedico: String(datosContexto.idMedico || ""),
         programacion: programacionLimpia, // La lista de días
         usuario: datosContexto.usuario || "macuna"

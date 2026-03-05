@@ -6,7 +6,7 @@ import { TODOS_LOS_TURNOS } from "../Constants/TODOS_LOS_TURNOS";
 import { MAPEO_TURNOS } from "../Data/CargarConfiguracionTurnos";
 
 
-const CeldaCalendario = React.memo(({ dia, claveFecha, esHoy, tieneHorario, estaSeleccionadoMasivo, manejarClickDia, horario }) => {
+const CeldaCalendario = React.memo(({ dia, claveFecha, esHoy, tieneHorario, estaSeleccionadoMasivo, manejarClickDia, horario,codServ }) => {
     if (!dia) {
         return <div className="calendar-cell p-2 bg-light border-0 opacity-25"></div>;
     }
@@ -57,31 +57,37 @@ const CeldaCalendario = React.memo(({ dia, claveFecha, esHoy, tieneHorario, esta
                 {esLibre ? (
                     <span className="badge rounded-pill text-bg-secondary fw-normal opacity-50" style={{fontSize: '0.65rem'}}>Libre</span>
                 ) : (
-// CeldaCalendario.js
-turnosActuales.map(turnoId => {
-    const t = MAPEO_TURNOS[turnoId] || MAPEO_TURNOS['libre'];
-    
-    // Si el ID es 'libre', no queremos solo la "L", queremos el texto o un icono
-    const esLibre = turnoId === 'libre';
-    const textoMostrar = esLibre ? "Libre" : (t.descripcion || '').substring(0, 1);
-    const codigoServicio = t.codigoServicio;
+                    // CeldaCalendario.js
+                    turnosActuales.map(turnoId => {
+                        const t = MAPEO_TURNOS[turnoId] || MAPEO_TURNOS['libre'];
+                        
+                        // Si el ID es 'libre', no queremos solo la "L", queremos el texto o un icono
+                        const esLibre = turnoId === 'libre';
+                        const textoMostrar = esLibre ? "Libre" : (t.descripcion || '').substring(0, 1);
+                        const codigoServicio = t.codigoServicio;
 
-    return (
-        <span 
-            key={turnoId} 
-            className={`badge rounded-pill ${t.claseColor} fw-normal d-flex align-items-center justify-content-center`} 
-            style={{ 
-                fontSize: esLibre ? '0.6rem' : '0.65rem',
-                minWidth: esLibre ? '45px' : '20px' // Le damos más ancho si es la palabra "Libre"
-            }}
-        >
-            {esLibre && <Icono nombre="X" size={10} className="me-1" />} 
-            {textoMostrar}
-        </span>
-    );
-})
+
+                        return (
+                            <span 
+                                key={turnoId} 
+                                className={`badge rounded-pill ${t.claseColor} fw-normal d-flex align-items-center justify-content-center`} 
+                                style={{ 
+                                    fontSize: esLibre ? '0.6rem' : '0.65rem',
+                                    minWidth: esLibre ? '45px' : '20px' // Le damos más ancho si es la palabra "Libre"
+                                }}
+                            >
+                                {esLibre && <Icono nombre="X" size={10} className="me-1" />} 
+                                {textoMostrar}
+                            </span>
+                        );
+                    })
                 )}
             </div>
+<div className="d-flex justify-content-between align-items-center mb-1">
+    <span className="text-dark small mt-3" style={{ fontSize: '0.65rem' }}>
+        {codServ}
+    </span>
+</div>
         </div>
     );
 });

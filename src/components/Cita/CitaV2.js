@@ -182,18 +182,22 @@ export default function App({  nombreClinica = "MediFlow Center",  direccionClin
   }, [cache.especialidades.length]);
 
   // 2. SELECCIONAR ESPECIALIDAD -> CARGAR MÉDICOS
-  const seleccionarEspecialidad = async (espec) => {
-      setDatosReserva(prev => ({ ...prev, especialidad: espec, doctor: null }));
-      const data = await   MedicoService.obtenerTodosEspecialidad(espec.idEspecialidad)
-      const dataListaMedicosParaUI = transformarMedicos(data);
-      setMedicosActuales(dataListaMedicosParaUI);
-      setPasoActual(2);
-    };
+     const seleccionarEspecialidad = async (espec) => {
+        setDatosReserva(prev => ({ ...prev, especialidad: espec, doctor: null }));
+        const data = await   MedicoService.obtenerTodosEspecialidad(espec.idEspecialidad)
+        const dataListaMedicosParaUI = transformarMedicos(data);
+        setMedicosActuales(dataListaMedicosParaUI);
+        setPasoActual(2);
+      };
 
-      const seleccionarMedico = async (med) => { // 1. Hacemos la función principal async
+     const seleccionarMedico = async (med) => { // 1. Hacemos la función principal async
         // 2. Obtenemos los datos directamente del médico seleccionado (med) y la especialidad actual
+
         const medId = med.id;
-        const espId = datosReserva.especialidad?.idEspecialidad || datosReserva.especialidad?.id;
+        const espId = datosReserva.especialidad?.idEspecialidad || datosReserva.especialidad?.idEspecialidad;
+        console.log("espID     "+espId)
+        console.log("medID     "+JSON.stringify(med))
+        console.log("medID     "+medId)
         const serId = datosReserva.servicio?.idServicio || datosReserva.servicio?.id;
 
         // 3. Actualizamos el estado con el médico elegido y pasamos al paso 3
@@ -207,17 +211,17 @@ export default function App({  nombreClinica = "MediFlow Center",  direccionClin
         setPasoActual(3);
 
         // 4. Cargamos la programación inmediatamente
-        if (medId && espId && serId) {
+        if (medId && espId ) {
           const { mes, anio } = datosReserva.fechaObjeto;
           obtenerProgramacionMedicaMes(mes+1,anio,espId,medId, 1)      
         }
       };
 
-    const obtenerProgramacionMedicaMes = async (mes,anio,idEspecialidad) =>{
+    const obtenerProgramacionMedicaMes = async (mes,anio,idEspecialidad,idMedico) =>{
           setCargando(true);
           try {
             // Nota: Asegúrate de enviar mes+1 y anio si tu API lo requiere
-            const data = await ProgramacionHorarioIndividualService.obtenerProgramacionMesUsuario(mes, anio, idEspecialidad,);
+            const data = await ProgramacionHorarioIndividualService.obtenerProgramacionMesUsuario(mes, anio, idEspecialidad,idMedico,0);
             console.log("obtenerProgramacionMedicaMes   "+JSON.stringify(data))
             const dataProgramacionUI = transformarProgramacion(data);
             setProgramacionMensual(dataProgramacionUI);
