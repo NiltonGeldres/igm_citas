@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import Swal from "sweetalert2";
 import { 
   Search, 
   Calendar, 
@@ -22,7 +23,10 @@ import {
   ExternalLink,
   MapPin
 } from 'lucide-react';
+import CalendarioReserva from './Componentes/CalendarioReserva';
+import ProgramacionHoras from './Componentes/ProgramacionHoras';
 
+import CitaService from '../Cita/CitaService';
 import EspecialidadService from '../Especialidad/EspecialidadService';
 import {transformarEspecialidades} from "../Cita/Data/CitaEspecialidad"
 import MedicoService from '../Medico/MedicoService';
@@ -30,6 +34,9 @@ import { transformarMedicos } from './Data/CitaMedicoUI';
 //import ProgramacionMedicaService from '../ProgramacionMedica/ProgramacionMedicaService';
 import { transformarProgramacion } from './Data/CitaProgramacionMedicaUI';
 import ProgramacionHorarioIndividualService from '../ProgramacionHorarioIndividual/ProgramacionMedicaIndividualService';
+
+let timerInterval;
+
 // --- ESTILOS PERSONALIZADOS (Mantenidos intactos) ---
 const ESTILOS_CSS = `
   @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap');
@@ -134,6 +141,7 @@ export default function App({  nombreClinica = "MediFlow Center",  direccionClin
     doctor: null, 
     fecha: '', 
     fechaObjeto: { mes: new Date().getMonth(), anio: new Date().getFullYear(), dia: null },
+    fechaYYYYMMDD: '', 
     hora: '' 
   });
   
@@ -222,9 +230,11 @@ export default function App({  nombreClinica = "MediFlow Center",  direccionClin
           try {
             // Nota: Asegúrate de enviar mes+1 y anio si tu API lo requiere
             const data = await ProgramacionHorarioIndividualService.obtenerProgramacionMesUsuario(mes, anio, idEspecialidad,idMedico,0);
-            console.log("obtenerProgramacionMedicaMes   "+JSON.stringify(data))
-            const dataProgramacionUI = transformarProgramacion(data);
+            const dataProgramacionUI = transformarProgramacion(data.data.programacionMedicaDiaResponse);
             setProgramacionMensual(dataProgramacionUI);
+            console.log("obtenerProgramacionMedicaMes dataProgramacionUI   "+JSON.stringify(dataProgramacionUI))
+            console.log("obtenerProgramacionMedicaMes DATA  PROGRAMACION "+JSON.stringify(data.data.programacionMedicaDiaResponse))
+            console.log("obtenerProgramacionMedicaMes DATA   "+JSON.stringify(data))
 
           } catch (error) {
             console.error("Error al cargar programación:", error);
@@ -238,24 +248,27 @@ export default function App({  nombreClinica = "MediFlow Center",  direccionClin
       const { mes, anio } = datosReserva.fechaObjeto;
       // Formato para mostrar en el UI (ej: "15 de Marzo")
       const fechaStr = `${dia} ${new Intl.DateTimeFormat('es-ES', { month: 'short' }).format(new Date(anio, mes))}`;
-      
       const keyHora = `${datosReserva.doctor.id}-${fechaStr}`;
-      
+
+      const mesFormat = String(mes + 1).padStart(2, '0');
+      const diaFormat = String(dia).padStart(2, '0');
+      const fechaString = `${anio}${mesFormat}${diaFormat}`;
+
       setDatosReserva(prev => ({ 
         ...prev, 
+        fechaYYYYMMDD: fechaString, 
         fecha: fechaStr, 
-        fechaObjeto: { ...prev.fechaObjeto, dia } 
+        fechaObjeto: { ...prev.fechaObjeto, dia } ,
+        hora:''
       }));
       
-      // Si no hay horas en caché para este médico y esta fecha específica
-      if (!cache.horasDisponibles[keyHora]) {
-        // Aquí llamarías a la API 4 (Horas), enviando la fecha completa
+
         const data = await ejecutarAPI("obtenerProgramacionMedicaHorasService", { 
           medId: datosReserva.doctor.id, 
-          fecha: `${anio}-${String(mes+1).padStart(2,'0')}-${String(dia).padStart(2,'0')}` 
+          fechay: datosReserva.fechaYYYYMMDD 
         });
-        setCache(prev => ({ ...prev, horasDisponibles: { ...prev.horasDisponibles, [keyHora]: data } }));
-      }
+//          fecha: `${anio}-${String(mes+1).padStart(2,'0')}-${String(dia).padStart(2,'0')}` 
+        console.log("DATA DE TURNOS O CUPOS  "+data)
     };
 
     // 5. GUARDAR CITA
@@ -288,26 +301,85 @@ export default function App({  nombreClinica = "MediFlow Center",  direccionClin
       setPestanaActual('inicio');
     };
 
-  const cambiarMes = (direccion) => {
-        //const espId = datosReserva.especialidad.idEspecialidad ;
-//        const espId = datosReserva.especialidad?.idEspecialidad || datosReserva.especialidad?.id;
-    setDatosReserva(prev => {
-      // Calculamos el nuevo mes/año basado en el actual
-      const nuevaFecha = new Date(prev.fechaObjeto.anio, prev.fechaObjeto.mes + direccion, 1);
-      const espId = prev.especialidad ;
-      obtenerProgramacionMedicaMes(nuevaFecha.getMonth(),nuevaFecha.getFullYear(),9);
-      return {
+    const cambiarMes = (direccion) => { // direccion será 1 o -1
+      
+      // 1. Obtenemos el mes y año que el usuario está viendo actualmente
+      const mesActual = datosReserva.fechaObjeto.mes; 
+      const anioActual = datosReserva.fechaObjeto.anio;
+
+      // 2. Creamos una fecha temporal basada en lo que vemos
+      const fechaTemporal = new Date(anioActual, mesActual, 1);
+
+      // 3. AQUÍ es donde ocurre el aumento o reducción:
+      // Si direccion es 1:  mesActual + 1 (Avanza)
+      // Si direccion es -1: mesActual - 1 (Retrocede)
+      fechaTemporal.setMonth(fechaTemporal.getMonth() + direccion);
+
+      // JavaScript es inteligente: 
+      // Si estás en Diciembre (mes 11) y sumas 1, automáticamente cambia el año a 2027 y el mes a 0 (Enero).
+      const nuevoMesIndice = fechaTemporal.getMonth(); 
+      const nuevoAnio = fechaTemporal.getFullYear();
+
+      // 4. Actualizamos el estado para que la interfaz cambie
+      setDatosReserva(prev => ({
         ...prev,
-        fechaObjeto: {
-          ...prev.fechaObjeto,
-          mes: nuevaFecha.getMonth(),
-          anio: nuevaFecha.getFullYear(),
-          dia: null // Resetear día al cambiar de mes
-        },
-        hora: '' // Resetear hora
-      };
-    });
-  };
+        fechaObjeto: { ...prev.fechaObjeto, mes: nuevoMesIndice, anio: nuevoAnio, dia: null }
+      }));
+
+      // 5. Llamamos a la API con el mes corregido (+1)
+      const medId = datosReserva.doctor?.id;
+      const espId = datosReserva.especialidad?.idEspecialidad;
+      
+      if (medId && espId) {
+        // IMPORTANTE: nuevoMesIndice + 1 porque la API no entiende de 0 a 11, sino de 1 a 12
+        obtenerProgramacionMedicaMes(nuevoMesIndice + 1, nuevoAnio, espId, medId, 10);
+      }
+    };
+
+    const handleHoraSeleccionada = async (hora, idProg, idServ) => {
+
+      try {
+        const respBloqueo = await CitaService.getCitaBloquear(hora, datosReserva.fechaYYYYMMDD, datosReserva.doctor.id);        
+        const idBloqueo = respBloqueo.data.idCitaBloqueada;
+        
+        // 2. Mostrar confirmación con Timer
+        Swal.fire({
+          title: '¿Confirmar horario?',
+          html: `Has seleccionado las <b>${hora}</b>.<br/>Confirma en <b>60</b> segundos.`,
+          timer: 60000,
+          timerProgressBar: true,
+          showCancelButton: true,
+          confirmButtonText: 'Sí, reservar',
+          cancelButtonText: 'Cancelar',
+          didOpen: () => {
+            const b = Swal.getHtmlContainer().querySelector('b');
+            timerInterval = setInterval(() => {
+              b.textContent = Math.ceil(Swal.getTimerLeft() / 1000);
+            }, 1000);
+          },
+          willClose: () => clearInterval(timerInterval)
+        }).then(async (result) => {
+          if (result.isConfirmed) {
+            // Proceder al siguiente paso o guardar
+            /*setDatosReserva(prev => ({ 
+                    ...prev, 
+                    hora: hora, 
+                    idProgramacion: idProgramacion, 
+                    idServicio: idServicio,
+                    idCitaBloqueada: idCitaBloqueada // Guardamos el ID para liberarlo luego si es necesario
+            }));*/
+
+           // setPasoActual(4); 
+          } else {
+            // 3. Liberar si cancela o se acaba el tiempo
+            await CitaService.getEliminarCitaBloqueada(idBloqueo);
+          }
+        });
+
+      } catch (error) {
+        Swal.fire('Error', 'Este horario acaba de ser tomado por otro usuario.', 'error');
+      }
+    };
 
   return (
     <div className="container-fluid p-0 pb-5 mb-5">
@@ -487,63 +559,55 @@ export default function App({  nombreClinica = "MediFlow Center",  direccionClin
                         </div>
                       ))}
 
-   {/* --- paso 3  --- */}
-  {pasoActual === 3 && (() => {
-    const { mes, anio } = datosReserva.fechaObjeto;
-    const diasEnMes = new Date(anio, mes + 1, 0).getDate();
-    const primerDiaMes = new Date(anio, mes, 1).getDay(); 
-    const offset = (primerDiaMes + 6) % 7; 
-    // IMPORTANTE: La KEY debe ser idéntica a la del useEffect para encontrar los datos
-    const medId = datosReserva.doctor?.id;
-    const espId = datosReserva.especialidad?.idEspecialidad || datosReserva.especialidad?.id;
-    const key = `${medId}-${espId}-${mes}-${anio}`;
-    console.log("programacionMensual  "+JSON.stringify(programacionMensual))
-    const diasDisponiblesAPI = programacionMensual;
-    const nombreMes = new Intl.DateTimeFormat('es-ES', { month: 'long' }).format(new Date(anio, mes));
+{pasoActual === 3 && (
+  <div className="fade-in">
+    {/* Título de sección */}
+    <div className="mb-4">
+      <h5 className="fw-bold mb-1">Selecciona Fecha y Hora</h5>
+      <p className="text-muted small">Los días marcados con un reloj tienen disponibilidad.</p>
+    </div>
 
-    return (
-      <div className="fade-in">
-        <div className="tarjeta-personalizada bg-white p-4 shadow-sm mb-4">
-          <div className="d-flex justify-content-between align-items-center mb-4">
-            <button onClick={() => cambiarMes(-1)} className="btn btn-sm btn-outline-secondary border-0"><ChevronLeft/></button>
-            <h6 className="fw-bold mb-0 text-capitalize">{nombreMes} {anio}</h6>
-            <button onClick={() => cambiarMes(1)} className="btn btn-sm btn-outline-secondary border-0"><ChevronRight/></button>
-          </div>
-
-          <div className="calendario-grid">
-            {DIAS_CABECERA.map((d, i) => (
-              <div key={i} className="text-center text-secondary fw-bold mb-2" style={{fontSize: '10px'}}>{d}</div>
-            ))}
-
-            {Array.from({ length: offset }).map((_, i) => (
-              <div key={`vacia-${i}`} className="calendario-celda opacity-0"></div>
-            ))}
-
-            {Array.from({ length: diasEnMes }).map((_, i) => {
-              const dia = i + 1;
-              // Buscamos si el día existe en la data transformada de la API
-              const tieneProgramacion = diasDisponiblesAPI.some(p => parseInt(p.fechadia) === dia);
-
-              return (
-                <button 
-                  key={dia} 
-                  disabled={!tieneProgramacion || cargando}
-                  onClick={() => seleccionarDia(dia)}
-                  className={`calendario-celda border-0 
-                    ${datosReserva.fechaObjeto.dia === dia ? 'seleccion-masiva text-white' : 'bg-transparent'} 
-                    ${!tieneProgramacion ? 'text-muted opacity-25' : 'text-dark fw-bold'}`}
-                >
-                  {dia}
-                  {tieneProgramacion && <div className="dot-disponible" style={{width: '4px', height: '4px', backgroundColor: '#0ea5e9', borderRadius: '50%', position: 'absolute', bottom: '5px'}}></div>}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-        {/* ... Resto del renderizado de horas */}
+    <div className="row g-4">
+      {/* COLUMNA IZQUIERDA: El Calendario */}
+      <div className="col-12 col-lg-7">
+        <CalendarioReserva 
+          fechaObjeto={datosReserva.fechaObjeto}
+          cambiarMes={cambiarMes}
+          programacionMensual={programacionMensual}
+          seleccionarDia={seleccionarDia}
+          cargando={cargando}
+        />
       </div>
-    );
-  })()}
+
+    <div className="col-lg-5">
+          <ProgramacionHoras 
+            idMedico={datosReserva.doctor?.id}
+            idEspecialidad={datosReserva.especialidad?.idEspecialidad}
+            fechaCalendar={datosReserva.fechaYYYYMMDD}
+            horaActualSeleccionada={datosReserva.hora}
+            onHoraSeleccionada={handleHoraSeleccionada}
+          />
+    </div>
+
+      {/* COLUMNA DERECHA: Selector de Horas (Se activa al elegir un día) */}
+
+    </div>
+
+    {/* Botón de navegación inferior */}
+    <div className="mt-4 d-flex justify-content-between">
+      <button className="btn btn-light px-4" onClick={() => setPasoActual(2)}>Atrás</button>
+      <button 
+        className="btn btn-primary px-5 fw-bold" 
+        disabled={!datosReserva.fechaObjeto.dia || !datosReserva.hora}
+        onClick={() => setPasoActual(4)}
+      >
+        Siguiente
+      </button>
+    </div>
+  </div>
+)}
+
+
                       {/* PASO 4: CONFIRMACIÓN Y PAGO (API 5) */}
                       {pasoActual === 4 && (
                         <div className="fade-in">
@@ -783,3 +847,74 @@ export default function App({  nombreClinica = "MediFlow Center",  direccionClin
 };
 
      */
+
+/**
+ 
+  
+       <div className="col-12 col-lg-5">
+        <div className="card border-0 shadow-sm rounded-4 p-3 bg-white h-100">
+          <h6 className="fw-bold mb-3 d-flex align-items-center">
+            <Clock size={18} className="me-2 text-primary" />
+            Horarios para el día {datosReserva.fechaObjeto.dia || '...'}
+          </h6>
+
+          {!datosReserva.fechaObjeto.dia ? (
+            <div className="text-center py-5">
+              <p className="text-muted small">Selecciona un día disponible para ver las horas.</p>
+            </div>
+          ) : (
+            <div className="d-grid gap-2 overflow-auto" style={{ maxHeight: '350px' }}>
+   
+             {programacionMensual
+                .filter(p => parseInt(p.fechadia) === datosReserva.fechaObjeto.dia)
+                .map((horario, index) => (
+                  <button
+                    key={index}
+                    onClick={() => setDatosReserva(prev => ({ ...prev, hora: horario.horainicio }))}
+                    className={`btn py-2 px-3 rounded-3 text-start border transition-all ${
+                      datosReserva.hora === horario.horainicio 
+                        ? 'btn-primary border-primary shadow-sm' 
+                        : 'btn-outline-light text-dark border-light-subtle hover-bg-light'
+                    }`}
+                  >
+                    <div className="d-flex justify-content-between align-items-center">
+                      <span className="fw-bold">{horario.horainicio}</span>
+                      <small className={datosReserva.hora === horario.horainicio ? 'text-white' : 'text-muted'}>
+                        Disponible
+                      </small>
+                    </div>
+                  </button>
+                ))}
+            </div>
+          )}
+        </div>
+      </div>
+ */
+//           {/* Filtramos la programación mensual para mostrar solo las horas del día seleccionado */}
+
+
+ 
+ /**
+       const { mes, anio } = datosReserva.fechaObjeto;
+  
+      // 2. Formateamos a YYYYMMDD
+      // Recordar: mes + 1 porque en JS Enero es 0
+      const mesFormat = String(mes + 1).padStart(2, '0');
+      const diaFormat = String(dia).padStart(2, '0');
+      const fechaString = `${anio}${mesFormat}${diaFormat}`;
+
+      // Formato para mostrar en el UI (ej: "15 de Marzo")
+      const fechaStr = `${dia} ${new Intl.DateTimeFormat('es-ES', { month: 'short' }).format(new Date(anio, mes))}`;
+  //    const keyHora = `${datosReserva.doctor.id}-${fechaStr}`;
+      alert(fechaString)
+      setDatosReserva(prev => ({ 
+        ...prev, 
+          fechaYYMMDD: fechaString, 
+          fecha: fechaStr, 
+        fechaObjeto: { ...prev.fechaObjeto, dia } 
+      }));
+      
+ 
+ * 
+ */
+
