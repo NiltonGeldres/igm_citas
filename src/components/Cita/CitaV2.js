@@ -1,124 +1,27 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import Swal from "sweetalert2";
-import { 
-  Search, 
-  Calendar, 
-  CreditCard, 
-  Home, 
-  Star, 
-  Bell, 
-  Stethoscope,
-  ChevronRight,
-  Activity,
-  Heart,
-  Smile,
-  User,
-  CheckCircle2,
-  Clock,
-  ChevronLeft,
-  Plus,
-  Loader2,
-  FileText,
-  Download,
-  ExternalLink,
-  MapPin
-} from 'lucide-react';
+import { Calendar, CreditCard, Home, Star, ChevronRight,User, CheckCircle2, ChevronLeft, Plus, Loader2,
+        FileText,Download, ExternalLink} from 'lucide-react';
 import CalendarioReserva from './Componentes/CalendarioReserva';
 import ProgramacionHoras from './Componentes/ProgramacionHoras';
+import CitaSeparadaService from '../CitaSeparada/CitaSeparadaService';
 
 import CitaService from '../Cita/CitaService';
 import EspecialidadService from '../Especialidad/EspecialidadService';
 import {transformarEspecialidades} from "../Cita/Data/CitaEspecialidad"
 import MedicoService from '../Medico/MedicoService';
 import { transformarMedicos } from './Data/CitaMedicoUI';
-//import ProgramacionMedicaService from '../ProgramacionMedica/ProgramacionMedicaService';
 import { transformarProgramacion } from './Data/CitaProgramacionMedicaUI';
 import ProgramacionHorarioIndividualService from '../ProgramacionHorarioIndividual/ProgramacionMedicaIndividualService';
+import { ESTILOS_CSS } from './Constantes/ESTILOS_CSS';
+import FinalizarReserva from './Componentes/FinalizarReserva';
 
 let timerInterval;
 
 // --- ESTILOS PERSONALIZADOS (Mantenidos intactos) ---
-const ESTILOS_CSS = `
-  @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap');
-  @import url('https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css');
-
-  body { 
-    font-family: 'Plus Jakarta Sans', sans-serif !important; 
-    background-color: #f8fafc; 
-    color: #1e293b;
-  }
-  
-  .calendario-grid { 
-    display: grid; 
-    grid-template-columns: repeat(7, 1fr); 
-    gap: 4px;
-  }
-  
-  .calendario-celda { 
-    min-height: 45px; 
-    transition: all 0.2s ease; 
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 600;
-    font-size: 0.85rem;
-    border-radius: 8px;
-  }
-  
-  .calendario-celda:hover:not(:disabled) { 
-    background-color: #f1f5f9 !important; 
-    z-index: 10; 
-    transform: scale(1.05); 
-    color: #0ea5e9;
-  }
-  
-  .seleccion-masiva { 
-    background-color: #0ea5e9 !important; 
-    border: 2px solid #0ea5e9 !important; 
-    color: white !important;
-  }
-  
-  .girar { 
-    animation: girar 1s linear infinite; 
-  }
-  
-  @keyframes girar { 
-    from { transform: rotate(0deg); } 
-    to { transform: rotate(360deg); } 
-  }
-
-  .nav-difuminado {
-    backdrop-filter: blur(10px);
-    background-color: rgba(255, 255, 255, 0.8);
-  }
-
-  .tarjeta-personalizada {
-    border-radius: 24px;
-    border: 1px solid rgba(0,0,0,0.05);
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-    cursor: pointer;
-    text-decoration: none;
-    color: inherit;
-  }
-
-  .tarjeta-personalizada:active {
-    transform: scale(0.98);
-  }
-
-  .etiqueta-pago {
-    padding: 4px 12px;
-    border-radius: 100px;
-    font-size: 10px;
-    font-weight: 700;
-    text-transform: uppercase;
-  }
-`;
-
-const DIAS_CABECERA = ['D', 'L', 'M', 'M', 'J', 'V', 'S'];
 
 export default function App({  nombreClinica = "MediFlow Center",  direccionClinica = "Sede Central" }) {
-
+//  const toast = useToast();
   const [pestanaActual, setPestanaActual] = useState('inicio');
   const [modoReserva, setModoReserva] = useState(false);
   const [pasoActual, setPasoActual] = useState(1);
@@ -126,12 +29,10 @@ export default function App({  nombreClinica = "MediFlow Center",  direccionClin
   const [mostrarExito, setMostrarExito] = useState(false);
   const [programacionMensual, setProgramacionMensual] = useState([]);
   const [medicosActuales, setMedicosActuales] = useState([]);
-  
+
   // --- ESTADO DE CACHÉ Y DATOS ---
   const [cache, setCache] = useState({
     especialidades: [],
-//    medicos: {},             // key: espId
-//    programacionMensual: {}, // key: medId-mes-anio
     horasDisponibles: {}     // key: medId-fecha
   });
 
@@ -142,12 +43,13 @@ export default function App({  nombreClinica = "MediFlow Center",  direccionClin
     fecha: '', 
     fechaObjeto: { mes: new Date().getMonth(), anio: new Date().getFullYear(), dia: null },
     fechaYYYYMMDD: '', 
-    hora: '' 
+    hora: '' ,
+    idCitaBloqueada:0
   });
   
+
   const [misCitas, setMisCitas] = useState([]);
   const [misPagos, setMisPagos] = useState([]);
-
   // --- MOCK DE LAS 5 APIS ---
   const ejecutarAPI = async (nombre, params) => {
     setCargando(true);
@@ -288,6 +190,7 @@ export default function App({  nombreClinica = "MediFlow Center",  direccionClin
           metodo: 'Visa **** 4242',
           estado: 'Completado'
         };
+
         setMisPagos([nuevoPago, ...misPagos]);
         setMostrarExito(true);
       }
@@ -337,7 +240,7 @@ export default function App({  nombreClinica = "MediFlow Center",  direccionClin
     };
 
     const handleHoraSeleccionada = async (hora, idProg, idServ) => {
-
+      console.log(hora+"  "+idProg+"  "+ idServ)
       try {
         const respBloqueo = await CitaService.getCitaBloquear(hora, datosReserva.fechaYYYYMMDD, datosReserva.doctor.id);        
         const idBloqueo = respBloqueo.data.idCitaBloqueada;
@@ -360,16 +263,40 @@ export default function App({  nombreClinica = "MediFlow Center",  direccionClin
           willClose: () => clearInterval(timerInterval)
         }).then(async (result) => {
           if (result.isConfirmed) {
+
+            console.log(
+                datosReserva.fechaYYYYMMDD 
+                +' ' + hora 
+                +' ' + hora
+                +'  ' + 0
+                +'    ' +datosReserva.doctor?.id
+                +'   ' +datosReserva.especialidad?.idEspecialidad
+                +'   ' +idServ
+                +'   ' +idProg
+                +'   ' +0
+                +'   ' + datosReserva.doctor?.montoFormateado
+          )
+              await CitaSeparadaService.getCitaSeparadaCrear(
+                datosReserva.fechaYYYYMMDD, 
+                hora, 
+                hora,
+                0, 
+                datosReserva.doctor?.id, 
+                datosReserva.especialidad?.idEspecialidad,
+                idServ,
+                idProg,
+                0, 
+                datosReserva.doctor?.monto
+              );
             // Proceder al siguiente paso o guardar
-            /*setDatosReserva(prev => ({ 
+            setDatosReserva(prev => ({ 
                     ...prev, 
                     hora: hora, 
-                    idProgramacion: idProgramacion, 
-                    idServicio: idServicio,
-                    idCitaBloqueada: idCitaBloqueada // Guardamos el ID para liberarlo luego si es necesario
-            }));*/
-
-           // setPasoActual(4); 
+                    idProgramacion: idProg, 
+                    idCitaBloqueada: idBloqueo // Guardamos el ID para liberarlo luego si es necesario
+            }));
+            await CitaService.getEliminarCitaBloqueada(idBloqueo);
+            setPasoActual(4); 
           } else {
             // 3. Liberar si cancela o se acaba el tiempo
             await CitaService.getEliminarCitaBloqueada(idBloqueo);
@@ -559,96 +486,62 @@ export default function App({  nombreClinica = "MediFlow Center",  direccionClin
                         </div>
                       ))}
 
-{pasoActual === 3 && (
-  <div className="fade-in">
-    {/* Título de sección */}
-    <div className="mb-4">
-      <h5 className="fw-bold mb-1">Selecciona Fecha y Hora</h5>
-      <p className="text-muted small">Los días marcados con un reloj tienen disponibilidad.</p>
-    </div>
+                      {pasoActual === 3 && (
+                        <div className="fade-in">
+                          {/* Título de sección */}
+                          <div className="mb-4">
+                            <h5 className="fw-bold mb-1">Selecciona Fecha y Hora</h5>
+                            <p className="text-muted small">Los días marcados con un reloj tienen disponibilidad.</p>
+                          </div>
 
-    <div className="row g-4">
-      {/* COLUMNA IZQUIERDA: El Calendario */}
-      <div className="col-12 col-lg-7">
-        <CalendarioReserva 
-          fechaObjeto={datosReserva.fechaObjeto}
-          cambiarMes={cambiarMes}
-          programacionMensual={programacionMensual}
-          seleccionarDia={seleccionarDia}
-          cargando={cargando}
-        />
-      </div>
+                          <div className="row g-4">
+                            {/* COLUMNA IZQUIERDA: El Calendario */}
+                            <div className="col-12 col-lg-7">
+                              <CalendarioReserva 
+                                fechaObjeto={datosReserva.fechaObjeto}
+                                cambiarMes={cambiarMes}
+                                programacionMensual={programacionMensual}
+                                seleccionarDia={seleccionarDia}
+                                cargando={cargando}
+                              />
+                            </div>
 
-    <div className="col-lg-5">
-          <ProgramacionHoras 
-            idMedico={datosReserva.doctor?.id}
-            idEspecialidad={datosReserva.especialidad?.idEspecialidad}
-            fechaCalendar={datosReserva.fechaYYYYMMDD}
-            horaActualSeleccionada={datosReserva.hora}
-            onHoraSeleccionada={handleHoraSeleccionada}
-          />
-    </div>
+                          <div className="col-lg-5">
+                                <ProgramacionHoras 
+                                  idMedico={datosReserva.doctor?.id}
+                                  idEspecialidad={datosReserva.especialidad?.idEspecialidad}
+                                  fechaCalendar={datosReserva.fechaYYYYMMDD}
+                                  horaActualSeleccionada={datosReserva.hora}
+                                  onHoraSeleccionada={handleHoraSeleccionada}
+                                />
+                          </div>
 
-      {/* COLUMNA DERECHA: Selector de Horas (Se activa al elegir un día) */}
+                            {/* COLUMNA DERECHA: Selector de Horas (Se activa al elegir un día) */}
 
-    </div>
+                          </div>
 
-    {/* Botón de navegación inferior */}
-    <div className="mt-4 d-flex justify-content-between">
-      <button className="btn btn-light px-4" onClick={() => setPasoActual(2)}>Atrás</button>
-      <button 
-        className="btn btn-primary px-5 fw-bold" 
-        disabled={!datosReserva.fechaObjeto.dia || !datosReserva.hora}
-        onClick={() => setPasoActual(4)}
-      >
-        Siguiente
-      </button>
-    </div>
-  </div>
-)}
+                          {/* Botón de navegación inferior */}
+                          <div className="mt-4 d-flex justify-content-between">
+                            <button className="btn btn-light px-4" onClick={() => setPasoActual(2)}>Atrás</button>
+                            <button 
+                              className="btn btn-primary px-5 fw-bold" 
+                              disabled={!datosReserva.fechaObjeto.dia || !datosReserva.hora}
+                              onClick={() => setPasoActual(4)}
+                            >
+                              Siguiente
+                            </button>
+                          </div>
+                        </div>
+                      )}
 
 
                       {/* PASO 4: CONFIRMACIÓN Y PAGO (API 5) */}
-                      {pasoActual === 4 && (
-                        <div className="fade-in">
-                          <div className="bg-white p-4 rounded-5 border mb-4 shadow-sm">
-                            <p className="text-secondary small fw-bold text-uppercase mb-3">Resumen de Pago</p>
-                            <div className="d-flex flex-column gap-2 mb-4">
-                              <div className="d-flex justify-content-between">
-                                <span className="small text-secondary">Especialidad</span>
-                                <span className="small fw-bold text-dark">{datosReserva.especialidad?.nombre}</span>
-                              </div>
-                              <div className="d-flex justify-content-between">
-                                <span className="small text-secondary">Médico</span>
-                                <span className="small fw-bold text-dark">{datosReserva.doctor?.nombre}</span>
-                              </div>
-                              <div className="d-flex justify-content-between">
-                                <span className="small text-secondary">Fecha y Hora</span>
-                                <span className="small fw-bold text-dark">{datosReserva.fecha} - {datosReserva.hora}</span>
-                              </div>
-                              <div className="d-flex justify-content-between pt-2 border-top">
-                                <span className="fw-bold text-dark">Total a pagar</span>
-                                <span className="fw-bold text-primary">S/ {datosReserva.especialidad?.precio.toFixed(2)}</span>
-                              </div>
-                            </div>
-                            <div className="bg-light p-3 rounded-4 d-flex align-items-center gap-3">
-                              <div className="bg-white p-2 rounded-3 border"><CreditCard size={18} /></div>
-                              <div className="flex-grow-1">
-                                <p className="mb-0 fw-bold text-dark" style={{fontSize: '12px'}}>Visa **** 4242</p>
-                                <p className="mb-0 text-secondary" style={{fontSize: '10px'}}>Exp: 12/26</p>
-                              </div>
-                              <span className="text-primary fw-bold" style={{fontSize: '10px'}}>EDITAR</span>
-                            </div>
-                          </div>
-                          <button 
-                            onClick={finalizarReserva} 
-                            disabled={cargando}
-                            className="btn btn-dark w-100 p-4 rounded-4 fw-bold shadow-lg d-flex align-items-center justify-content-center gap-3"
-                          >
-                            {cargando ? <Loader2 className="girar" /> : "Confirmar y Pagar"}
-                          </button>
-                        </div>
-                      )}
+  {pasoActual === 4 && (
+          <FinalizarReserva 
+            datosReserva={datosReserva} 
+            onFinalizar={() => window.location.href = "/mis-citas-separadas"} // O navegar a tu pestaña de pagos
+          />
+        )}                      
                     </div>
                   </>
                 )}
@@ -918,3 +811,50 @@ export default function App({  nombreClinica = "MediFlow Center",  direccionClin
  * 
  */
 
+
+
+      /**
+       * 
+       * 
+                      {pasoActual === 4 && (
+                        <div className="fade-in">
+                          <div className="bg-white p-4 rounded-5 border mb-4 shadow-sm">
+                            <p className="text-secondary small fw-bold text-uppercase mb-3">Resumen de Pago</p>
+                            <div className="d-flex flex-column gap-2 mb-4">
+                              <div className="d-flex justify-content-between">
+                                <span className="small text-secondary">Especialidad</span>
+                                <span className="small fw-bold text-dark">{datosReserva.especialidad?.descripcionEspecialidad}</span>
+                              </div>
+                              <div className="d-flex justify-content-between">
+                                <span className="small text-secondary">Médico</span>
+                                <span className="small fw-bold text-dark">{datosReserva.doctor?.nombre}</span>
+                              </div>
+                              <div className="d-flex justify-content-between">
+                                <span className="small text-secondary">Fecha y Hora</span>
+                                <span className="small fw-bold text-dark">{datosReserva.fecha} - {datosReserva.hora}</span>
+                              </div>
+                              <div className="d-flex justify-content-between pt-2 border-top">
+                                <span className="fw-bold text-dark">Total a pagar</span>
+                                <span className="fw-bold text-primary">{datosReserva.doctor?.montoFormateado}</span>
+                              </div>
+                            </div>
+                            <div className="bg-light p-3 rounded-4 d-flex align-items-center gap-3">
+                              <div className="bg-white p-2 rounded-3 border"><CreditCard size={18} /></div>
+                              <div className="flex-grow-1">
+                                <p className="mb-0 fw-bold text-dark" style={{fontSize: '12px'}}>Visa **** 4242</p>
+                                <p className="mb-0 text-secondary" style={{fontSize: '10px'}}>Exp: 12/26</p>
+                              </div>
+                              <span className="text-primary fw-bold" style={{fontSize: '10px'}}>EDITAR</span>
+                            </div>
+                          </div>
+                          <button 
+                            onClick={finalizarReserva} 
+                            disabled={cargando}
+                            className="btn btn-dark w-100 p-4 rounded-4 fw-bold shadow-lg d-flex align-items-center justify-content-center gap-3"
+                          >
+                            {cargando ? <Loader2 className="girar" /> : "Confirmar y Pagar"}
+                          </button>
+                        </div>
+                      )}
+       
+       */
