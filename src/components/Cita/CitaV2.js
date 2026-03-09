@@ -15,13 +15,14 @@ import { transformarProgramacion } from './Data/CitaProgramacionMedicaUI';
 import ProgramacionHorarioIndividualService from '../ProgramacionHorarioIndividual/ProgramacionMedicaIndividualService';
 import { ESTILOS_CSS } from './Constantes/ESTILOS_CSS';
 import FinalizarReserva from './Componentes/FinalizarReserva';
-
+import CitaSeparada from '../CitaSeparada/CitaSeparada';
+import AuthService from '../Login/services/auth.service';
 let timerInterval;
 
-// --- ESTILOS PERSONALIZADOS (Mantenidos intactos) ---
 
-export default function App({  nombreClinica = "MediFlow Center",  direccionClinica = "Sede Central" }) {
-//  const toast = useToast();
+export default function CitaV2({  entidadNombre ,  direccionClinica = "Sede Central" }) {
+
+  const perfil = AuthService.leerPerfil();
   const [pestanaActual, setPestanaActual] = useState('inicio');
   const [modoReserva, setModoReserva] = useState(false);
   const [pasoActual, setPasoActual] = useState(1);
@@ -29,7 +30,6 @@ export default function App({  nombreClinica = "MediFlow Center",  direccionClin
   const [mostrarExito, setMostrarExito] = useState(false);
   const [programacionMensual, setProgramacionMensual] = useState([]);
   const [medicosActuales, setMedicosActuales] = useState([]);
-
   // --- ESTADO DE CACHÉ Y DATOS ---
   const [cache, setCache] = useState({
     especialidades: [],
@@ -44,9 +44,10 @@ export default function App({  nombreClinica = "MediFlow Center",  direccionClin
     fechaObjeto: { mes: new Date().getMonth(), anio: new Date().getFullYear(), dia: null },
     fechaYYYYMMDD: '', 
     hora: '' ,
-    idCitaBloqueada:0
+    idCitaBloqueada:0,
+    nombreEntidad: entidadNombre
   });
-  
+
 
   const [misCitas, setMisCitas] = useState([]);
   const [misPagos, setMisPagos] = useState([]);
@@ -318,8 +319,8 @@ export default function App({  nombreClinica = "MediFlow Center",  direccionClin
         {pestanaActual === 'inicio' && (
           <div className="fade-in px-3 pt-4">
             <div className="card border-0 bg-primary text-white p-4 shadow-lg mb-4" style={{borderRadius: '28px'}}>
-              <h2 className="fw-bold mb-1">¡Hola, Diego!</h2>
-              <p className="opacity-75 small mb-4">Bienvenido a {nombreClinica}. Tu salud es prioridad.</p>
+              <h5 className="fw-bold mb-1">¡Hola,{perfil.usuarioNombres}</h5>
+              <p className="opacity-75 small mb-4">Bienvenido a {entidadNombre}. Tu salud es prioridad.</p>
               <div className="row g-2">
                 <div className="col-6">
                   <div className="bg-white bg-opacity-10 p-2 rounded-4 text-center">
@@ -352,7 +353,7 @@ export default function App({  nombreClinica = "MediFlow Center",  direccionClin
                   <div className="bg-success bg-opacity-10 text-success p-3 rounded-4 d-inline-block mb-2">
                     <CreditCard size={24} />
                   </div>
-                  <div className="fw-bold small text-dark">Pagos</div>
+                  <div className="fw-bold small text-dark">Pago Citas Reservada</div>
                 </div>
               </div>
             </div>
@@ -426,7 +427,7 @@ export default function App({  nombreClinica = "MediFlow Center",  direccionClin
                       <CheckCircle2 size={50} />
                     </div>
                     <h3 className="fw-bold">¡Todo listo!</h3>
-                    <p className="text-secondary mb-4 px-4">Tu cita ha sido agendada en <strong>{nombreClinica}</strong> correctamente.</p>
+                    <p className="text-secondary mb-4 px-4">Tu cita ha sido agendada en <strong>{entidadNombre}</strong> correctamente.</p>
                     <div className="d-flex flex-column gap-2">
                       <button onClick={reiniciarFlujo} className="btn btn-primary w-100 p-3 rounded-4 fw-bold">Ver mis Citas</button>
                       <button onClick={() => { setMostrarExito(false); setModoReserva(false); setPestanaActual('pagos'); }} className="btn btn-light w-100 p-3 rounded-4 fw-bold">Ver Comprobante</button>
@@ -536,13 +537,17 @@ export default function App({  nombreClinica = "MediFlow Center",  direccionClin
 
 
                       {/* PASO 4: CONFIRMACIÓN Y PAGO (API 5) */}
-  {pasoActual === 4 && (
-          <FinalizarReserva 
-            datosReserva={datosReserva} 
-            onFinalizar={() => window.location.href = "/mis-citas-separadas"} // O navegar a tu pestaña de pagos
-          />
-        )}                      
-                    </div>
+                      {pasoActual === 4 && (
+                        <FinalizarReserva 
+                          datosReserva={datosReserva} 
+                          onFinalizar={() => setPestanaActual('inicio')}
+                          onPagarTarde={() => {
+                            setPestanaActual('pagos'); // Cambia a la pestaña de pagos
+                            setModoReserva(false);     // Quita la vista de reserva
+                          }}
+                        />
+                      )}                    
+                   </div>
                   </>
                 )}
               </div>
@@ -551,58 +556,12 @@ export default function App({  nombreClinica = "MediFlow Center",  direccionClin
         )}
 
         {/* --- VISTA PAGOS --- */}
-        {pestanaActual === 'pagos' && (
-          <div className="fade-in px-3 pt-4">
-            <h5 className="fw-bold mb-4">Pagos y Facturas</h5>
-            
-            {misPagos.length > 0 ? (
-              <div className="d-flex flex-column gap-3">
-                {misPagos.map(pago => (
-                  <div key={pago.id} className="tarjeta-personalizada bg-white p-4 shadow-sm border-0">
-                    <div className="d-flex justify-content-between align-items-start mb-3">
-                      <div className="d-flex gap-3">
-                        <div className="bg-light p-3 rounded-4 text-primary d-flex align-items-center justify-content-center">
-                          <FileText size={24} />
-                        </div>
-                        <div>
-                          <p className="fw-bold mb-0 text-dark">{pago.concepto}</p>
-                          <p className="text-secondary mb-0" style={{fontSize: '11px'}}>{nombreClinica}</p>
-                          <p className="text-secondary" style={{fontSize: '10px'}}>Transacción: {pago.id}</p>
-                        </div>
-                      </div>
-                      <span className="etiqueta-pago bg-primary bg-opacity-10 text-primary">{pago.estado}</span>
-                    </div>
-
-                    <div className="bg-light p-3 rounded-4 d-flex justify-content-between align-items-center mb-3">
-                      <div>
-                        <p className="text-secondary mb-0" style={{fontSize: '10px'}}>MÉTODO</p>
-                        <p className="fw-bold mb-0 small text-dark">{pago.metodo}</p>
-                      </div>
-                      <div className="text-end">
-                        <p className="text-secondary mb-0" style={{fontSize: '10px'}}>MONTO</p>
-                        <p className="fw-bold mb-0 text-primary">S/ {pago.monto.toFixed(2)}</p>
-                      </div>
-                    </div>
-
-                    <div className="d-flex gap-2">
-                      <button className="btn btn-outline-light border text-dark flex-grow-1 rounded-3 small fw-bold d-flex align-items-center justify-content-center gap-2" style={{fontSize: '12px'}}>
-                        <Download size={14} /> PDF
-                      </button>
-                      <button className="btn btn-outline-light border text-dark flex-grow-1 rounded-3 small fw-bold d-flex align-items-center justify-content-center gap-2" style={{fontSize: '12px'}}>
-                        <ExternalLink size={14} /> Detalle
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-5 text-secondary opacity-50">
-                <CreditCard size={48} className="mb-3" />
-                <p>Aún no tienes registros de pagos realizados.</p>
-              </div>
-            )}
-          </div>
-        )}
+          {pestanaActual === 'pagos' && (
+            <div className="fade-in">
+                {/* LLAMADA AL COMPONENTE QUE LISTA LAS CITAS PENDIENTES */}
+                <CitaSeparada datosReserva={datosReserva}/> 
+            </div>          
+          )}
       </main>
 
       {/* NAVEGACIÓN INFERIOR (Mantenida idéntica) */}

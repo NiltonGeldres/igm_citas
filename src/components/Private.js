@@ -2,6 +2,7 @@ import React from "react";
 import AuthService from "./Login/services/auth.service";
 import MenuTab1 from "./MenuTab/MenuTab1"; // Asumo que este es el menú para 'Usuarios'
 import MenuTab2 from "./MenuTab/MenuTab2"; // El menú de iconos para 'Medicos'
+import CitaV2 from "./Cita/CitaV2";
 
 // Obtiene la autoridad (rol) del usuario actual
 let Authority = AuthService.getCurrentAuthority()
@@ -11,7 +12,8 @@ const Private = () => {
     <div >
       {/* Si la autoridad es 'Usuarios', muestra MenuTab1 */}
       { Authority === 'Usuarios' && (
-        <MenuTab1 />
+//        <MenuTab1 />
+        <CitaV2/>
       )}
 
       {/* Si la autoridad es 'Medicos', muestra MenuTab2 (el dashboard de iconos) */}

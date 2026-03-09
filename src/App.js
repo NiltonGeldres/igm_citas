@@ -19,25 +19,25 @@ import { obtenerEntidad, ENTIDAD } from "./components/Entidad/EntidadData";
 import { Stethoscope, User, Building2, LogOut, LayoutDashboard, Calendar, Users, CreditCard, Clock } from "lucide-react";
 
 function App() {
+
   const navigate = useNavigate();
   const [currentUser, setCurrentUser] = useState(undefined);
   const [userName, setUserName] = useState(undefined);
   const [userProfileData, setUserProfileData] = useState(null); 
   const [userEntidadData, setUserEntidadData] = useState(false);
-  
-  // Función auxiliar para obtener el nombre completo del perfil
+
   const getFullNameForHeader = (profile) => {
     if (!profile) return 'Usuario'; // Fallback si no hay perfil
     const usuarioNombres = profile.usuarioNombres.toLowerCase() || '';
     const fullName = `${usuarioNombres}`.trim();
     return fullName || profile.username || 'Usuario';
   };
-
   const getEntidadForHeader = (e) => {
     const nombre= e.nombre;
-//    alert("Entidad "+nombre)
     return nombre;;
   };
+
+
 
   useEffect(() => {
 //    const user = AuthService.getCurrentUser();
@@ -171,7 +171,9 @@ function App() {
               <Route path="/Cita" element={<Cita/>} />
               <Route path="/CitaSeparada" element={<CitaSeparada />} />
               <Route path="/Usuario" element={<Usuario/>} />
-              <Route path="/CitaV2" element={<CitaV2/>} />
+              <Route path="/CitaV2" element={<CitaV2 
+                  entidadNombre={userEntidadData?.nombre} 
+                  usuarioNombre={userProfileData?.usuarioNombres}              />} />
               <Route path="*" element={<Private />} />
             </>
           ) : (

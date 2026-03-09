@@ -1,313 +1,192 @@
-import { useEffect, useState } from "react"
-//import CitaService from "./CitaService";
-import AuthService from "../Login/services/auth.service";
-import { Table,Button,Modal } from "react-bootstrap";
+import React, { useEffect, useState } from "react";
+import { Table, Button, Modal, Badge, Card, Spinner } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
+import { FaDollarSign, FaSync, FaClock, FaCheckCircle } from 'react-icons/fa';
+import AuthService from "../Login/services/auth.service";
+import CitaSeparadaService from "./CitaSeparadaService";
+
 import FormatDate from "../Maestros/FormatDate";
-import { FaDollarSign } from 'react-icons/fa';
+// Eliminamos el uso de Styles globales de cabecera que no encajan aquí
 import PagoVirtual from "../PagoVirtual/PagoVirtual";
-import CitaSeparadaService from "./CitaSeparadaService"
-import Styles from "../../Styles"
 
-const CitaSeparada= () =>{
-    const [loading, setLoading]  = useState(false);
-    const navigate = useNavigate();
-    /* datos api  */
-    const  [citas ,setCitas] = useState([])
-    const  [citasConPagoVirtual ,setCitasConPagoVirtual] = useState([])
-    const  [citasConComprobante ,setCitasConComprobante] = useState([])
-//    const [actualizar, setActualizar]  = useState(actualizaCitas);
-    /** modal */
-    const [showModal, setShowModal] = useState(false);
-    const handleModalClose = () => setShowModal(false);
-    const handleModalShow = () => setShowModal(true);    
-    /* datos de cita  */
-    const [idProgramacion, setIdProgramacion] = useState(false);
-    const [horaInicio,setHoraInicio] = useState(false);
-//    const [username, setUsername] = useState("");
-    const [idCitaSeparada, setIdCitaSeparada] = useState(false);
-    const [precioUnitario,setPrecioUnitario] = useState(false);
-    const [nombreDestino,setNombreDestino]    = useState(false);
-    const [email,setEmail]    = useState("");
-    const [numeroCelular,setNumeroCelular]    = useState("");
-    const [actualizar,setActualizar]    = useState(false);
-    const [usuarioData, setUsuarioData] = useState({
-      apellido_materno    :"",
-      apellido_paterno    :"",
-      email               :"",
-      estado              :"" ,
-      fecha_alta          :"",
-      fecha_baja          :"",
-      fecha_modificacion  :"",
-      id_sexo             :"",
-      id_tipo_documento   :"",
-      id_usuario          : 0,
-      numero_celular      :"",
-      numero_documento    :"",
-      password            :"",
-      primer_nombre       :"",
-      segundo_nombre      :"r",
-      username            :""        
-    });    
-//    const [usuario,setUsuario] = useState(false);
+const CitaSeparada = ({datosReserva}) => {
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+  const [citasPendientes, setCitasPendientes] = useState([]);
+  const [citasEnVerificacion, setCitasEnVerificacion] = useState([]);
+  const [actualizar, setActualizar] = useState(true);
 
-    useEffect(() => {
-        if(actualizar){
-            leerCitaSeparada() ;
-        } 
-    }, [actualizar]);
+  const [showModal, setShowModal] = useState(false);
+  const [pagoSeleccionado, setPagoSeleccionado] = useState(null);
+  const [usuarioData, setUsuarioData] = useState(null);
 
-    useEffect(() => {
-      if( actualizar){
-          leerCitaSeparadaConPagoVirtual() ;
-      } 
+  
+useEffect(() => {
+    if (actualizar) {
+      cargarDatos();
+      setActualizar(false);
+    }
   }, [actualizar]);
 
-  useEffect(() => {
-        leerUsuarioUsername() ;
-}, []);
-
-
-const leerCitaSeparada = ()=>{
-      console.log("Leer citaSeparada ")
-      setLoading(true);
-        CitaSeparadaService.getCitasSeparadaLeer()
-        .then((response) => {
-              console.log("DATA RETORNO citaSeparada :  "+JSON.stringify(response.data.citaSeparada))
-            setCitas(response.data.citaSeparada);
-            setLoading(false);
-            setActualizar(false)                         
-          },(error) => {
-            setLoading(false);
-            setActualizar(false)                         
-            AuthService.logout();
-            navigate("/login");
-            window.location.reload();
-          });
-} 
-
-const leerCitaSeparadaConPagoVirtual =   () =>{
-    console.log("Leer  leerCitaSeparadaConPagoVirtual ")
+  const cargarDatos = async () => {
     setLoading(true);
-      CitaSeparadaService.getCitasSeparadaConPagoVirtualLeer()
-      .then((response) => {
-            console.log("DATA RETORNO leerCitaSeparadaConPagoVirtual  :  "+JSON.stringify(response.data.citaSeparada))
-          setCitasConPagoVirtual(response.data.citaSeparada);
-          setLoading(false);
-          setActualizar(false)                         
-        },(error) => {
-          setLoading(false);
-          setActualizar(false)                         
-        console.log("No se pudo leer Cita Separada", error.response);
-          if (error.response && error.response.status === 403) {
-            setLoading(false);
-            setActualizar(false)                         
-              AuthService.logout();
-              navigate("/login");
-              window.location.reload();
-          }
-        });
-} 
+    try {
+      const user = await AuthService.leerUsuarioUsername();
+      setUsuarioData(user.data);
 
-const leerCitaSeparadaConComprobante = ()=>{
-  //console.log("Leer cita Separada ")
-  setLoading(true);
-    CitaSeparadaService.getCitasSeparadaConComprobanteLeer()
-    .then((response) => {
-          console.log("DATA RETORNO :  "+JSON.stringify(response.data.citaSeparada))
-        setCitasConComprobante(response.data.citaSeparada);
-        setLoading(false);
-      },(error) => {
-        console.log("No se pudo leer Cita Separada", error.response);
-        if (error.response && error.response.status === 403) {
-            AuthService.logout();
-            navigate("/login");
-            window.location.reload();
-        }
-      });
-} 
+      const resPendientes = await CitaSeparadaService.getCitasSeparadaLeer();
+      setCitasPendientes(resPendientes.data.citaSeparada || []);
 
-const onClickFormPago =(idProg,hora=0,cit=0,pre=77,des=0) =>{
-    setIdProgramacion(idProg)
-    setHoraInicio(hora)
-    setIdCitaSeparada(cit)
-    setPrecioUnitario(pre)
-    setNombreDestino(des)
-    setEmail(usuarioData.email)
-    setNumeroCelular(usuarioData.numero_celular)
-    handleModalShow()   
-    
-}    
+      const resVerificacion = await CitaSeparadaService.getCitasSeparadaConPagoVirtualLeer();
+      setCitasEnVerificacion(resVerificacion.data.citaSeparada || []);
+    } catch (error) {
+      console.error("Error cargando pagos:", error);
+      if (error.response?.status === 403) navigate("/login");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-const leerUsuarioUsername = ()=>{
-   AuthService.leerUsuarioUsername()
-  .then((response) => {
-    setUsuarioData(response.data)
-//      setEmail(response.data.email);
-//      setNumeroCelular(response.data.numero_celular);
-      return response
-    },(error) => {
-      console.log("No se pudo conectar", error.response);
-      if (error.response && error.response.status === 403) {
-          AuthService.logout();
-          navigate("/login");
-          window.location.reload();
-      }});
-        
-}
+  const abrirPago = (cita) => {
+    setPagoSeleccionado({
+      idProgramacion: cita.idProgramacion,
+      horaInicio: cita.horaInicio,
+      idCitaSeparada: cita.idCitaSeparada,
+      precioUnitario: cita.precioUnitario,
+      nombreDestino: datosReserva?.nombreEntidad,
+      email: usuarioData?.email,
+      celular: usuarioData?.numero_celular
+    });
+    setShowModal(true);
+  };
 
-
-const myTableStyle = {
-    width: '400px',
-    height: '110px',
-  //  overflow: 'scroll'
-};   
-
-
-const onModalClose = (modalClose) => {
-  console.log('MODAL '+modalClose +" actualizar:  "+actualizar)
-  if (modalClose) {
-    setActualizar(true)
-    handleModalClose();
-  }
-}
-
-const actualizarClick = () => {
-  // Lógica que quieras ejecutar al hacer clic
-  setActualizar(prev => !prev);
-};
-return (
-  <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', width: '100%' }}>
-    {/* CABECERA DE LA PÁGINA Y RESUMEN DEL PACIENTE - FIJOS */}
-     <div style={Styles.pageHeaderContainer}>
-        <div style={Styles.pageHeader}>
-          <button style={Styles.pageHeaderBackButton} onClick={() => navigate(-1)}>
-               &larr; {/* Flecha hacia atrás */}
-              </button>
-              <h1 style={Styles.pageHeaderTitle}>CITAS SEPARADAS</h1>
+  return (
+    // Quitamos el minHeight: 100vh y el background gris para que herede del padre
+    <div className="animate__animated animate__fadeIn px-2">
+      
+      {/* Cabecera simplificada y acoplada */}
+      <div className="d-flex justify-content-between align-items-center my-4">
+        <div>
+          <h3 className="fw-bold mb-0 text-dark">Mis Pagos</h3>
+          <p className="text-muted small mb-0">Gestiona tus citas reservadas</p>
         </div>
+        <Button 
+          variant="light" 
+          className="shadow-sm border-0 rounded-circle p-2" 
+          onClick={() => setActualizar(true)} 
+          disabled={loading}
+        >
+          <FaSync className={loading ? 'fa-spin text-primary' : 'text-primary'} size={20} />
+        </Button>
       </div>
-      <div style={{ height: '120px' }}>
-          <div style={myTableStyle} >        
-            <div > 
-              <h6  >Citas separadas</h6>
-            </div>            
-              <div>
-                  <Button onClick={actualizarClick}> Actualizar</Button>
-              </div>            
-            <br></br>
-            <Table bordered         
-                  style={{fontSize:11 }} 
-              >
-                  <tbody>
-                      <tr>
-                          <th>Detalle</th>
-                          <th>Precio</th>
-                          <th>Pago</th>
-                      </tr>
-                      {citas.map((cita) => (
-                      <tr>
-                          <td> <a >{cita.nombreEspecialidad +"  ("}
-                                  {FormatDate.format_fecha(cita.fecha)}
-                                  {"   "}
-                                  {cita.horaInicio+")"} </a>
-                                  <br></br>
-                                  {cita.nombreMedico}  
-                                  
-                          </td>    
-                          <td>{cita.precioUnitario}  </td>    
-                          <td>
-                          
-                              <Button  
-                                  id={cita.idCitaSeparada } 
-                                  size="sm"
-                                  variant="danger"
-                                  onClick = {(e) => onClickFormPago(
-                                    cita.idProgramacion,
-                                    cita.horaInicio,
-                                    cita.idCitaSeparada,
-                                    cita.precioUnitario,
-                                    '987098098'
-                                  )}                                
-                              >
-                                  <FaDollarSign />                                    
-                              </Button>                            
-                          </td>
-                      </tr>
-                  ))}
-                  </tbody>
-            </Table>
-            <div > 
-              <h6  >En verificacion pago</h6>
-            </div>            
-            <Table bordered style={{fontSize:11 }} >
-                  <tbody>
-                     <tr><th>Detalle</th> <th>Precio</th><th>Pago</th></tr>
-                        {citasConPagoVirtual.map((cita) => (
-                     <tr key={cita.idCitaSeparada} >
-                          <td><a>{cita.nombreEspecialidad +"  ("}
-                                  {FormatDate.format_fecha(cita.fecha)}
-                                  {"   "}
-                                  {cita.horaInicio+")"} </a>
-                                  <br></br>
-                                  {cita.nombreMedico}  
-                          </td>    
-                          <td>{cita.precioUnitario}  </td>    
-                          <td>
-                          { cita.idCita  ? (
-                                  <Button  
-                                          id={cita.idCitaSeparada } 
-                                            size="sm"
-                                           variant="success">
 
-                                  <FaDollarSign />                                    
-                                  </Button>                            
-                        
-                              ) : (            
-                              <Button  
-                                  id={cita.idCitaSeparada } 
-                                  size="sm"
-                                  variant="warning">
-                                  <FaDollarSign />                                    
-                              </Button>                            
-)
-                          }
-                          </td>
+      <div className="container-fluid p-0">
+        
+        {/* SECCIÓN 1: CITAS POR PAGAR */}
+        <h6 className="fw-bold text-danger mb-3 d-flex align-items-center">
+          <span className="bg-danger p-1 rounded-circle me-2" style={{width: '10px', height: '10px', display: 'inline-block'}}></span>
+          Pendientes de Pago (Próximas 2h)
+        </h6>
+        
+        <Card className="border-0 shadow-sm rounded-4 mb-4 overflow-hidden">
+          <Card.Body className="p-0">
+            <div className="table-responsive">
+              <Table hover className="align-middle mb-0" style={{ fontSize: '14px' }}>
+                <thead className="bg-light">
+                  <tr>
+                    <th className="ps-3">Detalle de Cita</th>
+                    <th className="text-center">Monto</th>
+                    <th className="text-center pe-3">Acción</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {loading && citasPendientes.length === 0 ? (
+                    <tr><td colSpan="3" className="text-center py-4"><Spinner animation="border" size="sm" variant="primary" /></td></tr>
+                  ) : citasPendientes.length === 0 ? (
+                    <tr><td colSpan="3" className="text-center py-4 text-muted">No hay citas pendientes.</td></tr>
+                  ) : (
+                    citasPendientes.map((cita) => (
+                      <tr key={cita.idCitaSeparada}>
+                        <td className="ps-3">
+                          <div className="fw-bold text-primary">{cita.nombreEspecialidad}</div>
+                          <div className="small text-dark fw-medium">
+                            {FormatDate.format_fecha(cita.fecha)} - {cita.horaInicio}
+                          </div>
+                          <div className="small text-muted" style={{fontSize: '11px'}}>{cita.nombreMedico}</div>
+                        </td>
+                        <td className="text-center fw-bold">S/ {cita.precioUnitario}</td>
+                        <td className="text-center pe-3">
+                          <Button 
+                            variant="primary" 
+                            size="sm" 
+                            className="rounded-pill px-3 fw-bold"
+                            onClick={() => abrirPago(cita)}
+                          >
+                            Pagar
+                          </Button>
+                        </td>
                       </tr>
-                  ))}
-                  </tbody>
-            </Table>
+                    ))
+                  )}
+                </tbody>
+              </Table>
+            </div>
+          </Card.Body>
+        </Card>
 
-          </div>          
-       </div>            
-       <Modal show={showModal} onHide={handleModalClose}>
-        <Modal.Header closeButton>
-          <Modal.Title>Pago</Modal.Title>
+        {/* SECCIÓN 2: EN VERIFICACIÓN */}
+        <h6 className="fw-bold text-secondary mb-3">Historial Reciente / Verificación</h6>
+        <Card className="border-0 shadow-sm rounded-4 mb-5">
+          <Card.Body className="p-0">
+            <div className="table-responsive">
+              <Table hover className="align-middle mb-0" style={{ fontSize: '14px' }}>
+                <tbody>
+                  {citasEnVerificacion.length === 0 ? (
+                    <tr><td className="text-center py-3 text-muted">No hay pagos en verificación.</td></tr>
+                  ) : (
+                    citasEnVerificacion.map((cita) => (
+                      <tr key={cita.idCitaSeparada}>
+                        <td className="ps-3">
+                          <div className="fw-bold">{cita.nombreEspecialidad}</div>
+                          <div className="small text-muted">{FormatDate.format_fecha(cita.fecha)}</div>
+                        </td>
+                        <td className="text-end pe-3">
+                          <Badge bg={cita.idCita ? "success" : "warning"} className="rounded-pill px-3 py-2">
+                            {cita.idCita ? <FaCheckCircle className="me-1"/> : <FaClock className="me-1"/>} 
+                            {cita.idCita ? "Confirmado" : "Procesando"}
+                          </Badge>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </Table>
+            </div>
+          </Card.Body>
+        </Card>
+      </div>
+
+      {/* Modal de Pago */}
+      <Modal show={showModal} onHide={() => setShowModal(false)} centered size="lg" backdrop="static">
+        <Modal.Header closeButton className="border-0 pb-0">
+          <Modal.Title className="fw-bold">Completar Pago</Modal.Title>
         </Modal.Header>
-        <Modal.Body>
-            <PagoVirtual
-                idProgramacion={idProgramacion} 
-                horaInicio={horaInicio}
-                idCitaSeparada={idCitaSeparada}
-                precioUnitario={precioUnitario}
-                nombreDestino={nombreDestino}            
-                email={email}            
-                celular={numeroCelular}            
-                modalClose={onModalClose}
-            >
-            </PagoVirtual>
+        <Modal.Body className="pt-0">
+          {pagoSeleccionado && (
+            <PagoVirtual 
+              {...pagoSeleccionado} 
+              modalClose={(success) => {
+                if(success) {
+                  setShowModal(false);
+                  setActualizar(true);
+                }
+              }} 
+            />
+          )}
         </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={handleModalClose}>
-            Cerrar
-          </Button>
-          <Button variant="primary">
-            Grabar
-          </Button>
-        </Modal.Footer>
-       </Modal>
-     </div>    
-    )
-}
-export default CitaSeparada
+      </Modal>
+    </div>
+  );
+};
 
+export default CitaSeparada;
