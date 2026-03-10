@@ -17,10 +17,12 @@ import { ESTILOS_CSS } from './Constantes/ESTILOS_CSS';
 import FinalizarReserva from './Componentes/FinalizarReserva';
 import CitaSeparada from '../CitaSeparada/CitaSeparada';
 import AuthService from '../Login/services/auth.service';
+import { useAuth } from '../context/AuthContext';
+
 let timerInterval;
 
 
-export default function CitaV2({  entidadNombre ,  direccionClinica = "Sede Central" }) {
+export default function CitaV2({  direccionClinica = "Sede Central" }) {
 
   const perfil = AuthService.leerPerfil();
   const [pestanaActual, setPestanaActual] = useState('inicio');
@@ -30,6 +32,8 @@ export default function CitaV2({  entidadNombre ,  direccionClinica = "Sede Cent
   const [mostrarExito, setMostrarExito] = useState(false);
   const [programacionMensual, setProgramacionMensual] = useState([]);
   const [medicosActuales, setMedicosActuales] = useState([]);
+  const { entidad, user } = useAuth();
+
   // --- ESTADO DE CACHÉ Y DATOS ---
   const [cache, setCache] = useState({
     especialidades: [],
@@ -44,8 +48,7 @@ export default function CitaV2({  entidadNombre ,  direccionClinica = "Sede Cent
     fechaObjeto: { mes: new Date().getMonth(), anio: new Date().getFullYear(), dia: null },
     fechaYYYYMMDD: '', 
     hora: '' ,
-    idCitaBloqueada:0,
-    nombreEntidad: entidadNombre
+    idCitaBloqueada:0
   });
 
 
@@ -320,7 +323,7 @@ export default function CitaV2({  entidadNombre ,  direccionClinica = "Sede Cent
           <div className="fade-in px-3 pt-4">
             <div className="card border-0 bg-primary text-white p-4 shadow-lg mb-4" style={{borderRadius: '28px'}}>
               <h5 className="fw-bold mb-1">¡Hola,{perfil.usuarioNombres}</h5>
-              <p className="opacity-75 small mb-4">Bienvenido a {entidadNombre}. Tu salud es prioridad.</p>
+              <p className="opacity-75 small mb-4">Bienvenido a {entidad?.nombre}. Tu salud es prioridad.</p>
               <div className="row g-2">
                 <div className="col-6">
                   <div className="bg-white bg-opacity-10 p-2 rounded-4 text-center">
@@ -427,7 +430,7 @@ export default function CitaV2({  entidadNombre ,  direccionClinica = "Sede Cent
                       <CheckCircle2 size={50} />
                     </div>
                     <h3 className="fw-bold">¡Todo listo!</h3>
-                    <p className="text-secondary mb-4 px-4">Tu cita ha sido agendada en <strong>{entidadNombre}</strong> correctamente.</p>
+                    <p className="text-secondary mb-4 px-4">Tu cita ha sido agendada en <strong>{entidad?.nombre}</strong> correctamente.</p>
                     <div className="d-flex flex-column gap-2">
                       <button onClick={reiniciarFlujo} className="btn btn-primary w-100 p-3 rounded-4 fw-bold">Ver mis Citas</button>
                       <button onClick={() => { setMostrarExito(false); setModoReserva(false); setPestanaActual('pagos'); }} className="btn btn-light w-100 p-3 rounded-4 fw-bold">Ver Comprobante</button>
@@ -441,7 +444,7 @@ export default function CitaV2({  entidadNombre ,  direccionClinica = "Sede Cent
                       </button>
                       <div>
                         <p className="mb-0 text-primary fw-bold text-uppercase" style={{fontSize: '9px', letterSpacing: '1px'}}>Paso {pasoActual} de 4</p>
-                        <h6 className="fw-bold mb-0">
+                        <h6 className="fw-bold mb-0 text-black">
                           {pasoActual === 1 && "Selecciona Especialidad"}
                           {pasoActual === 2 && "Selecciona Especialista"}
                           {pasoActual === 3 && "Fecha y Hora"}

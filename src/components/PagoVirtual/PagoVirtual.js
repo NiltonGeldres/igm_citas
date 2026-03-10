@@ -4,6 +4,7 @@ import { FaHashtag, FaCalendarAlt, FaUser, FaPhone, FaEnvelope, FaUniversity } f
 import PagoVirtualService from './PagoVirtualService';
 import FormatDate from '../Maestros/FormatDate';
 import Swal from 'sweetalert2';
+import { useAuth } from  "../context/AuthContext"
 
 function PagoVirtual({
     idCitaSeparada,
@@ -14,6 +15,8 @@ function PagoVirtual({
     celular,
     nombreEntidad }) {
 
+// Lo pides al contexto directamente
+  const { entidad, user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     idCitaSeparada,
@@ -24,7 +27,7 @@ function PagoVirtual({
     precioUnitario,
     idTipoOperacion: '1',
     origenNombre: '',
-    destino: nombreDestino || 'CENTRO ',
+    destino: entidad?.nombre || 'CENTRO ',
     entidadDestino: "1" // Default Yape
   });
 
@@ -40,6 +43,8 @@ function PagoVirtual({
       return Swal.fire("Campos incompletos", "Por favor llena todos los datos del voucher", "warning");
     }
 
+
+    
     setLoading(true);
     try {
       const fechaEnviar = FormatDate.format_yyyymmdd(new Date(formData.fecha));

@@ -171,9 +171,7 @@ function App() {
               <Route path="/Cita" element={<Cita/>} />
               <Route path="/CitaSeparada" element={<CitaSeparada />} />
               <Route path="/Usuario" element={<Usuario/>} />
-              <Route path="/CitaV2" element={<CitaV2 
-                  entidadNombre={userEntidadData?.nombre} 
-                  usuarioNombre={userProfileData?.usuarioNombres}              />} />
+              <Route path="/CitaV2" element={<CitaV2 />} />
               <Route path="*" element={<Private />} />
             </>
           ) : (
