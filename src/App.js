@@ -76,7 +76,7 @@ function App() {
   };
 
   return (
-    <div className="App" style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' ,color:"white" }}>
+    <div className="App" style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' ,color:"black" }}>
       <nav style={{ 
         backgroundColor: "rgb(0, 120, 245)", 
         padding: "10px 20px", 

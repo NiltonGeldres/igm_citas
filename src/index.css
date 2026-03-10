@@ -1,3 +1,37 @@
+/* 1. Directivas de Tailwind - ¡AÑADE ESTO! */
+@import "tailwindcss";
+
+/* 2. Estilos base de React */
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: #f8fafc; /* Un gris muy claro para que resalte el calendario */
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+    monospace;
+}
+
+/* 3. Tus estilos personalizados */
+.App-tab {
+  /* He simplificado esto para que sea más legible */
+  color: #1848e6; 
+  background-color: #1848e6;
+  -webkit-text-fill-color: rgba(10, 10, 10, 0.97);
+}
+
+
+
+
+
+
+
+/*
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
@@ -19,7 +53,7 @@ code {
 
 }
 
-
+*/
 
 
 

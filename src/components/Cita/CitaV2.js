@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
 import Swal from "sweetalert2";
-import { Calendar, CreditCard, Home, Star, ChevronRight,User, CheckCircle2, ChevronLeft, Plus, Loader2,
-        FileText,Download, ExternalLink} from 'lucide-react';
+import { Calendar, CreditCard, Home, Star, ChevronRight,User, CheckCircle2, ChevronLeft, Plus, Loader2 } from 'lucide-react';
+import { ESTILOS_CSS } from './Constantes/ESTILOS_CSS';
+
 import CalendarioReserva from './Componentes/CalendarioReserva';
 import ProgramacionHoras from './Componentes/ProgramacionHoras';
 import CitaSeparadaService from '../CitaSeparada/CitaSeparadaService';
-
 import CitaService from '../Cita/CitaService';
 import EspecialidadService from '../Especialidad/EspecialidadService';
 import {transformarEspecialidades} from "../Cita/Data/CitaEspecialidad"
@@ -13,7 +13,6 @@ import MedicoService from '../Medico/MedicoService';
 import { transformarMedicos } from './Data/CitaMedicoUI';
 import { transformarProgramacion } from './Data/CitaProgramacionMedicaUI';
 import ProgramacionHorarioIndividualService from '../ProgramacionHorarioIndividual/ProgramacionMedicaIndividualService';
-import { ESTILOS_CSS } from './Constantes/ESTILOS_CSS';
 import FinalizarReserva from './Componentes/FinalizarReserva';
 import CitaSeparada from '../CitaSeparada/CitaSeparada';
 import AuthService from '../Login/services/auth.service';
