@@ -1,5 +1,4 @@
-import Servicio from "../../../Servicio/Servicio";
-
+import Servicio from "../../../../shared/components/Servicio"
  const BarraFiltros = () => (
     <div className="card shadow-sm mb-4">
         <div className="card-body small text-secondary">

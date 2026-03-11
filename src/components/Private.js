@@ -3,8 +3,8 @@ import AuthService from "./Login/services/auth.service";
 import MenuTab1 from "./MenuTab/MenuTab1"; // Asumo que este es el menú para 'Usuarios'
 import MenuTab2 from "./MenuTab/MenuTab2"; // El menú de iconos para 'Medicos'
 import CitaV2 from "./Cita/CitaV2";
-import MedicoLayout from "../apps/medicos-app/components/layout/MedicoLayout";
-
+import { MedicoLayout } from "../apps/medicos-app/components/layout/MedicoLayout";
+import { AgendaPage } from "../apps/medicos-app/components/layout/AgendaPage";
 
 // Obtiene la autoridad (rol) del usuario actual
 let Authority = AuthService.getCurrentAuthority()
@@ -21,7 +21,7 @@ const Private = () => {
       {/* Si la autoridad es 'Medicos', muestra MenuTab2 (el dashboard de iconos) */}
       { Authority === 'Medicos' && (
 //        <MenuTab2 />
-        <MedicoLayout/>
+        <AgendaPage/>
       )}
     </div>
   );

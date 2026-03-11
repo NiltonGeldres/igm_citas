@@ -1,24 +1,26 @@
 import  { useState, useCallback, useMemo, useEffect, Box} from 'react';
-import { Icono } from "../ProgramacionHorarioIndividual/Programacion/Components/Icono.js";
-import BarraFiltros from "../ProgramacionHorarioIndividual/Programacion/Components/BarraFiltros.js";
-import ProgramadorMasivo from "../ProgramacionHorarioIndividual/Programacion/Components/ProgramadorMasivo.js";
-import CeldaCalendario from "../ProgramacionHorarioIndividual/Programacion/Components/CeldaCalendario.js";
-import ModalEditorTurnos from "../ProgramacionHorarioIndividual/Programacion/Components/ModalEditorTurnos.js";
+import { Icono } from './Programacion/Components/Icono.js';
+
+import BarraFiltros from "./Programacion/Components/BarraFiltros.js";
+import ProgramadorMasivo from "./Programacion/Components/ProgramadorMasivo.js";
+import CeldaCalendario from "./Programacion/Components/CeldaCalendario.js";
+import ModalEditorTurnos from "./Programacion/Components/ModalEditorTurnos.js";
 import ESTILOS_PERSONALIZADOS from './ESTILOS_PERSONALIZADOS.js';
 import {MESES_ES} from "./Programacion/Constants/MESES_ES.js"
 import {DIAS_SEMANA} from "./Programacion/Constants/DIAS_SEMANA.js"
-import TurnoService from "../Turno/TurnoService.js";
+
+import TurnoService from "../../master-data/services/TurnoService.js";
 import { cargarConfiguracionTurnos, MAPEO_TURNOS } from "./Programacion/Data/CargarConfiguracionTurnos.js";
-import ProgramacionHorarioIndividualService from "../ProgramacionHorarioIndividual/ProgramacionMedicaIndividualService.js";
-import { actualizarTurnoEnDia } from "../ProgramacionHorarioIndividual/Programacion/Modelos/ProgramacionHorarioDiaModelo.js";
-import { modelarCrearProgramacion ,modelarDia} from "../ProgramacionHorarioIndividual/Programacion/Modelos/ProgramacionHorarioDiaModelo.js";
-import Especialidad from "../Especialidad/Especialidad.js"
-import Servicio from "../Servicio/Servicio.js"
+import ProgramacioHorarioService from "../ProgramacionHorario/ProgramacionHorarioService.js";
+import { actualizarTurnoEnDia } from "../ProgramacionHorario/Programacion/Modelos/ProgramacionHorarioDiaModelo.js";
+import { modelarCrearProgramacion ,modelarDia} from "../ProgramacionHorario/Programacion/Modelos/ProgramacionHorarioDiaModelo.js";
+import Especialidad from "../../shared/components/Especialidad.js"
+import ProgramacionHorarioService from "../../feactures/ProgramacionHorario/ProgramacionHorarioService.js"
 
 
+export default function ProgramacionHorario() {
 
-export default function ProgramacionHorarioIndividual() {
-    
+    alert("Ingreso ProgramacionHorario")
     const [fechaActual, setFechaActual] = useState(new Date()); 
     const [horarioCalendario, setHorarioCalendario] = useState({}); 
     const [estadoGuardado, setEstadoGuardado] = useState(null);
@@ -80,13 +82,13 @@ export default function ProgramacionHorarioIndividual() {
             console.log("EJECUTANDO API CON:", mes, anio, idEspecialidad, idMedico, idServicio);
 
             try {
-                let res = await ProgramacionHorarioIndividualService.obtenerProgramacionMesUsuario(
+                let res = await ProgramacionHorarioService.obtenerProgramacionMesUsuario(
                     mes, anio, idEspecialidad, idMedico, idServicio
                 );
                 // ... resto de tu lógica de procesamiento (res.data, etc.) ...
                 
                     if (!res.data.programacionMedicaDiaResponse?.length) {
-                        res = await ProgramacionHorarioIndividualService.obtenerProgramacionMesBlanco(
+                        res = await ProgramacionHorarioService.obtenerProgramacionMesBlanco(
                             mes, anio, idEspecialidad, idMedico,idServicio
                         );
                     }
@@ -163,7 +165,7 @@ export default function ProgramacionHorarioIndividual() {
 
             // El payload necesita el contexto actual (Médico, Especialidad, Sede)
             const payloadFinal = modelarCrearProgramacion(contexto, diasConTurnos);
-            const response = await ProgramacionHorarioIndividualService.crearProgramacionMesUsuario(payloadFinal);
+            const response = await ProgramacionHorarioService.crearProgramacionMesUsuario(payloadFinal);
 //            console.log("payload final  :  "+JSON.stringify(payloadFinal))
             
             if (response.status === 200) {

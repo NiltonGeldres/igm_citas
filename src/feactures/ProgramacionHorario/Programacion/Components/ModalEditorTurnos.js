@@ -3,8 +3,7 @@
 import { useState, useEffect } from "react";
 import { Icono } from './Icono';
 import { obtenerListaTurnos } from '../Constants/TODOS_LOS_TURNOS';
-import Servicio from "../../../Servicio/Servicio";
-
+import Servicio from "../../../../shared/components/Servicio";
 
 //const ModalEditorTurnos = ({ estaAbierto, claveDia, alCerrar, horario, setHorario, alGuardar,idEntidad,idServ,desServ }) => {
 const ModalEditorTurnos = ({ estaAbierto, claveDia, alCerrar, horario, setHorario, alGuardar, idEntidad, idServ, desServ }) => {    

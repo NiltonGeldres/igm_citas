@@ -1,7 +1,7 @@
-import header from "../Security/Header";
+import header from "../../shared/utils/Header"
 import axios from "axios";
-import AuthService from "../Login/services/auth.service";
-import { EspecialidadMapper } from "./EspecialidadMapper";
+import AuthService from "../../master-data/services/auth.service";
+import { EspecialidadMapper } from "../../master-data/mappers/EspecialidadMapper";
 
 const API_URL = process.env.REACT_APP_URL_API;
 const SERVICE = "/especialidad";

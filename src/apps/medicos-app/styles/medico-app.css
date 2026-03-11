@@ -1,0 +1,238 @@
+/* --- CONTENEDOR Y LAYOUT --- */
+.medico-app-container {
+  background-color: #f8f9fa;
+  min-height: 100vh;
+  padding-bottom: 80px; /* Espacio para que el footer no tape el contenido */
+  font-family: sans-serif;
+}
+
+/* --- HEADER AZUL (Lo que te falta en la imagen) --- */
+.medico-header {
+  background: linear-gradient(135deg, #0078f5 0%, #0056b3 100%);
+  color: white;
+  padding: 1.5rem 1.5rem 3rem;
+  border-bottom-left-radius: 2.5rem;
+  border-bottom-right-radius: 2.5rem;
+}
+
+.header-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.header-icon {
+  background-color: rgba(255, 255, 255, 0.25);
+  border-radius: 50%;
+  padding: 0.5rem;
+  display: flex;
+}
+
+/* --- FOOTER DE NAVEGACIÓN --- */
+.medico-footer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: white;
+  display: flex;
+  justify-content: space-around;
+  padding: 0.75rem 0;
+  box-shadow: 0 -4px 12px rgba(0,0,0,0.05);
+  border-top: 1px solid #eee;
+  z-index: 1000;
+}
+
+.footer-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+  opacity: 0.4;
+  transition: opacity 0.2s;
+  color: #6c757d; /* Color gris por defecto */
+}
+
+.footer-item.active {
+  opacity: 1;
+  color: #0078f5; /* Color azul si está activo */
+}
+
+.footer-item span {
+  font-size: 10px;
+  margin-top: 4px;
+  font-weight: bold;
+}
+
+/* Contenedor del contenido dinámico */
+.medico-main-content {
+  padding: 0 1rem;       /* Margen a los lados */
+  margin-top: -1.5rem;   /* Sube un poco para que los elementos floten sobre el azul */
+  position: relative;    /* Para que el margin-top negativo funcione */
+  z-index: 10;           /* Asegura que esté encima del fondo */
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;           /* Espacio entre los bloques internos */
+}
+
+/* --- ESTO HACE QUE EL SELECTOR SE VEA BIEN --- */
+.date-selector { 
+  background: white; 
+  border-radius: 1rem; 
+  padding: 0.75rem 1rem; 
+  margin: -2rem 1.5rem 0; /* Esto hace que flote sobre el azul */
+  display: flex; 
+  justify-content: space-between; 
+  align-items: center; 
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1); 
+  position: relative; /* Asegura que se vea sobre el header */
+  z-index: 20;
+}
+
+.date-selector button { 
+  background: none; 
+  border: none; 
+  color: #0078f5; 
+  cursor: pointer; 
+  display: flex;
+  align-items: center;
+}
+
+.date-display { 
+  text-align: center; 
+}
+
+.date-text { 
+  font-weight: bold; 
+  color: #333; 
+  font-size: 1rem;
+}
+
+.day-text { 
+  color: #6c757d; 
+  font-size: 10px; 
+  text-transform: capitalize; 
+}
+
+/* --- ESTADÍSTICAS (Stats) --- */
+.stats-row { 
+  display: flex; 
+  gap: 1rem; 
+  padding: 1rem 1.5rem 0; 
+}
+
+.stat-card { 
+  background: white; 
+  flex: 1; 
+  padding: 1rem; 
+  border-radius: 1rem; 
+  text-align: center; 
+  box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,0.075); 
+}
+
+.stat-val { font-size: 1.5rem; font-weight: bold; }
+.stat-val.blue { color: #0078f5; }
+.stat-val.green { color: #198754; }
+.stat-label { font-size: 10px; color: #6c757d; font-weight: 600; }
+
+/* --- LISTADO Y TARJETA DE PACIENTE --- */
+.patients-list { 
+  padding: 0 1.5rem; 
+  margin-top: 1rem; 
+}
+
+.list-title { 
+  color: #6c757d; 
+  margin-bottom: 1rem; 
+  font-weight: bold; 
+  font-size: 0.75rem; 
+  text-transform: uppercase; 
+  letter-spacing: 1px; 
+}
+
+.patient-card { 
+  background-color: white; 
+  border-radius: 1rem; 
+  padding: 1rem; 
+  box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,0.075); 
+  margin-bottom: 1rem; 
+  display: flex; 
+  align-items: center; 
+  border-left: 4px solid #0078f5; 
+}
+
+.time-col { 
+  margin-right: 1rem; 
+  text-align: center; 
+  min-width: 65px; 
+}
+
+.time-val { font-weight: bold; color: #212529; font-size: 16px; }
+.time-label { color: #6c757d; font-size: 10px; }
+
+.divider { 
+  width: 1px; 
+  background-color: rgba(0,0,0,0.1); 
+  height: 2.5rem; 
+  margin-right: 1rem; 
+}
+
+.info-col { flex-grow: 1; }
+
+.name-row { 
+  display: flex; 
+  align-items: center; 
+  gap: 0.5rem; 
+}
+
+.name-row span { 
+  font-weight: bold; 
+  color: #212529; 
+  font-size: 13px; 
+  text-transform: uppercase; 
+}
+
+.service-row { 
+  color: #6c757d; 
+  font-size: 0.875rem; 
+  display: flex; 
+  align-items: center; 
+  gap: 0.25rem; 
+  margin-top: 0.25rem; 
+}
+
+.service-row span { font-size: 11px; }
+
+.btn-atender { 
+  background-color: transparent; 
+  border: 2px solid #0078f5; 
+  color: #0078f5; 
+  border-radius: 50rem; 
+  padding: 0.25rem 0.75rem; 
+  font-size: 11px; 
+  font-weight: bold; 
+  cursor: pointer; 
+  transition: all 0.2s;
+}
+
+.btn-atender:hover { 
+  background-color: #0078f5; 
+  color: white; 
+}
+
+/* --- ESTADOS DE CARGA (Spinner) --- */
+.loading-state {
+  text-align: center;
+  padding: 3rem 0;
+}
+
+.spinner {
+  animation: spin 1s linear infinite;
+  color: #0078f5;
+  margin: 0 auto;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}

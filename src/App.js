@@ -12,11 +12,12 @@ import Cita from "./components/Cita/Cita"; // Asumiendo que esta es la página d
 import Usuario from "./components/Usuario/Usuario"; // Asumiendo que esta es la página de "Citados"
 import Facturacion from "./components/Facturacion/Facturacion";
 import ProgramacionHorarioIndividual from "./components/ProgramacionHorarioIndividual/ProgramacionHorarioIndividual";
-import ProgramacionHorario from "./components/ProgramacionHorario/ProgramacionHorario";
+//import ProgramacionHorario from "./components/ProgramacionHorario/ProgramacionHorario";
 import EntidadService from "./components/Entidad/EntidadService";
 import { cargarConfiguracionEntidades } from "./components/Entidad/EntidadData";
 import { obtenerEntidad, ENTIDAD } from "./components/Entidad/EntidadData"; 
 import { Stethoscope, User, Building2, LogOut, LayoutDashboard, Calendar, Users, CreditCard, Clock } from "lucide-react";
+import ProgramacionHorario from "./feactures/ProgramacionHorario/ProgramacionHorario";
 
 function App() {
 
@@ -166,13 +167,13 @@ function App() {
               <Route path="/atenciones" element={<AtencionMedicaForm />} />
               <Route path="/citados" element={<CitaSeparada />} />
               <Route path="/facturacion" element={<Facturacion />} />
-              <Route path="/programacion" element={<ProgramacionHorario/>} />
               <Route path="/programacionI" element={<ProgramacionHorarioIndividual/>} />
               <Route path="/Cita" element={<Cita/>} />
               <Route path="/CitaSeparada" element={<CitaSeparada />} />
               <Route path="/Usuario" element={<Usuario/>} />
               <Route path="/CitaV2" element={<CitaV2 />} />
               <Route path="*" element={<Private />} />
+              <Route path="/programacionHorario" element={<ProgramacionHorario/>} />
             </>
           ) : (
             <Route path="*" element={<Login setCurrentUser={setCurrentUser} setUserName={setUserName} />} />
@@ -186,104 +187,3 @@ function App() {
 export default App;
 
 
-
-
-/*
-//        setUserProfileData(perfil);
-        // Simulación de la API de Entidad (Context-aware)
-        setTimeout(() => {
-            EntidadService.getEntidad().then(res => {
-                cargarConfiguracionEntidades(res.data);
-                const entidadesParaEstado = Object.values(ENTIDADES);
-              setEntidadesCargados(entidadesParaEstado);
-              setEntidadNombre(ENTIDADES.nombre);
-//              alert("Datos API "+entidadesCargados.nombre+ "   ---" +JSON.stringify(entidadesCargados))
-            });
-
-         // setEntidadNombre("Clínica San Pablo - Sede Central");
-        }, 1000);
-  */
-/*
-  useEffect(() => {
-    const user = AuthService.getCurrentUser();
-    if (user && user.jwtToken) {
-      setCurrentUser(user);
-    
-      try {
-        const decodedToken = jwtDecode(user.jwtToken);
-        setUserId(decodedToken.userId); 
-        setUserRoles(decodedToken.roles || []); 
-        const storedProfile = sessionStorage.getItem("userProfile");
-        if (storedProfile) {
-          setUserProfileData(JSON.parse(storedProfile));
-        } 
-        else {
-          const usernameFromToken = decodedToken.sub; 
-          if (usernameFromToken) {
-            UsuarioService.leerUsuario(usernameFromToken)
-              .then(response => {
-                setUserProfileData(response.data);
-                sessionStorage.setItem("userProfile", JSON.stringify(response.data));
-              })
-              .catch(error => {
-                console.error("Error al recargar perfil en App.js:", error);
-              });
-          }
-        }
-      } catch (e) {
-        console.error("Error decoding token on app load:", e);
-        AuthService.logout(); 
-        navigate("/login");
-      }
- //           
-    }
-  }, [navigate]);
-*/
-
-
-          //   const primerNombre = profile.primer_nombre || '';
-          //   const apellidoPaterno = profile.apellido_paterno || '';
-          //   const apellidoMaterno = profile.apellido_materno || '';
-
-              // Concatenar y limpiar espacios extra
-              //const fullName = `${primerNombre} ${apellidoPaterno} ${apellidoMaterno}`.trim();
-          //  const fullName = `${primerNombre} ${apellidoPaterno} ${apellidoMaterno}`.trim();
-
-              // Si el nombre completo está vacío después de la concatenación, usar el username
-
-
-              //   alert("Entidad  "+JSON.stringify(Entidad)+ "   NOMBRE  "+Entidad.nombre)
-//                setEntidadNombre("Entidad nombre "+Entidad.nombre);
-//                const entidadesParaEstado = Object.values(ENTIDAD);
-//                setEntidadesCargados(entidadesParaEstado);
-
-
-
-/*
-          {currentUser && userProfileData && (
-            <li className="nav-item">
-              <span style={{ color: "white", padding: '8px 12px', display: 'block' }}>
-                 {getFullNameForHeader(userProfileData)}
-                 {getEntidadForHeader(userEntidadData)}
-              </span>
-              <span style={{ color: "white", padding: '8px 12px', display: 'block' }}>
-              </span>
-            </li>
-          )}
-
-*/
-
-
-/**
-           <li className="nav-item">
-            {currentUser ? (
-              <Link style={{ color: "white" }} to={"/private"} className="nav-link">
-                Inicio
-              </Link>
-            ) : (
-              <Link style={{ color: "white" }} to={"/home"} className="nav-link">
-                Home
-              </Link>
-            )}
-          </li>
- */

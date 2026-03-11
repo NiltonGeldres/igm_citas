@@ -3,7 +3,7 @@ import { SHIFTS_DATA } from "../Data/Data";
 import { Icono } from "./Icono";
 //import {TODOS_LOS_TURNOS} from "../Constants/TODOS_LOS_TURNOS"
 import { obtenerListaTurnos } from '../Constants/TODOS_LOS_TURNOS';
-import Servicio from "../../../Servicio/Servicio";
+import Servicio from '../../../../shared/components/Servicio';
 
 
 const ProgramadorMasivo = ({ 
