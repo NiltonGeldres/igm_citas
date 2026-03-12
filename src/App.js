@@ -2,31 +2,21 @@ import { useState, useEffect } from "react";
 import { Routes, Route, Link, useNavigate } from "react-router-dom";
 import AuthService from "./components/Login/services/auth.service";
 import Login from "./components/Login/Login";
-import Signup from "./components/Login/Signup";
-import Home from "./components/Home"; // Página de marketing pública
-import Private from "./components/Private"; // Componente que gestiona el dashboard según el rol
 import CitaV2 from "./components/Cita/CitaV2";
-import AtencionMedicaForm from "./components/AtencionMedica/AtencionMedicaForm";
-import CitaSeparada from "./components/CitaSeparada/CitaSeparada"; // Asumiendo que esta es la página de "Citados"
-import Cita from "./components/Cita/Cita"; // Asumiendo que esta es la página de "Citados"
-import Usuario from "./components/Usuario/Usuario"; // Asumiendo que esta es la página de "Citados"
-import Facturacion from "./components/Facturacion/Facturacion";
-import ProgramacionHorarioIndividual from "./components/ProgramacionHorarioIndividual/ProgramacionHorarioIndividual";
-//import ProgramacionHorario from "./components/ProgramacionHorario/ProgramacionHorario";
 import EntidadService from "./components/Entidad/EntidadService";
 import { cargarConfiguracionEntidades } from "./components/Entidad/EntidadData";
 import { obtenerEntidad, ENTIDAD } from "./components/Entidad/EntidadData"; 
 import { Stethoscope, User, Building2, LogOut, LayoutDashboard, Calendar, Users, CreditCard, Clock } from "lucide-react";
-import ProgramacionHorario from "./feactures/ProgramacionHorario/ProgramacionHorario";
+import { MedicoRouter } from "./apps/medicos-app/routes/MedicoRouter";
+import { Navigate } from "react-router-dom";
 
 function App() {
-
+  const Authority = AuthService.getCurrentAuthority();
   const navigate = useNavigate();
   const [currentUser, setCurrentUser] = useState(undefined);
   const [userName, setUserName] = useState(undefined);
   const [userProfileData, setUserProfileData] = useState(null); 
   const [userEntidadData, setUserEntidadData] = useState(false);
-
   const getFullNameForHeader = (profile) => {
     if (!profile) return 'Usuario'; // Fallback si no hay perfil
     const usuarioNombres = profile.usuarioNombres.toLowerCase() || '';
@@ -37,11 +27,7 @@ function App() {
     const nombre= e.nombre;
     return nombre;;
   };
-
-
-
   useEffect(() => {
-//    const user = AuthService.getCurrentUser();
     const perfil = AuthService.leerPerfil();
     if (perfil) {
       try {
@@ -54,8 +40,6 @@ function App() {
             const Entidad  = obtenerEntidad();
             setUserEntidadData(Entidad)
             });
-
-         // setEntidadNombre("Clínica San Pablo - Sede Central");
         }, 1000);
 
       } catch (e) {
@@ -68,7 +52,6 @@ function App() {
   const logOut = () => {
     AuthService.logout();
     setCurrentUser(null);
-//    setUserName(null);
     setUserProfileData(null);    
     navigate("/login");
 
@@ -156,12 +139,34 @@ function App() {
           La altura de la navbar (Styles.navbar) es aproximadamente 60px. */}
       <div style={{ flexGrow: 1, width: '100%', paddingTop: '60px' }}>
         <Routes>
-          <Route path="/home" element={<Home />} />
-          <Route path="/login" element={<Login setCurrentUser={setCurrentUser} setUserName={setUserName} />} />
-          <Route path="/signup" element={<Signup/>} />
+          {/* 1. RUTAS PÚBLICAS (Siempre van primero) */}
+          <Route path="/login" element={<Login />} />
 
-          {currentUser ? (
-            <>
+          {/* 2. REDIRECCIÓN INICIAL INTELIGENTE (Crucial para el login) */}
+          <Route path="/" element={
+            !Authority ? <Navigate to="/login" /> : 
+            (Authority === 'Medicos' ? <Navigate to="/med/agenda" /> : <Navigate to="/paciente/citas" />)
+          } />
+
+          {/* 3. MUNDO MÉDICO (Ruta con asterisco para permitir sub-rutas) */}
+          <Route path="/med/*" element={<MedicoRouter />} />
+
+          {/* 4. MUNDO PACIENTE (Asegúrate de que la URL sea distinta) */}
+          <Route path="/paciente/*" element={<CitaV2 />} />
+
+          {/* 5. CAPTURA DE ERRORES (Al final de todo) */}
+          <Route path="*" element={<Navigate to="/" />} />
+        </Routes>
+      </div>
+    </div>
+  );
+}
+
+export default App;
+
+/**
+              <Route path="*" element={<Private />} />
+
               <Route path="/" element={<Private />} />
               <Route path="/private" element={<Private />} />
               <Route path="/atenciones" element={<AtencionMedicaForm />} />
@@ -171,19 +176,20 @@ function App() {
               <Route path="/Cita" element={<Cita/>} />
               <Route path="/CitaSeparada" element={<CitaSeparada />} />
               <Route path="/Usuario" element={<Usuario/>} />
-              <Route path="/CitaV2" element={<CitaV2 />} />
-              <Route path="*" element={<Private />} />
               <Route path="/programacionHorario" element={<ProgramacionHorario/>} />
-            </>
-          ) : (
-            <Route path="*" element={<Login setCurrentUser={setCurrentUser} setUserName={setUserName} />} />
-          )}
-        </Routes>
-      </div>
-    </div>
-  );
-}
 
-export default App;
+ */
 
+/**
+ import Signup from "./components/Login/Signup";
+import Home from "./components/Home"; // Página de marketing pública
+import Private from "./components/Private"; // Componente que gestiona el dashboard según el rol
 
+ import AtencionMedicaForm from "./components/AtencionMedica/AtencionMedicaForm";
+import CitaSeparada from "./components/CitaSeparada/CitaSeparada"; // Asumiendo que esta es la página de "Citados"
+import Cita from "./components/Cita/Cita"; // Asumiendo que esta es la página de "Citados"
+import Usuario from "./components/Usuario/Usuario"; // Asumiendo que esta es la página de "Citados"
+import Facturacion from "./components/Facturacion/Facturacion";
+import ProgramacionHorarioIndividual from "./components/ProgramacionHorarioIndividual/ProgramacionHorarioIndividual";
+ 
+  */              

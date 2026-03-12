@@ -19,8 +19,8 @@ import ProgramacionHorarioService from "../../feactures/ProgramacionHorario/Prog
 
 
 export default function ProgramacionHorario() {
-
-    alert("Ingreso ProgramacionHorario")
+    
+    
     const [fechaActual, setFechaActual] = useState(new Date()); 
     const [horarioCalendario, setHorarioCalendario] = useState({}); 
     const [estadoGuardado, setEstadoGuardado] = useState(null);

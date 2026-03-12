@@ -236,3 +236,39 @@
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
 }
+
+/* Cabecera de Facturación */
+.header-seccion-pago {
+  display: flex; align-items: center; gap: 1rem;
+  background: white; padding: 1rem; border-radius: 1rem;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-bottom: 1.5rem;
+}
+.icono-pago { background: #198754; color: white; padding: 0.5rem; border-radius: 50%; display: flex; }
+.titulo-pago { margin: 0; font-weight: bold; color: #333; }
+.subtitulo-pago { margin: 0; font-size: 11px; color: #6c757d; }
+
+/* Buscador */
+.search-box {
+  display: flex; align-items: center; background: white;
+  border-radius: 10px; padding: 0.5rem 1rem; margin-bottom: 1rem;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+.search-box input { border: none; outline: none; width: 100%; margin-left: 10px; font-size: 14px; }
+
+/* Tarjeta Facturación */
+.facturacion-card { background: white; border-radius: 15px; margin-bottom: 0.75rem; box-shadow: 0 2px 4px rgba(0,0,0,0.05); padding: 1rem; }
+.card-main { display: flex; align-items: center; gap: 0.75rem; }
+.btn-expand { background: #f8f9fa; border: none; border-radius: 50%; padding: 5px; cursor: pointer; }
+.info-paciente { flex-grow: 1; }
+.nombre { font-weight: bold; text-transform: capitalize; font-size: 14px; margin-right: 5px; }
+.badge { font-size: 9px; padding: 2px 6px; border-radius: 5px; color: white; font-weight: bold; }
+.badge.yape { background: #8e44ad; }
+.badge.plin { background: #0078f5; }
+.operacion { font-size: 11px; color: #6c757d; display: flex; align-items: center; gap: 4px; margin-top: 4px; }
+.monto { font-weight: bold; color: #198754; text-align: right; font-size: 16px; }
+.btn-boleta { border: none; padding: 5px 12px; border-radius: 20px; font-size: 11px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 4px; }
+.btn-boleta.active { background: #198754; color: white; }
+.btn-boleta.done { background: #e9ecef; color: #6c757d; }
+.card-details { border-top: 1px solid #eee; margin-top: 10px; padding-top: 10px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.detail-item { font-size: 11px; display: flex; align-items: center; gap: 6px; color: #333; }
+.facturacion-card.procesado { opacity: 0.6; background: #fdfdfd; }
