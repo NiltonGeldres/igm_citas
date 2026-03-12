@@ -1,14 +1,12 @@
-// src/apps/medico-app/routes/MedicoRouter.jsx
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { MedicoLayout } from '../components/layout/MedicoLayout';
-//import { AgendaPage } from '../pages/AgendaPage';
 import ProgramacionHorario from '../../../feactures/ProgramacionHorario/ProgramacionHorario';
 import { AgendaPage } from '../components/layout/AgendaPage';
 import Facturacion from '../../../feactures/Facturacion/Facturacion';
 
-export const MedicoRouter = () => {
+export const MedicoRouter = ({ onLogout }) => {
   return (
-    <MedicoLayout>
+    <MedicoLayout  onLogout={onLogout}   >
       <Routes>
         {/* No pongas /med/ aquí, porque ya viene del padre */}
         <Route path="agenda" element={<AgendaPage />} />

@@ -7,9 +7,12 @@ import Styles from '../../Styles'; // Importa tus estilos globales
 import MessageModal from '../AtencionMedica/common/MessageModal'; // Importa el nuevo componente MessageModal
 import { jwtDecode } from "jwt-decode";
 import UsuarioService from "../Usuario/UsuarioService"
+import { useAuth } from "../context/AuthContext";
 
 const Login = () => {
   const navigate = useNavigate();
+  const { actualizarDatosGlobales } = useAuth();    
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false); // Estado para el indicador de carga
@@ -34,38 +37,16 @@ const Login = () => {
         fecha_modificacion  :""
       });    
 
-/*  const handleLogin = async (e) => {
-    e.preventDefault();
-    try {
-        await AuthService.login(email, password)
-        .then(() => {
-          
-         //   UsuarioService.leerUsuario()
-            navigate("/private");
-            window.location.reload();
-          }
-        ,(error) => {
-            AuthService.logout();
-            navigate("/login");
-            window.location.reload();          
-            alert("Comuniquese con el soporte tecnico: "+error)
-          });
-    } catch (err) {
-        AuthService.logout();
-        navigate("/login");
-        window.location.reload();          
-        alert("Comuniquese con el soporte tecnico: "+err)
-    }
-  };
- */ 
-
   const handleLogin = async (e) => {
     e.preventDefault();
     setLoading(true);
-    
     try {
-        await AuthService.login(email, password);
-        navigate("/private");
+       const response =  await AuthService.login(email, password);
+       if (response.jwtToken) {
+              await actualizarDatosGlobales(); // <--- ESTO LLENA EL HEADER AL INSTANTE
+              navigate("/");
+       }        
+         //navigate("/private");
          window.location.reload();
     } catch (err) {
         // 1. Obtenemos el código de error del backend (ej: 401, 403, 500)
@@ -138,12 +119,34 @@ const Login = () => {
         />
       )}
     </div>
-
-    
- 
   );
 };
-
 export default Login;
 
 
+
+
+/*  const handleLogin = async (e) => {
+    e.preventDefault();
+    try {
+        await AuthService.login(email, password)
+        .then(() => {
+          
+         //   UsuarioService.leerUsuario()
+            navigate("/private");
+            window.location.reload();
+          }
+        ,(error) => {
+            AuthService.logout();
+            navigate("/login");
+            window.location.reload();          
+            alert("Comuniquese con el soporte tecnico: "+error)
+          });
+    } catch (err) {
+        AuthService.logout();
+        navigate("/login");
+        window.location.reload();          
+        alert("Comuniquese con el soporte tecnico: "+err)
+    }
+  };
+ */ 

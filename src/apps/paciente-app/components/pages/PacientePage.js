@@ -15,7 +15,7 @@ const LoadingSpinner = () => (
   </div>
 );
 
-export const AgendaPage = () => {
+export const PacientePage = () => {
   // Extraemos user y loading de TU contexto
   const { user, loading: authLoading } = useAuth();
   const [fecha, setFecha] = useState(new Date().toISOString().split('T')[0]);
@@ -31,30 +31,9 @@ export const AgendaPage = () => {
 
   return (
     <div>
-    <MedicoLayout nombreMedico={user.usuarioNombres}>
-      <DateSelector fecha={fecha} setFecha={setFecha} />
-      
-      <div className="medico-main-content">
-        <AgendaStats 
-          total={citados?.length || 0} 
-          atendidos={citados?.filter(c => c.atendido).length || 0} 
-        />
-
-        {agendaLoading ? (
-          <LoadingSpinner />
-        ) : citados?.length > 0 ? (
-          citados.map(p => (
-            <PacienteCard key={p.id} paciente={p}>
-               {/* Aquí puedes meter el botón de atender si el componente PacienteCard acepta children */}
-            </PacienteCard>
-          ))
-        ) : (
-          <div className="empty-state" style={{ textAlign: 'center', padding: '2rem' }}>
-            <p>No hay citas para esta fecha.</p>
-          </div>
-        )}
-      </div>
-    </MedicoLayout>
+    <PacienteLayout nombreMedico={user.usuarioNombres}>
+      <CitaV2/>
+    </PacienteLayout>
 </div>        
   );
 };

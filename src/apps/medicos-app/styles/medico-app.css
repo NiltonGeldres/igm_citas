@@ -67,7 +67,7 @@
 /* Contenedor del contenido dinámico */
 .medico-main-content {
   padding: 0 1rem;       /* Margen a los lados */
-  margin-top: -1.5rem;   /* Sube un poco para que los elementos floten sobre el azul */
+  margin-top: 0.5rem;   /* Sube un poco para que los elementos floten sobre el azul */
   position: relative;    /* Para que el margin-top negativo funcione */
   z-index: 10;           /* Asegura que esté encima del fondo */
   display: flex;
@@ -272,3 +272,151 @@
 .card-details { border-top: 1px solid #eee; margin-top: 10px; padding-top: 10px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .detail-item { font-size: 11px; display: flex; align-items: center; gap: 6px; color: #333; }
 .facturacion-card.procesado { opacity: 0.6; background: #fdfdfd; }
+
+.mediflow-header {
+  padding: 1rem 1rem 3rem; /* El padding abajo (3rem) crea el espacio para el degradado */
+  border-bottom-left-radius: 0.5rem;
+  border-bottom-right-radius: 0.5rem;
+  color: white;
+}
+
+/* ESTO ARREGLA LOS CONTADORES (3 y 1) */
+.stats-row { 
+  display: flex;         /* <--- ESTO ES LO QUE FALTA */
+  flex-direction: row;   /* Los pone uno al lado del otro */
+  gap: 1rem; 
+  padding: 0 1rem; 
+  margin-top: 1rem; 
+}
+
+.stat-card { 
+  background: white; 
+  flex: 1;               /* Hace que ambos midan lo mismo */
+  padding: 1rem; 
+  border-radius: 1rem; 
+  text-align: center; 
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05); 
+}
+
+/* ESTO ARREGLA LA TARJETA DEL PACIENTE (Hora | Nombre | Botón) */
+.patient-card { 
+  background: white; 
+  border-radius: 1rem; 
+  padding: 1rem; 
+  margin-bottom: 1rem; 
+  display: flex;         /* <--- ESTO ES LO QUE FALTA */
+  align-items: center;   /* Alinea todo al centro verticalmente */
+  border-left: 4px solid #0078f5; 
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.info-col {
+  flex-grow: 1;          /* Hace que el nombre ocupe el espacio central */
+  padding: 0 1rem;
+}
+
+/* ------------------
+/* COLUMNA HEADERr*/
+/* ------------------
+
+/* Contenedor principal del Header */
+.mediflow-header {
+  padding: 12px 20px;
+  color: white;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  display: flex;
+  flex-direction: column;
+}
+
+.header-top-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between; /* Logo a la izquierda, Logout a la derecha */
+}
+
+.header-left-group {
+  display: flex;
+  align-items: center;
+  gap: 12px
+}
+
+
+/* El cuadro del logo */
+.brand-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.brand-icon-box {
+  background-color: rgba(255,255,255,0.2);
+  border-radius: 8px;
+  padding: 8px;
+  display: flex;
+  margin-right: 0px;
+}
+
+.brand-text {
+  font-size: 0.9rem;
+  font-weight: 700; /* Negrita fuerte */
+  letter-spacing: 0.2px;
+  margin-left: 1px; /* Espacio entre el icono y el texto MediFlow */
+}
+
+/* Esta clase arregla la separación que pediste entre el logo y los nombres */
+.user-entity-container {
+  margin-left: 20px; /* <--- MÁS ESPACIO entre MediFlow y el nombre del médico */
+  padding-left: 16px;
+  border-left: 1px solid rgba(255, 255, 255, 0.3);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.info-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1.1rem;
+
+}
+
+.info-icon {
+  opacity: 0.9;
+}
+
+.user-name-text {
+  font-size: 15px;
+  font-weight: 500;
+  text-transform: capitalize;
+}
+
+.entity-name-text {
+  font-size: 11px;
+  opacity: 0.8;
+  text-transform: uppercase;
+}
+
+/* El botón Logout de la derecha */
+.logout-btn {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 16px;
+  cursor: pointer;
+  padding: 8px 12px;
+  text-decoration: none;
+}
+
+.logout-btn:hover {
+  opacity: 0.8;
+}
+
+.header-bottom-content {
+  margin-top: 15px;
+  padding-left: 4px;
+}
+
+
+/*---------------------------------*/
+

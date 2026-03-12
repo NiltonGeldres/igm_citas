@@ -17,12 +17,13 @@ import FinalizarReserva from './Componentes/FinalizarReserva';
 import CitaSeparada from '../CitaSeparada/CitaSeparada';
 import AuthService from '../Login/services/auth.service';
 import { useAuth } from '../context/AuthContext';
+import { BaseHeader } from '../../shared/components/layout/BaseHeader';
 
 let timerInterval;
 
 
-export default function CitaV2({  direccionClinica = "Sede Central" }) {
-
+export default function CitaV2({  direccionClinica = "Sede Central" , onLogout }) {
+  const { user, entidad } = useAuth();
   const perfil = AuthService.leerPerfil();
   const [pestanaActual, setPestanaActual] = useState('inicio');
   const [modoReserva, setModoReserva] = useState(false);
@@ -31,7 +32,7 @@ export default function CitaV2({  direccionClinica = "Sede Central" }) {
   const [mostrarExito, setMostrarExito] = useState(false);
   const [programacionMensual, setProgramacionMensual] = useState([]);
   const [medicosActuales, setMedicosActuales] = useState([]);
-  const { entidad, user } = useAuth();
+//  const { entidad, user } = useAuth();
 
   // --- ESTADO DE CACHÉ Y DATOS ---
   const [cache, setCache] = useState({
@@ -314,6 +315,18 @@ export default function CitaV2({  direccionClinica = "Sede Central" }) {
   return (
     <div className="container-fluid p-0 pb-5 mb-5">
       <style>{ESTILOS_CSS}</style>
+
+      <BaseHeader 
+        user={user} 
+        entidad={entidad}
+        bgColor="linear-gradient(135deg, #0078f5 0%, #0056b3 100%)"
+        onLogout={onLogout}
+      >
+        {/* 2. Este es el 'children' del header, aparecerá debajo del nombre del médico */}
+        <div className="header-page-title" style={{ padding: '0 0.5rem 1rem' }}>
+          <h4 style={{ margin: 0, fontWeight: 'bold', color: 'white' }}>Mis Citas</h4>
+        </div>
+      </BaseHeader>
 
       <main style={{maxWidth: '480px', margin: '0 auto'}}>
         

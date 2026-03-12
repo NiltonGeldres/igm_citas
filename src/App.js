@@ -1,195 +1,81 @@
-import { useState, useEffect } from "react";
-import { Routes, Route, Link, useNavigate } from "react-router-dom";
-import AuthService from "./components/Login/services/auth.service";
-import Login from "./components/Login/Login";
-import CitaV2 from "./components/Cita/CitaV2";
-import EntidadService from "./components/Entidad/EntidadService";
-import { cargarConfiguracionEntidades } from "./components/Entidad/EntidadData";
-import { obtenerEntidad, ENTIDAD } from "./components/Entidad/EntidadData"; 
-import { Stethoscope, User, Building2, LogOut, LayoutDashboard, Calendar, Users, CreditCard, Clock } from "lucide-react";
+import { Routes, Route, Navigate,  useNavigate} from "react-router-dom";
+import { useAuth } from "./components/context/AuthContext";
+import { BaseHeader } from "./shared/components/layout/BaseHeader";
 import { MedicoRouter } from "./apps/medicos-app/routes/MedicoRouter";
-import { Navigate } from "react-router-dom";
+import Login from "./components/Login/Login";
+import Signup from "./components/Login/Signup";
+import CitaV2 from "./components/Cita/CitaV2";
+import AuthService from "./master-data/services/auth.service";
+import { useState } from "react";
 
 function App() {
-  const Authority = AuthService.getCurrentAuthority();
+  // Extraemos todo del contexto (ya no necesitamos estados locales ni useEffects aquí)
+  const { user, loading } = useAuth();
+  const Authority = user?.rol; // Usamos el rol que viene del perfil decodificado
   const navigate = useNavigate();
   const [currentUser, setCurrentUser] = useState(undefined);
   const [userName, setUserName] = useState(undefined);
   const [userProfileData, setUserProfileData] = useState(null); 
-  const [userEntidadData, setUserEntidadData] = useState(false);
-  const getFullNameForHeader = (profile) => {
-    if (!profile) return 'Usuario'; // Fallback si no hay perfil
-    const usuarioNombres = profile.usuarioNombres.toLowerCase() || '';
-    const fullName = `${usuarioNombres}`.trim();
-    return fullName || profile.username || 'Usuario';
-  };
-  const getEntidadForHeader = (e) => {
-    const nombre= e.nombre;
-    return nombre;;
-  };
-  useEffect(() => {
-    const perfil = AuthService.leerPerfil();
-    if (perfil) {
-      try {
-        setCurrentUser(perfil);
-        setUserProfileData(perfil);
-        /*  Nombre de Entidad*/
-        setTimeout(() => {
-            EntidadService.getEntidad().then(res => {
-            cargarConfiguracionEntidades(res.data);
-            const Entidad  = obtenerEntidad();
-            setUserEntidadData(Entidad)
-            });
-        }, 1000);
 
-      } catch (e) {
-        console.error("Error al procesar el token:", e);
-      }
-    }
-
-  }, []);
+  if (loading) return <div className="loading-screen">Cargando MediFlow...</div>;
 
   const logOut = () => {
-    AuthService.logout();
-    setCurrentUser(null);
-    setUserProfileData(null);    
-    navigate("/login");
-
-  AuthService.logout(); // Llama al servicio para limpiar sessionStorage
-    
-  };
+  AuthService.logout(); // Limpia sessionStorage
+  setCurrentUser(null);
+  setUserProfileData(null);    
+  navigate("/login");
+};
 
   return (
-    <div className="App" style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' ,color:"black" }}>
-      <nav style={{ 
-        backgroundColor: "rgb(0, 120, 245)", 
-        padding: "10px 20px", 
-        display: "flex", 
-        alignItems: "center", 
-        color: "white",
-        boxShadow: "0 2px 4px rgba(0,0,0,0.1)"
-         }} className="navbar navbar-expand navbar-dark">
-        <div style={{ display: "flex", alignItems: "center", flexGrow: 1 }}>
-        <div className="d-flex align-items-center gap-2">
-          <div className="bg-primary rounded-3 p-2 text-white shadow-sm d-flex align-items-center justify-content-center" style={{width: '40px', height: '40px'}}>
-            <Stethoscope size={22} />
-          </div>
-          <span >MediFlow</span>
-        </div>
+    <div className="App" style={{ minHeight: '100vh', backgroundColor: "#f8f9fa" }}>
+      <Routes>
+        {/* 1. RUTAS PÚBLICAS: Usamos el BaseHeader básico (sin datos de usuario) */}
+        <Route path="/login" element={
+          <>
+            <BaseHeader /> 
+            <Login />
+          </>
+        } />
+        
+        <Route path="/signup" element={
+          <>
+            <BaseHeader />
+            <Signup />
+          </>
+        } />
 
-          {currentUser && userProfileData && (
-            <div style={{ 
-              marginLeft: "16px", 
-              paddingLeft: "16px", 
-              borderLeft: "1px solid rgba(255,255,255,0.3)", 
-              display: "flex", 
-              flexDirection: "column", 
-              justifyContent: "center" 
-            }}>
-              <div style={{ display: "flex", alignItems: "center", gap: "8px"  }}>
-                <User size={14} />
-                <span style={{ fontWeight: "600", fontSize: "14px", lineHeight: "1.2" ,textTransform: "Capitalize"}}>
-                  {getFullNameForHeader(userProfileData)}
-                </span>
-              </div>
-              <div style={{ display: "flex", alignItems: "center", gap: "8px", marginTop: "2px" }}>
-                <Building2 size={12} />
-                <span style={{ 
-                  fontSize: "10px", 
-                  textTransform: "uppercase", 
-                  letterSpacing: "0.5px", 
-                  color: "rgba(255,255,255,0.8)", 
-                  fontWeight: "500" 
-                }}>
-                  {getEntidadForHeader(userEntidadData)}
-                </span>
-              </div>
-            </div>
-          )}
+        {/* 2. REDIRECCIÓN INICIAL: El "Semáforo" de roles */}
+        <Route path="/" element={
+          !user ? <Navigate to="/login" replace /> : 
+          (Authority === 'Medicos' ? <Navigate to="/med/agenda" replace /> : <Navigate to="/paciente/citas" replace />)
+        } />
+
+        {/* 3. MUNDO MÉDICO: El MedicoRouter ya incluye el Layout con el BaseHeader completo */}
+        <Route path="/med/*" element={
+          user?.rol === 'Medicos' ? <MedicoRouter onLogout={logOut}/> : <Navigate to="/login" replace />
+        } />
+
+         {/* 4. MUNDO PACIENTE */}
+        <Route path="/paciente/*" element={
+          user?.rol === 'Usuarios' ? <CitaV2 onLogout={logOut}/> : <Navigate to="/login" replace />
+        } />
 
 
-        </div>
 
-        {currentUser ? (
-          <div className="navbar-nav ms-auto">
-            <li className="nav-item">
-              <a style={{ color: "white" }} href="/login" className="nav-link" onClick={logOut}>
-                Logout
-              </a>
-            </li>
-          </div>
-        ) : (
-          <div className="navbar-nav ms-auto">
-            <li className="nav-item">
-              <Link style={{ color: "white" }} to={"/login"} className="nav-link">
-                Login
-              </Link>
-            </li>
-
-            <li className="nav-item">
-              <Link style={{ color: "white" }} to={"/signup"} className="nav-link">
-                Sign up
-              </Link>
-            </li>
-          </div>
-        )}
-      </nav>
-
-      {/* Este div principal ahora tiene un paddingTop para compensar la navbar superior.
-          La altura de la navbar (Styles.navbar) es aproximadamente 60px. */}
-      <div style={{ flexGrow: 1, width: '100%', paddingTop: '60px' }}>
-        <Routes>
-          {/* 1. RUTAS PÚBLICAS (Siempre van primero) */}
-          <Route path="/login" element={<Login />} />
-
-          {/* 2. REDIRECCIÓN INICIAL INTELIGENTE (Crucial para el login) */}
-          <Route path="/" element={
-            !Authority ? <Navigate to="/login" /> : 
-            (Authority === 'Medicos' ? <Navigate to="/med/agenda" /> : <Navigate to="/paciente/citas" />)
-          } />
-
-          {/* 3. MUNDO MÉDICO (Ruta con asterisco para permitir sub-rutas) */}
-          <Route path="/med/*" element={<MedicoRouter />} />
-
-          {/* 4. MUNDO PACIENTE (Asegúrate de que la URL sea distinta) */}
-          <Route path="/paciente/*" element={<CitaV2 />} />
-
-          {/* 5. CAPTURA DE ERRORES (Al final de todo) */}
-          <Route path="*" element={<Navigate to="/" />} />
-        </Routes>
-      </div>
+        {/* 5. COMODÍN: Cualquier otra ruta vuelve al inicio */}
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
     </div>
   );
 }
 
 export default App;
 
-/**
-              <Route path="*" element={<Private />} />
 
-              <Route path="/" element={<Private />} />
-              <Route path="/private" element={<Private />} />
-              <Route path="/atenciones" element={<AtencionMedicaForm />} />
-              <Route path="/citados" element={<CitaSeparada />} />
-              <Route path="/facturacion" element={<Facturacion />} />
-              <Route path="/programacionI" element={<ProgramacionHorarioIndividual/>} />
-              <Route path="/Cita" element={<Cita/>} />
-              <Route path="/CitaSeparada" element={<CitaSeparada />} />
-              <Route path="/Usuario" element={<Usuario/>} />
-              <Route path="/programacionHorario" element={<ProgramacionHorario/>} />
 
- */
 
-/**
- import Signup from "./components/Login/Signup";
-import Home from "./components/Home"; // Página de marketing pública
-import Private from "./components/Private"; // Componente que gestiona el dashboard según el rol
-
- import AtencionMedicaForm from "./components/AtencionMedica/AtencionMedicaForm";
-import CitaSeparada from "./components/CitaSeparada/CitaSeparada"; // Asumiendo que esta es la página de "Citados"
-import Cita from "./components/Cita/Cita"; // Asumiendo que esta es la página de "Citados"
-import Usuario from "./components/Usuario/Usuario"; // Asumiendo que esta es la página de "Citados"
-import Facturacion from "./components/Facturacion/Facturacion";
-import ProgramacionHorarioIndividual from "./components/ProgramacionHorarioIndividual/ProgramacionHorarioIndividual";
  
-  */              
+//         {/* 3. MUNDO MÉDICO: El MedicoRouter ya incluye el Layout con el BaseHeader completo */}
+//        <Route path="/pac/*" element={
+//          user?.rol === 'Usuarios' ? <PacienteoRouter onLogout={logOut}/> : <Navigate to="/login" replace />
+//        } />

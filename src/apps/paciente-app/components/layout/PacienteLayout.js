@@ -1,8 +1,7 @@
-import { MedicoFooter } from './MedicoFooter';
 import { BaseHeader } from "../../../../shared/components/layout/BaseHeader";
 import { useAuth } from "../../../../components/context/AuthContext"; // Importante para los datos
 
-export const MedicoLayout = ({ children , onLogout}) => {
+export const PacienteLayout = ({ children , onLogout}) => {
   // Extraemos los datos reales del contexto
   const { user, entidad } = useAuth();
 
@@ -25,31 +24,7 @@ export const MedicoLayout = ({ children , onLogout}) => {
         {children}
       </main>
 
-      <MedicoFooter /> 
     </div>
   );
 };
 
-/*
-import { Calendar as CalendarIcon } from "lucide-react";
-import { MedicoFooter } from './MedicoFooter'; // <-- AQUÍ LO IMPORTAMOS
-import { BaseHeader } from "../../../../shared/components/layout/BaseHeader";
-
-
-export const MedicoLayout = ({ children, nombreMedico }) => {
-  return (
-    <div className="medico-app-container">
-         <div className="header-page-title" style={{ padding: '0 1.5rem 1rem' }}>
-          <h4 style={{ margin: 0, fontWeight: 'bold', color: 'white' }}>Mi Agenda</h4>
-        <BaseHeader/>
-        </div>
-      <main className="medico-main-content">
-        {children}
-      </main>
-
-      <MedicoFooter /> 
-    </div>
-  );
-};
-
-*/
