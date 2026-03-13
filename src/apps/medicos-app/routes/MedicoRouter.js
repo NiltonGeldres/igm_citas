@@ -1,7 +1,7 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
-import { MedicoLayout } from '../components/layout/MedicoLayout';
+import { MedicoLayout } from '../layout/MedicoLayout';
 import ProgramacionHorario from '../../../feactures/ProgramacionHorario/ProgramacionHorario';
-import { AgendaPage } from '../components/layout/AgendaPage';
+import { AgendaPage } from '../pages/AgendaPage';
 import Facturacion from '../../../feactures/Facturacion/Facturacion';
 
 export const MedicoRouter = ({ onLogout }) => {

@@ -1,11 +1,11 @@
 import { useState } from "react";
-import { MedicoLayout } from "./MedicoLayout";
-import { DateSelector } from "./DateSelector";
-import { PacienteCard } from "./PacienteCard";
-import { AgendaStats } from "./agendaStats";
-import { useAgenda } from "./useAgenda";
-import { useAuth } from "../../../../components/context/AuthContext";
-import '../../styles/medico-app.css';
+import { DateSelector } from "../components/DateSelector";
+import { PacienteCard } from "../components/PacienteCard";
+import { AgendaStats } from "../components/agendaStats";
+import { useAgenda } from "../hooks/useAgenda";
+import { useAuth } from "../../../components/context/AuthContext";
+import "../../medicos-app/styles/medico-app.css"
+
 
 // Componentes auxiliares (puedes dejarlos aquí o moverlos a archivos)
 const LoadingSpinner = () => (
@@ -31,7 +31,6 @@ export const AgendaPage = () => {
 
   return (
     <div>
-    <MedicoLayout nombreMedico={user.usuarioNombres}>
       <DateSelector fecha={fecha} setFecha={setFecha} />
       
       <div className="medico-main-content">
@@ -54,7 +53,7 @@ export const AgendaPage = () => {
           </div>
         )}
       </div>
-    </MedicoLayout>
+
 </div>        
   );
 };

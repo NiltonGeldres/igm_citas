@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { agendaService } from './agendaService';
+import { agendaService } from '../services/agendaService';
 
 export const useAgenda = (idMedico, fechaSeleccionada) => {
   const [citados, setCitados] = useState([]);

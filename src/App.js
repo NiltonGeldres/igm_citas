@@ -60,8 +60,6 @@ function App() {
           user?.rol === 'Usuarios' ? <CitaV2 onLogout={logOut}/> : <Navigate to="/login" replace />
         } />
 
-
-
         {/* 5. COMODÍN: Cualquier otra ruta vuelve al inicio */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
