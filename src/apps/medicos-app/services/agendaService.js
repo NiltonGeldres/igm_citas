@@ -5,7 +5,7 @@ const API_URL = process.env.REACT_APP_URL_API;
 const SERVICE_MEDICO_CITA_DIARIA = "/citas/medico-diaria"; 
 
 export const agendaService = () =>{
-
+        alert("Hola")
     const  getAgendaPorMedico = (idMedico, fecha) => {
         console.log("Solicitando agenda diaria del médico: " + idMedico + " para la fecha: " + fecha);
         return axios.get(API_URL + SERVICE_MEDICO_CITA_DIARIA, {
