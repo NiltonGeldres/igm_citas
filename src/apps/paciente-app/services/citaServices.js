@@ -1,12 +1,11 @@
 // src/components/Cita/CitaService.js
-import header from "../Security/Header";
+import header from "../../../shared/utils/Header";
 import axios from "axios";
-import { transformarCitas } from "../mapper/citaPacientePendiente";
-import { mapearCitaPacienteRequest } from "../mapper/citaPacienteMapper";
+import { mapearCitaPacienteRequest, transformarCitas } from "../mapper/citaPacienteMapper";
 
 const API_URL = process.env.REACT_APP_URL_API;
 
-const SERVICE_CITA_PACIENTE_PENDIENTE = "/citas/paciente-pendiente"; 
+const SERVICE_CITA_PACIENTE_PENDIENTE = "/citas/paciente-pendientes"; 
 
 // Función genérica interna para centralizar peticiones
 const ejecutarAPI = async (endpoint, params = {}) => {
@@ -15,8 +14,9 @@ const ejecutarAPI = async (endpoint, params = {}) => {
             headers: header(),
             params: params 
         });
+        console.log("data api :", JSON.stringify(response.data));
         // Extraemos la data (manejando si viene envuelta en .data)
-        const rawData = response.data.data || response.data;
+        const rawData = response.data ;
         return transformarCitas(rawData);
     } catch (error) {
         // TU LÓGICA DE DEPURACIÓN AQUÍ:
@@ -38,13 +38,14 @@ const ejecutarAPI = async (endpoint, params = {}) => {
     }
 };
 
-const getCitaPacientePendiente = async (idPaciente, fechaUI) => {
+const getCitaPacienteListarPendientes = async (idPaciente, fechaUI) => {
+    console.log("parameter :", idPaciente+ "--"+ fechaUI)
     const params = mapearCitaPacienteRequest(idPaciente, fechaUI);
     return await ejecutarAPI(SERVICE_CITA_PACIENTE_PENDIENTE, params);
 };
 
 const citaService = {
-    getCitaPacientePendiente
+    getCitaPacienteListarPendientes
 };
 export default citaService;
 

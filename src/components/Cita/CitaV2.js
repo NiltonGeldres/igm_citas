@@ -18,6 +18,7 @@ import CitaSeparada from '../CitaSeparada/CitaSeparada';
 import AuthService from '../Login/services/auth.service';
 import { useAuth } from '../context/AuthContext';
 import { BaseHeader } from '../../shared/components/layout/BaseHeader';
+import citaService from '../../apps/paciente-app/services/citaServices';
 
 let timerInterval;
 
@@ -32,6 +33,8 @@ export default function CitaV2({  direccionClinica = "Sede Central" , onLogout }
   const [mostrarExito, setMostrarExito] = useState(false);
   const [programacionMensual, setProgramacionMensual] = useState([]);
   const [medicosActuales, setMedicosActuales] = useState([]);
+  const [fechaFiltro, setFechaFiltro] = useState("2026-03-16"); // Fecha actual por defecto
+
 //  const { entidad, user } = useAuth();
 
   // --- ESTADO DE CACHÉ Y DATOS ---
@@ -51,23 +54,8 @@ export default function CitaV2({  direccionClinica = "Sede Central" , onLogout }
     idCitaBloqueada:0
   });
 
-
   const [misCitas, setMisCitas] = useState([]);
   const [misPagos, setMisPagos] = useState([]);
-  // --- MOCK DE LAS 5 APIS ---
-  /*const ejecutarAPI = async (nombre, params) => {
-    setCargando(true);
-    await new Promise(resolve => setTimeout(resolve, 800)); // Simular latencia y paginación
-    setCargando(false);
-
-    switch(nombre) {
-      case "obtenerProgramacionMedicaHorasService":
-        return ["09:00 AM", "10:30 AM", "03:00 PM", "04:30 PM"];
-      case "GuardarCitaService":
-        return { success: true };
-      default: return [];
-    }
-  };*/
 
   // 1. CARGAR ESPECIALIDADES (Al entrar a Citas)
   useEffect(() => {
@@ -95,16 +83,41 @@ export default function CitaV2({  direccionClinica = "Sede Central" , onLogout }
     cargar();
   }, [cache.especialidades.length]);
 
-  // 2. SELECCIONAR ESPECIALIDAD -> CARGAR MÉDICOS
-     const seleccionarEspecialidad = async (espec) => {
+
+  useEffect(() => {
+    if (user?.id) {
+      obtenerCitas(user.id, fechaFiltro);
+    }
+  }, [user?.id]); // Solo se ejecuta al cargar el componente
+
+  const manejarClickMisCitas = () => {
+    setPestanaActual('citas');
+    setModoReserva(false);
+    obtenerCitas(user.id, fechaFiltro); // <--- Refresca la variable
+  };
+
+  const obtenerCitas = async (idPaciente, fecha) => {
+    setCargando(true);
+    try {
+      const data = await citaService.getCitaPacienteListarPendientes(19, '2026-03-13');
+      console.log("DATA "+JSON.stringify(data))
+      setMisCitas(data);
+    } catch (error) {
+      console.error("Error al traer citas:", error);
+    } finally {
+      setCargando(false);
+    }
+  };
+
+  const  seleccionarEspecialidad = async (espec) => {
         setDatosReserva(prev => ({ ...prev, especialidad: espec, doctor: null }));
         const data = await   MedicoService.obtenerTodosEspecialidad(espec.idEspecialidad)
         const dataListaMedicosParaUI = transformarMedicos(data);
         setMedicosActuales(dataListaMedicosParaUI);
         setPasoActual(2);
-      };
+  };
 
-     const seleccionarMedico = async (med) => { // 1. Hacemos la función principal async
+  const seleccionarMedico = async (med) => { // 1. Hacemos la función principal async
         // 2. Obtenemos los datos directamente del médico seleccionado (med) y la especialidad actual
 
         const medId = med.id;
@@ -129,9 +142,9 @@ export default function CitaV2({  direccionClinica = "Sede Central" , onLogout }
           const { mes, anio } = datosReserva.fechaObjeto;
           obtenerProgramacionMedicaMes(mes+1,anio,espId,medId, 1)      
         }
-      };
+  };
 
-    const obtenerProgramacionMedicaMes = async (mes,anio,idEspecialidad,idMedico) =>{
+  const obtenerProgramacionMedicaMes = async (mes,anio,idEspecialidad,idMedico) =>{
           setCargando(true);
           try {
             // Nota: Asegúrate de enviar mes+1 y anio si tu API lo requiere
@@ -148,7 +161,7 @@ export default function CitaV2({  direccionClinica = "Sede Central" , onLogout }
           } finally {
             setCargando(false);
           }
-    }  
+  }  
 
     const seleccionarDia = async (dia) => {
       const { mes, anio } = datosReserva.fechaObjeto;
@@ -177,28 +190,6 @@ export default function CitaV2({  direccionClinica = "Sede Central" , onLogout }
         console.log("DATA DE TURNOS O CUPOS  "+data)*/
     };
 
-    // 5. GUARDAR CITA
-    const finalizarReserva = async () => {
-      /*const res = await ejecutarAPI("GuardarCitaService", datosReserva);
-      if (res.success) {
-        const idCita = `CTA-${Math.floor(Math.random() * 10000)}`;
-        const nuevaCita = { ...datosReserva, id: idCita };
-        setMisCitas([nuevaCita, ...misCitas]);
-        
-        const nuevoPago = {
-          id: `TRX-${Math.floor(Math.random() * 999999)}`,
-          idCita: idCita,
-          fecha: new Date().toLocaleDateString(),
-          monto: datosReserva.especialidad.precio,
-          concepto: `Cita: ${datosReserva.especialidad.nombre}`,
-          metodo: 'Visa **** 4242',
-          estado: 'Completado'
-        };
-
-        setMisPagos([nuevoPago, ...misPagos]);
-        setMostrarExito(true);
-      }*/
-    };
 
     const reiniciarFlujo = () => {
       setModoReserva(false);
@@ -397,19 +388,22 @@ export default function CitaV2({  direccionClinica = "Sede Central" , onLogout }
           </div>
         )}
 
+
         {/* --- VISTA CITAS --- */}
         {pestanaActual === 'citas' && (
           <div className="fade-in px-3 pt-4">
             {!modoReserva ? (
               <div className="d-flex flex-column gap-3">
                 <h5 className="fw-bold">Mis Citas</h5>
+                {console.log(JSON.stringify(misCitas.length)) }
                 {misCitas.length > 0 ? (
                   misCitas.map(cita => (
                     <div key={cita.id} className="tarjeta-personalizada bg-white p-4 shadow-sm border-start border-primary border-4">
                       <div className="d-flex justify-content-between mb-2">
                         <div>
-                          <p className="fw-bold mb-0">{cita.especialidad.nombre}</p>
-                          <p className="text-secondary small mb-0">{cita.doctor.nombre}</p>
+                          <p className="fw-bold mb-0">{cita.servicioNombre}</p>
+                          <p className="text-secondary small mb-0">{cita.nombres}</p>
+
                         </div>
                         <div className="bg-primary bg-opacity-10 text-primary p-2 rounded-3 h-fit">
                           <Calendar size={18} />
@@ -418,7 +412,7 @@ export default function CitaV2({  direccionClinica = "Sede Central" , onLogout }
                       <div className="pt-3 border-top d-flex justify-content-between align-items-center">
                         <div>
                            <span className="text-uppercase text-secondary fw-bold d-block" style={{fontSize: '10px'}}>{cita.fecha}</span>
-                           <span className="fw-bold text-dark" style={{fontSize: '12px'}}>{cita.hora}</span>
+                           <span className="fw-bold text-dark" style={{fontSize: '12px'}}>{cita.horaInicio}</span>
                         </div>
                         <span className="etiqueta-pago bg-success bg-opacity-10 text-success">Confirmado</span>
                       </div>
@@ -427,7 +421,7 @@ export default function CitaV2({  direccionClinica = "Sede Central" , onLogout }
                 ) : (
                   <div className="text-center py-5 text-secondary opacity-50">
                     <Calendar size={48} className="mb-3" />
-                    <p>No tienes citas programadas</p>
+                    <p>No tienes {misCitas.length} citas programadas </p>
                   </div>
                 )}
                 <button onClick={() => { setModoReserva(true); setPasoActual(1); }} className="btn btn-primary p-3 rounded-4 fw-bold shadow-sm d-flex align-items-center justify-content-center gap-2 mt-2">
@@ -581,7 +575,13 @@ export default function CitaV2({  direccionClinica = "Sede Central" , onLogout }
           ].map(item => (
             <div 
               key={item.id} 
-              onClick={() => {setPestanaActual(item.id); setModoReserva(false);}}
+              onClick={() => {
+                  setPestanaActual(item.id);
+                  setModoReserva(false);
+                  if (item.id === 'citas') {
+                    obtenerCitas(user.id, fechaFiltro);
+                  }                  
+              }}
               className={`d-flex flex-column align-items-center cursor-pointer transition-all ${pestanaActual === item.id ? 'text-primary' : 'text-secondary opacity-50'}`}
               style={{flex: 1}}
             >
@@ -596,3 +596,43 @@ export default function CitaV2({  direccionClinica = "Sede Central" , onLogout }
 }
 
 
+
+/*
+    // 5. GUARDAR CITA
+    const finalizarReserva = async () => {
+      /*const res = await ejecutarAPI("GuardarCitaService", datosReserva);
+      if (res.success) {
+        const idCita = `CTA-${Math.floor(Math.random() * 10000)}`;
+        const nuevaCita = { ...datosReserva, id: idCita };
+        setMisCitas([nuevaCita, ...misCitas]);
+        
+        const nuevoPago = {
+          id: `TRX-${Math.floor(Math.random() * 999999)}`,
+          idCita: idCita,
+          fecha: new Date().toLocaleDateString(),
+          monto: datosReserva.especialidad.precio,
+          concepto: `Cita: ${datosReserva.especialidad.nombre}`,
+          metodo: 'Visa **** 4242',
+          estado: 'Completado'
+        };
+
+        setMisPagos([nuevoPago, ...misPagos]);
+        setMostrarExito(true);
+      }
+    };
+*/
+
+  // --- MOCK DE LAS 5 APIS ---
+  /*const ejecutarAPI = async (nombre, params) => {
+    setCargando(true);
+    await new Promise(resolve => setTimeout(resolve, 800)); // Simular latencia y paginación
+    setCargando(false);
+
+    switch(nombre) {
+      case "obtenerProgramacionMedicaHorasService":
+        return ["09:00 AM", "10:30 AM", "03:00 PM", "04:30 PM"];
+      case "GuardarCitaService":
+        return { success: true };
+      default: return [];
+    }
+  };*/
