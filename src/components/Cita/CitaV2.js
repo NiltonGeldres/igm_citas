@@ -55,7 +55,7 @@ export default function CitaV2({  direccionClinica = "Sede Central" , onLogout }
   const [misCitas, setMisCitas] = useState([]);
   const [misPagos, setMisPagos] = useState([]);
   // --- MOCK DE LAS 5 APIS ---
-  const ejecutarAPI = async (nombre, params) => {
+  /*const ejecutarAPI = async (nombre, params) => {
     setCargando(true);
     await new Promise(resolve => setTimeout(resolve, 800)); // Simular latencia y paginación
     setCargando(false);
@@ -67,7 +67,7 @@ export default function CitaV2({  direccionClinica = "Sede Central" , onLogout }
         return { success: true };
       default: return [];
     }
-  };
+  };*/
 
   // 1. CARGAR ESPECIALIDADES (Al entrar a Citas)
   useEffect(() => {
@@ -168,18 +168,18 @@ export default function CitaV2({  direccionClinica = "Sede Central" , onLogout }
         hora:''
       }));
       
-
+/*
         const data = await ejecutarAPI("obtenerProgramacionMedicaHorasService", { 
           medId: datosReserva.doctor.id, 
           fechay: datosReserva.fechaYYYYMMDD 
         });
 //          fecha: `${anio}-${String(mes+1).padStart(2,'0')}-${String(dia).padStart(2,'0')}` 
-        console.log("DATA DE TURNOS O CUPOS  "+data)
+        console.log("DATA DE TURNOS O CUPOS  "+data)*/
     };
 
     // 5. GUARDAR CITA
     const finalizarReserva = async () => {
-      const res = await ejecutarAPI("GuardarCitaService", datosReserva);
+      /*const res = await ejecutarAPI("GuardarCitaService", datosReserva);
       if (res.success) {
         const idCita = `CTA-${Math.floor(Math.random() * 10000)}`;
         const nuevaCita = { ...datosReserva, id: idCita };
@@ -197,7 +197,7 @@ export default function CitaV2({  direccionClinica = "Sede Central" , onLogout }
 
         setMisPagos([nuevoPago, ...misPagos]);
         setMostrarExito(true);
-      }
+      }*/
     };
 
     const reiniciarFlujo = () => {
@@ -455,8 +455,8 @@ export default function CitaV2({  direccionClinica = "Sede Central" , onLogout }
                         <ChevronLeft size={20} />
                       </button>
                       <div>
-                        <p className="mb-0 text-primary fw-bold text-uppercase" style={{fontSize: '9px', letterSpacing: '1px'}}>Paso {pasoActual} de 4</p>
-                        <h6 className="fw-bold mb-0 text-black">
+                        <p className="mb-0 text-primary fw-bold text-uppercase" style={{fontSize: '16px', letterSpacing: '1px'}}>Paso {pasoActual} de 4</p>
+                        <h6 className="fw-bold mb-0 text-black ">
                           {pasoActual === 1 && "Selecciona Especialidad"}
                           {pasoActual === 2 && "Selecciona Especialista"}
                           {pasoActual === 3 && "Fecha y Hora"}
@@ -464,14 +464,12 @@ export default function CitaV2({  direccionClinica = "Sede Central" , onLogout }
                         </h6>
                       </div>
                     </div>
-
                     {cargando && (
                       <div className="text-center py-5">
                         <Loader2 className="girar text-primary" size={40} />
                         <p className="small text-secondary mt-2">Cargando información...</p>
                       </div>
                     )}
-
                     <div className={`d-flex flex-column gap-2 ${cargando ? 'opacity-25' : ''}`}>
                       {/* PASO 1: ESPECIALIDADES (API 1) */}
                       {pasoActual === 1 && cache.especialidades.map(espec => (
@@ -501,7 +499,6 @@ export default function CitaV2({  direccionClinica = "Sede Central" , onLogout }
                           <ChevronRight size={18} className="text-light" />
                         </div>
                       ))}
-
                       {pasoActual === 3 && (
                         <div className="fade-in">
                           {/* Título de sección */}
@@ -509,7 +506,6 @@ export default function CitaV2({  direccionClinica = "Sede Central" , onLogout }
                             <h5 className="fw-bold mb-1">Selecciona Fecha y Hora</h5>
                             <p className="text-muted small">Los días marcados con un reloj tienen disponibilidad.</p>
                           </div>
-
                           <div className="row g-4">
                             {/* COLUMNA IZQUIERDA: El Calendario */}
                             <div className="col-12 col-lg-7">
@@ -521,7 +517,6 @@ export default function CitaV2({  direccionClinica = "Sede Central" , onLogout }
                                 cargando={cargando}
                               />
                             </div>
-
                           <div className="col-lg-5">
                                 <ProgramacionHoras 
                                   idMedico={datosReserva.doctor?.id}
@@ -531,11 +526,8 @@ export default function CitaV2({  direccionClinica = "Sede Central" , onLogout }
                                   onHoraSeleccionada={handleHoraSeleccionada}
                                 />
                           </div>
-
                             {/* COLUMNA DERECHA: Selector de Horas (Se activa al elegir un día) */}
-
                           </div>
-
                           {/* Botón de navegación inferior */}
                           <div className="mt-4 d-flex justify-content-between">
                             <button className="btn btn-light px-4" onClick={() => setPasoActual(2)}>Atrás</button>
@@ -573,7 +565,7 @@ export default function CitaV2({  direccionClinica = "Sede Central" , onLogout }
         {/* --- VISTA PAGOS --- */}
           {pestanaActual === 'pagos' && (
             <div className="fade-in">
-                {/* LLAMADA AL COMPONENTE QUE LISTA LAS CITAS PENDIENTES */}
+                {/* LLAMADA AL COMPONENTE QUE LISTA LAS CITAS SEPARADAS */}
                 <CitaSeparada datosReserva={datosReserva}/> 
             </div>          
           )}
@@ -604,231 +596,3 @@ export default function CitaV2({  direccionClinica = "Sede Central" , onLogout }
 }
 
 
-
-/**
- * 
-   useEffect(() => {
-          setDatosReserva(prev => ({
-          ...prev,
-          fecha: '', // Limpia el string de fecha
-          hora: '',  // Limpia la hora seleccionada
-          fechaObjeto: { ...prev.fechaObjeto, dia: null } // Deselecciona el día en el calendario
-        }));
-    
-      // 1. Verificamos que estemos en el paso de calendario y tengamos los IDs necesarios
-      const medId = datosReserva.doctor?.id;
-      const espId = datosReserva.especialidad?.idEspecialidad || datosReserva.especialidad?.id;
-      console.log("Datos de Reserva  "+medId+"-----"+espId)
-      if (pasoActual === 3 && medId && espId) {
-        const cargarProgramacionDelMes = async () => {
-        const { mes, anio } = datosReserva.fechaObjeto;
-        const key = `${medId}-${espId}-${mes}-${anio}`;
-        // Eliminamos el if (!cache.programacionMensual[key]) para ignorar el caché
-        setCargando(true);
-      try {
-          console.log(`Solicitando API para: Mes ${mes + 1}, Año ${anio}`);
-          // Llamada directa a la API
-          const data = await ProgramacionMedicaService.obtenerDias(medId, espId);
-          const dataUI = transformarProgramacion(data);
-                  //        console.log(`Solicitando API para: Mes data `+JSON.stringify(dataUI));
-          // Actualizamos el estado para que el calendario se renderice con la nueva data
-          setCache(prev => ({
-            ...prev,
-            programacionMensual: { 
-              ...prev.programacionMensual, 
-              [key]: dataUI 
-            }
-          }));
-        } catch (error) {
-          console.error("Error al cargar programación desde la API:", error);
-        } finally {
-          setCargando(false);
-        }
-      };
-
-      cargarProgramacionDelMes();
-    }
-    // El efecto reacciona al cambio de mes, año, doctor o paso
-  }, [
-    datosReserva.fechaObjeto.mes, 
-    datosReserva.fechaObjeto.anio, 
-    datosReserva.doctor?.id, 
-    pasoActual
-  ]);
-
-
- */
-
-    /*
-    // 4. SELECCIONAR DÍA -> CARGAR HORAS
-    const seleccionarDia = async (dia) => {
-      const fechaStr = `${dia} Feb`; // Simplificado para el UI
-      const key = `${datosReserva.doctor.id}-${fechaStr}`;
-      setDatosReserva(prev => ({ ...prev, fecha: fechaStr, fechaObjeto: { ...prev.fechaObjeto, dia } }));
-      
-      if (!cache.horasDisponibles[key]) {
-        const data = await ejecutarAPI("obtenerProgramacionMedicaHorasService", { medId: datosReserva.doctor.id, fecha: fechaStr });
-        setCache(prev => ({ ...prev, horasDisponibles: { ...prev.horasDisponibles, [key]: data } }));
-      }
-    };
-  */
-
-
-    /**
-     * 
-     * 
-         
-  const seleccionarMedico = (med) => {
-  //---------------------------------------------
-      // 1. Verificamos que estemos en el paso de calendario y tengamos los IDs necesarios
-      const medId = datosReserva.doctor?.id;
-      const espId = datosReserva.especialidad?.idEspecialidad || datosReserva.especialidad?.id;
-      console.log("Datos de Reserva  "+medId+"-----"+espId)
-      if (pasoActual === 3 && medId && espId) {
-        async () => {
-            const { mes, anio } = datosReserva.fechaObjeto;
-  //          const key = `${medId}-${espId}-${mes}-${anio}`;
-            setCargando(true);
-            try {
-                  console.log(`Solicitando API para: Mes ${mes + 1}, Año ${anio}`);
-                  // Llamada directa a la API
-                  const data = await ProgramacionMedicaService.obtenerDias(medId, espId);
-                  const dataProgramacionUI = transformarProgramacion(data);
-                  setProgramacionMensual(dataProgramacionUI)
-                  setDatosReserva(prev => ({ 
-                    ...prev, 
-                    doctor: med, 
-                    hora: '',
-                    fechaObjeto: { ...prev.fechaObjeto, dia: null } // Reset día
-                  }));
-                  setPasoActual(3); // El useEffect detectará el paso 3 y el medId y disparará la API sola.              
-                // Actualizamos el estado para que el calendario se renderice con la nueva data
-              } catch (error) {
-                console.error("Error al cargar programación desde la API:", error);
-              } finally {
-                setCargando(false);
-              }
-      };
-
-  };
-};
-
-     */
-
-/**
- 
-  
-       <div className="col-12 col-lg-5">
-        <div className="card border-0 shadow-sm rounded-4 p-3 bg-white h-100">
-          <h6 className="fw-bold mb-3 d-flex align-items-center">
-            <Clock size={18} className="me-2 text-primary" />
-            Horarios para el día {datosReserva.fechaObjeto.dia || '...'}
-          </h6>
-
-          {!datosReserva.fechaObjeto.dia ? (
-            <div className="text-center py-5">
-              <p className="text-muted small">Selecciona un día disponible para ver las horas.</p>
-            </div>
-          ) : (
-            <div className="d-grid gap-2 overflow-auto" style={{ maxHeight: '350px' }}>
-   
-             {programacionMensual
-                .filter(p => parseInt(p.fechadia) === datosReserva.fechaObjeto.dia)
-                .map((horario, index) => (
-                  <button
-                    key={index}
-                    onClick={() => setDatosReserva(prev => ({ ...prev, hora: horario.horainicio }))}
-                    className={`btn py-2 px-3 rounded-3 text-start border transition-all ${
-                      datosReserva.hora === horario.horainicio 
-                        ? 'btn-primary border-primary shadow-sm' 
-                        : 'btn-outline-light text-dark border-light-subtle hover-bg-light'
-                    }`}
-                  >
-                    <div className="d-flex justify-content-between align-items-center">
-                      <span className="fw-bold">{horario.horainicio}</span>
-                      <small className={datosReserva.hora === horario.horainicio ? 'text-white' : 'text-muted'}>
-                        Disponible
-                      </small>
-                    </div>
-                  </button>
-                ))}
-            </div>
-          )}
-        </div>
-      </div>
- */
-//           {/* Filtramos la programación mensual para mostrar solo las horas del día seleccionado */}
-
-
- 
- /**
-       const { mes, anio } = datosReserva.fechaObjeto;
-  
-      // 2. Formateamos a YYYYMMDD
-      // Recordar: mes + 1 porque en JS Enero es 0
-      const mesFormat = String(mes + 1).padStart(2, '0');
-      const diaFormat = String(dia).padStart(2, '0');
-      const fechaString = `${anio}${mesFormat}${diaFormat}`;
-
-      // Formato para mostrar en el UI (ej: "15 de Marzo")
-      const fechaStr = `${dia} ${new Intl.DateTimeFormat('es-ES', { month: 'short' }).format(new Date(anio, mes))}`;
-  //    const keyHora = `${datosReserva.doctor.id}-${fechaStr}`;
-      alert(fechaString)
-      setDatosReserva(prev => ({ 
-        ...prev, 
-          fechaYYMMDD: fechaString, 
-          fecha: fechaStr, 
-        fechaObjeto: { ...prev.fechaObjeto, dia } 
-      }));
-      
- 
- * 
- */
-
-
-
-      /**
-       * 
-       * 
-                      {pasoActual === 4 && (
-                        <div className="fade-in">
-                          <div className="bg-white p-4 rounded-5 border mb-4 shadow-sm">
-                            <p className="text-secondary small fw-bold text-uppercase mb-3">Resumen de Pago</p>
-                            <div className="d-flex flex-column gap-2 mb-4">
-                              <div className="d-flex justify-content-between">
-                                <span className="small text-secondary">Especialidad</span>
-                                <span className="small fw-bold text-dark">{datosReserva.especialidad?.descripcionEspecialidad}</span>
-                              </div>
-                              <div className="d-flex justify-content-between">
-                                <span className="small text-secondary">Médico</span>
-                                <span className="small fw-bold text-dark">{datosReserva.doctor?.nombre}</span>
-                              </div>
-                              <div className="d-flex justify-content-between">
-                                <span className="small text-secondary">Fecha y Hora</span>
-                                <span className="small fw-bold text-dark">{datosReserva.fecha} - {datosReserva.hora}</span>
-                              </div>
-                              <div className="d-flex justify-content-between pt-2 border-top">
-                                <span className="fw-bold text-dark">Total a pagar</span>
-                                <span className="fw-bold text-primary">{datosReserva.doctor?.montoFormateado}</span>
-                              </div>
-                            </div>
-                            <div className="bg-light p-3 rounded-4 d-flex align-items-center gap-3">
-                              <div className="bg-white p-2 rounded-3 border"><CreditCard size={18} /></div>
-                              <div className="flex-grow-1">
-                                <p className="mb-0 fw-bold text-dark" style={{fontSize: '12px'}}>Visa **** 4242</p>
-                                <p className="mb-0 text-secondary" style={{fontSize: '10px'}}>Exp: 12/26</p>
-                              </div>
-                              <span className="text-primary fw-bold" style={{fontSize: '10px'}}>EDITAR</span>
-                            </div>
-                          </div>
-                          <button 
-                            onClick={finalizarReserva} 
-                            disabled={cargando}
-                            className="btn btn-dark w-100 p-4 rounded-4 fw-bold shadow-lg d-flex align-items-center justify-content-center gap-3"
-                          >
-                            {cargando ? <Loader2 className="girar" /> : "Confirmar y Pagar"}
-                          </button>
-                        </div>
-                      )}
-       
-       */
