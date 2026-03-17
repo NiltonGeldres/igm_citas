@@ -452,7 +452,7 @@ export default function CitaV2({  direccionClinica = "Sede Central" , onLogout }
                         <p className="mb-0 text-primary fw-bold text-uppercase" style={{fontSize: '16px', letterSpacing: '1px'}}>Paso {pasoActual} de 4</p>
                         <h6 className="fw-bold mb-0 text-black ">
                           {pasoActual === 1 && "Selecciona Especialidad"}
-                          {pasoActual === 2 && "Selecciona Especialista"}
+                          {pasoActual === 2 && "Selecciona Medico"}
                           {pasoActual === 3 && "Fecha y Hora"}
                           {pasoActual === 4 && "Confirmación de Pago"}
                         </h6>
