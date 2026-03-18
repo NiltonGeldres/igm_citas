@@ -4,10 +4,10 @@ import { BaseHeader } from "./shared/components/layout/BaseHeader";
 import { MedicoRouter } from "./apps/medicos-app/routes/MedicoRouter";
 import Login from "./components/Login/Login";
 import Signup from "./components/Login/Signup";
-import CitaV2 from "./components/Cita/CitaV2";
+//import CitaV2 from "./components/Cita/CitaV2";
 import AuthService from "./master-data/services/auth.service";
 import { useState } from "react";
-
+import PacientePage from "./apps/paciente-app/pages/PacientePage";
 function App() {
   // Extraemos todo del contexto (ya no necesitamos estados locales ni useEffects aquí)
   const { user, loading } = useAuth();
@@ -57,7 +57,7 @@ function App() {
 
          {/* 4. MUNDO PACIENTE */}
         <Route path="/paciente/*" element={
-          user?.rol === 'Usuarios' ? <CitaV2 onLogout={logOut}/> : <Navigate to="/login" replace />
+          user?.rol === 'Usuarios' ? <PacientePage onLogout={logOut}/> : <Navigate to="/login" replace />
         } />
 
         {/* 5. COMODÍN: Cualquier otra ruta vuelve al inicio */}
@@ -77,3 +77,4 @@ export default App;
 //        <Route path="/pac/*" element={
 //          user?.rol === 'Usuarios' ? <PacienteoRouter onLogout={logOut}/> : <Navigate to="/login" replace />
 //        } />
+//          user?.rol === 'Usuarios' ? <CitaV2 onLogout={logOut}/> : <Navigate to="/login" replace />

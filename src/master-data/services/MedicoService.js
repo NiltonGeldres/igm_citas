@@ -1,7 +1,9 @@
 import header from "../../shared/utils/Header"
 import axios from "axios";
-import { MedicoMapper } from "./MedicoMapper";
-import AuthService from "../Login/services/auth.service";
+import { MedicoMapper } from "../../apps/paciente-app/mapper/MedicoMapper";
+import AuthService from "./auth.service";
+
+//import AuthService from "../Login/services/auth.service";
 //(http://localhost:8081/api_salud_v2/webresources/especialidadService
 
 const API_URL = process.env.REACT_APP_URL_API;

@@ -16,15 +16,68 @@ import ProgramacionHorarioIndividualService from '../ProgramacionHorarioIndividu
 import FinalizarReserva from './Componentes/FinalizarReserva';
 import CitaSeparada from '../CitaSeparada/CitaSeparada';
 import AuthService from '../Login/services/auth.service';
-
-//import { useAuth } from '../context/AuthContext';
-//import { BaseHeader } from '../../shared/components/layout/BaseHeader';
-
-import { useAuth } from '../../../../components/context/AuthContext';
-import { BaseHeader } from '../../../../shared/components/layout/BaseHeader';
+import { useAuth } from '../context/AuthContext';
+import { BaseHeader } from '../../shared/components/layout/BaseHeader';
+import citaService from '../../apps/paciente-app/services/citaServices';
+import { InicioDashboard } from '../../apps/paciente-app/components/InicioDashboard';
+import { Paso1Especialidad } from '../../apps/paciente-app/components/reserva/Paso1Especialidad';
+import { Paso2Medico } from '../../apps/paciente-app/components/reserva/Paso2Medico';
+import { Paso3Horario } from '../../apps/paciente-app/components/reserva/Paso3Horario';
+import { ListaMisCitas } from '../../apps/paciente-app/components/reserva/ListaMisCitas';
+import { Paso4Confirmacion } from '../../apps/paciente-app/components/reserva/Paso4Confirmacion';
+import "../../apps/paciente-app/styles/paciente-app.css"
 
 let timerInterval;
 
+const HeaderPasos = ({ pasoActual, onAtras }) => (
+  <div className="d-flex align-items-center gap-3 mb-4">
+    <button 
+      onClick={onAtras} 
+      className="btn btn-light rounded-circle p-2 shadow-sm text-secondary border-0"
+      style={{ width: '40px', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+    >
+      <ChevronLeft size={20} />
+    </button>
+    <div>
+      <p className="mb-0 text-primary fw-bold text-uppercase" style={{ fontSize: '11px', letterSpacing: '1px' }}>
+        Paso {pasoActual} de 4
+      </p>
+      <h6 className="fw-bold mb-0 text-dark">
+        {pasoActual === 1 && "Selecciona Especialidad"}
+        {pasoActual === 2 && "Selecciona Médico"}
+        {pasoActual === 3 && "Fecha y Hora"}
+        {pasoActual === 4 && "Confirmación de Cita"}
+      </h6>
+    </div>
+  </div>
+);
+
+const LoaderCargando = () => (
+  <div className="text-center py-5">
+    <Loader2 className="animate-spin text-primary" size={40} />
+    <p className="small text-secondary mt-2">Cargando información...</p>
+  </div>
+);
+
+const ExitoReserva = ({ entidad, onReiniciar, onIrAPagos }) => (
+  <div className="text-center py-5 fade-in">
+    <div className="bg-success bg-opacity-10 text-success p-4 rounded-circle d-inline-block mb-4">
+      <CheckCircle2 size={50} />
+    </div>
+    <h3 className="fw-bold">¡Todo listo!</h3>
+    <p className="text-secondary mb-4 px-4">
+      Tu cita ha sido agendada en <strong>{entidad?.nombre}</strong> correctamente.
+    </p>
+    <div className="d-flex flex-column gap-2 px-3">
+      <button onClick={onReiniciar} className="btn btn-primary w-100 p-3 rounded-4 fw-bold">
+        Ver mis Citas
+      </button>
+      <button onClick={onIrAPagos} className="btn btn-light w-100 p-3 rounded-4 fw-bold border">
+        Ver Comprobante
+      </button>
+    </div>
+  </div>
+);
 
 export default function CitaV2({  direccionClinica = "Sede Central" , onLogout }) {
   const { user, entidad } = useAuth();
@@ -36,6 +89,8 @@ export default function CitaV2({  direccionClinica = "Sede Central" , onLogout }
   const [mostrarExito, setMostrarExito] = useState(false);
   const [programacionMensual, setProgramacionMensual] = useState([]);
   const [medicosActuales, setMedicosActuales] = useState([]);
+  const [fechaFiltro, setFechaFiltro] = useState("2026-03-16"); // Fecha actual por defecto
+
 //  const { entidad, user } = useAuth();
 
   // --- ESTADO DE CACHÉ Y DATOS ---
@@ -55,23 +110,8 @@ export default function CitaV2({  direccionClinica = "Sede Central" , onLogout }
     idCitaBloqueada:0
   });
 
-
   const [misCitas, setMisCitas] = useState([]);
   const [misPagos, setMisPagos] = useState([]);
-  // --- MOCK DE LAS 5 APIS ---
-  const ejecutarAPI = async (nombre, params) => {
-    setCargando(true);
-    await new Promise(resolve => setTimeout(resolve, 800)); // Simular latencia y paginación
-    setCargando(false);
-
-    switch(nombre) {
-      case "obtenerProgramacionMedicaHorasService":
-        return ["09:00 AM", "10:30 AM", "03:00 PM", "04:30 PM"];
-      case "GuardarCitaService":
-        return { success: true };
-      default: return [];
-    }
-  };
 
   // 1. CARGAR ESPECIALIDADES (Al entrar a Citas)
   useEffect(() => {
@@ -99,16 +139,41 @@ export default function CitaV2({  direccionClinica = "Sede Central" , onLogout }
     cargar();
   }, [cache.especialidades.length]);
 
-  // 2. SELECCIONAR ESPECIALIDAD -> CARGAR MÉDICOS
-     const seleccionarEspecialidad = async (espec) => {
+
+  useEffect(() => {
+    if (user?.id) {
+      obtenerCitas(user.id, fechaFiltro);
+    }
+  }, [user?.id]); // Solo se ejecuta al cargar el componente
+
+  const manejarClickMisCitas = () => {
+    setPestanaActual('citas');
+    setModoReserva(false);
+    obtenerCitas(user.id, fechaFiltro); // <--- Refresca la variable
+  };
+
+  const obtenerCitas = async (idPaciente, fecha) => {
+    setCargando(true);
+    try {
+      const data = await citaService.getCitaPacienteListarPendientes(19, '2026-03-13');
+      console.log("DATA "+JSON.stringify(data))
+      setMisCitas(data);
+    } catch (error) {
+      console.error("Error al traer citas:", error);
+    } finally {
+      setCargando(false);
+    }
+  };
+
+  const  seleccionarEspecialidad = async (espec) => {
         setDatosReserva(prev => ({ ...prev, especialidad: espec, doctor: null }));
         const data = await   MedicoService.obtenerTodosEspecialidad(espec.idEspecialidad)
         const dataListaMedicosParaUI = transformarMedicos(data);
         setMedicosActuales(dataListaMedicosParaUI);
         setPasoActual(2);
-      };
+  };
 
-     const seleccionarMedico = async (med) => { // 1. Hacemos la función principal async
+  const seleccionarMedico = async (med) => { // 1. Hacemos la función principal async
         // 2. Obtenemos los datos directamente del médico seleccionado (med) y la especialidad actual
 
         const medId = med.id;
@@ -133,9 +198,9 @@ export default function CitaV2({  direccionClinica = "Sede Central" , onLogout }
           const { mes, anio } = datosReserva.fechaObjeto;
           obtenerProgramacionMedicaMes(mes+1,anio,espId,medId, 1)      
         }
-      };
+  };
 
-    const obtenerProgramacionMedicaMes = async (mes,anio,idEspecialidad,idMedico) =>{
+  const obtenerProgramacionMedicaMes = async (mes,anio,idEspecialidad,idMedico) =>{
           setCargando(true);
           try {
             // Nota: Asegúrate de enviar mes+1 y anio si tu API lo requiere
@@ -152,7 +217,7 @@ export default function CitaV2({  direccionClinica = "Sede Central" , onLogout }
           } finally {
             setCargando(false);
           }
-    }  
+  }  
 
     const seleccionarDia = async (dia) => {
       const { mes, anio } = datosReserva.fechaObjeto;
@@ -172,38 +237,15 @@ export default function CitaV2({  direccionClinica = "Sede Central" , onLogout }
         hora:''
       }));
       
-
+/*
         const data = await ejecutarAPI("obtenerProgramacionMedicaHorasService", { 
           medId: datosReserva.doctor.id, 
           fechay: datosReserva.fechaYYYYMMDD 
         });
 //          fecha: `${anio}-${String(mes+1).padStart(2,'0')}-${String(dia).padStart(2,'0')}` 
-        console.log("DATA DE TURNOS O CUPOS  "+data)
+        console.log("DATA DE TURNOS O CUPOS  "+data)*/
     };
 
-    // 5. GUARDAR CITA
-    const finalizarReserva = async () => {
-      const res = await ejecutarAPI("GuardarCitaService", datosReserva);
-      alert(JSON.stringify(res)) 
-      if (res.success) {
-        const idCita = `CTA-${Math.floor(Math.random() * 10000)}`;
-        const nuevaCita = { ...datosReserva, id: idCita };
-        setMisCitas([nuevaCita, ...misCitas]);
-        
-        const nuevoPago = {
-          id: `TRX-${Math.floor(Math.random() * 999999)}`,
-          idCita: idCita,
-          fecha: new Date().toLocaleDateString(),
-          monto: datosReserva.especialidad.precio,
-          concepto: `Cita: ${datosReserva.especialidad.nombre}`,
-          metodo: 'Visa **** 4242',
-          estado: 'Completado'
-        };
-
-        setMisPagos([nuevoPago, ...misPagos]);
-        setMostrarExito(true);
-      }
-    };
 
     const reiniciarFlujo = () => {
       setModoReserva(false);
@@ -317,6 +359,14 @@ export default function CitaV2({  direccionClinica = "Sede Central" , onLogout }
       }
     };
 
+  const manejarAtras = () => {
+    if (pasoActual > 1) {
+      setPasoActual(pasoActual - 1);
+    } else {
+      setModoReserva(false);
+    }
+  };    
+
   return (
     <div className="container-fluid p-0 pb-5 mb-5">
       <style>{ESTILOS_CSS}</style>
@@ -337,6 +387,171 @@ export default function CitaV2({  direccionClinica = "Sede Central" , onLogout }
         
         {/* --- VISTA INICIO --- */}
         {pestanaActual === 'inicio' && (
+          <InicioDashboard 
+            perfil={perfil}
+            entidad={entidad}
+            misCitas={misCitas}
+            direccionClinica={direccionClinica}
+            onNuevaCita={() => { 
+              setPestanaActual('citas'); 
+              setModoReserva(true); 
+              setPasoActual(1); 
+            }}
+            onIrAPagos={() => setPestanaActual('pagos')}
+          />
+        )}
+        {/* --- VISTA CITAS --- */}
+        {pestanaActual === 'citas' && (
+          <div className="fade-in px-3 pt-4">
+            {!modoReserva ? (
+              <ListaMisCitas 
+                misCitas={misCitas} 
+                onNuevaCita={() => { setModoReserva(true); setPasoActual(1); }} 
+              />
+            ) : (
+              <div className="flujo-reserva">
+                {mostrarExito ? (
+                  <ExitoReserva 
+                    entidad={entidad} 
+                    onReiniciar={reiniciarFlujo} 
+                    onIrAPagos={() => { setMostrarExito(false); setModoReserva(false); setPestanaActual('pagos'); }} 
+                  />
+                ) : (
+                  <>
+                    <HeaderPasos pasoActual={pasoActual} onAtras={manejarAtras} />
+                    
+                    {cargando && <LoaderCargando />}
+
+                    <div className={cargando ? 'opacity-25' : ''}>
+                      {pasoActual === 1 && (
+                        <Paso1Especialidad 
+                          especialidades={cache.especialidades} 
+                          onSeleccionar={seleccionarEspecialidad} 
+                        />
+                      )}
+
+                      {pasoActual === 2 && (
+                        <Paso2Medico 
+                          medicos={medicosActuales} 
+                          onSeleccionar={seleccionarMedico} 
+                        />
+                      )}
+
+                      {pasoActual === 3 && (
+                        <Paso3Horario 
+                          datosReserva={datosReserva}
+                          programacionMensual={programacionMensual}
+                          cambiarMes={cambiarMes}
+                          seleccionarDia={seleccionarDia}
+                          handleHoraSeleccionada={handleHoraSeleccionada}
+                          cargando={cargando}
+                          onSiguiente={() => setPasoActual(4)}
+                          onAtras={() => setPasoActual(2)}
+                        />
+                      )}
+
+                      {pasoActual === 4 && (
+                        <Paso4Confirmacion 
+                          datosReserva={datosReserva} 
+                          onFinalizar={reiniciarFlujo}
+                          onPagarTarde={() => { setPestanaActual('pagos'); setModoReserva(false); }}
+                        />
+                      )}
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* --- VISTA PAGOS --- */}
+          {pestanaActual === 'pagos' && (
+            <div className="fade-in">
+                {/* LLAMADA AL COMPONENTE QUE LISTA LAS CITAS SEPARADAS */}
+                <CitaSeparada datosReserva={datosReserva}/> 
+            </div>          
+          )}
+      </main>
+
+      {/* NAVEGACIÓN INFERIOR (Mantenida idéntica) */}
+      <footer className="fixed-bottom bg-white border-top py-3 nav-difuminado" style={{zIndex: 1000}}>
+        <div className="d-flex justify-content-around align-items-center">
+          {[
+            { id: 'inicio', icono: Home, etiqueta: 'Inicio' },
+            { id: 'citas', icono: Calendar, etiqueta: 'Citas' },
+            { id: 'pagos', icono: CreditCard, etiqueta: 'Pagos' }
+          ].map(item => (
+            <div 
+              key={item.id} 
+              onClick={() => {
+                  setPestanaActual(item.id);
+                  setModoReserva(false);
+                  if (item.id === 'citas') {
+                    obtenerCitas(user.id, fechaFiltro);
+                  }                  
+              }}
+              className={`d-flex flex-column align-items-center cursor-pointer transition-all ${pestanaActual === item.id ? 'text-primary' : 'text-secondary opacity-50'}`}
+              style={{flex: 1}}
+            >
+              <item.icono size={22} className="mb-1" />
+              <span className="fw-bold" style={{fontSize: '10px'}}>{item.etiqueta}</span>
+            </div>
+          ))}
+        </div>
+      </footer>
+    </div>
+  );
+}
+
+
+
+
+
+
+/*
+    // 5. GUARDAR CITA
+    const finalizarReserva = async () => {
+      /*const res = await ejecutarAPI("GuardarCitaService", datosReserva);
+      if (res.success) {
+        const idCita = `CTA-${Math.floor(Math.random() * 10000)}`;
+        const nuevaCita = { ...datosReserva, id: idCita };
+        setMisCitas([nuevaCita, ...misCitas]);
+        
+        const nuevoPago = {
+          id: `TRX-${Math.floor(Math.random() * 999999)}`,
+          idCita: idCita,
+          fecha: new Date().toLocaleDateString(),
+          monto: datosReserva.especialidad.precio,
+          concepto: `Cita: ${datosReserva.especialidad.nombre}`,
+          metodo: 'Visa **** 4242',
+          estado: 'Completado'
+        };
+
+        setMisPagos([nuevoPago, ...misPagos]);
+        setMostrarExito(true);
+      }
+    };
+*/
+
+  // --- MOCK DE LAS 5 APIS ---
+  /*const ejecutarAPI = async (nombre, params) => {
+    setCargando(true);
+    await new Promise(resolve => setTimeout(resolve, 800)); // Simular latencia y paginación
+    setCargando(false);
+
+    switch(nombre) {
+      case "obtenerProgramacionMedicaHorasService":
+        return ["09:00 AM", "10:30 AM", "03:00 PM", "04:30 PM"];
+      case "GuardarCitaService":
+        return { success: true };
+      default: return [];
+    }
+  };*/
+
+  /**
+   * 
+           {pestanaActual === 'inicio' && (
           <div className="fade-in px-3 pt-4">
             <div className="card border-0 bg-primary text-white p-4 shadow-lg mb-4" style={{borderRadius: '28px'}}>
               <h5 className="fw-bold mb-1">¡Hola,{perfil.usuarioNombres}</h5>
@@ -402,19 +617,27 @@ export default function CitaV2({  direccionClinica = "Sede Central" , onLogout }
           </div>
         )}
 
-        {/* --- VISTA CITAS --- */}
+   */
+
+
+        /**
+         * 
+         * 
+
         {pestanaActual === 'citas' && (
           <div className="fade-in px-3 pt-4">
             {!modoReserva ? (
               <div className="d-flex flex-column gap-3">
                 <h5 className="fw-bold">Mis Citas</h5>
+                {console.log(JSON.stringify(misCitas.length)) }
                 {misCitas.length > 0 ? (
                   misCitas.map(cita => (
                     <div key={cita.id} className="tarjeta-personalizada bg-white p-4 shadow-sm border-start border-primary border-4">
                       <div className="d-flex justify-content-between mb-2">
                         <div>
-                          <p className="fw-bold mb-0">{cita.especialidad.nombre}</p>
-                          <p className="text-secondary small mb-0">{cita.doctor.nombre}</p>
+                          <p className="fw-bold mb-0">{cita.servicioNombre}</p>
+                          <p className="text-secondary small mb-0">{cita.nombres}</p>
+
                         </div>
                         <div className="bg-primary bg-opacity-10 text-primary p-2 rounded-3 h-fit">
                           <Calendar size={18} />
@@ -423,7 +646,7 @@ export default function CitaV2({  direccionClinica = "Sede Central" , onLogout }
                       <div className="pt-3 border-top d-flex justify-content-between align-items-center">
                         <div>
                            <span className="text-uppercase text-secondary fw-bold d-block" style={{fontSize: '10px'}}>{cita.fecha}</span>
-                           <span className="fw-bold text-dark" style={{fontSize: '12px'}}>{cita.hora}</span>
+                           <span className="fw-bold text-dark" style={{fontSize: '12px'}}>{cita.horaInicio}</span>
                         </div>
                         <span className="etiqueta-pago bg-success bg-opacity-10 text-success">Confirmado</span>
                       </div>
@@ -432,7 +655,7 @@ export default function CitaV2({  direccionClinica = "Sede Central" , onLogout }
                 ) : (
                   <div className="text-center py-5 text-secondary opacity-50">
                     <Calendar size={48} className="mb-3" />
-                    <p>No tienes citas programadas</p>
+                    <p>No tienes {misCitas.length} citas programadas </p>
                   </div>
                 )}
                 <button onClick={() => { setModoReserva(true); setPasoActual(1); }} className="btn btn-primary p-3 rounded-4 fw-bold shadow-sm d-flex align-items-center justify-content-center gap-2 mt-2">
@@ -460,10 +683,10 @@ export default function CitaV2({  direccionClinica = "Sede Central" , onLogout }
                         <ChevronLeft size={20} />
                       </button>
                       <div>
-                        <p className="mb-0 text-primary fw-bold text-uppercase" style={{fontSize: '9px', letterSpacing: '1px'}}>Paso {pasoActual} de 4</p>
-                        <h6 className="fw-bold mb-0 text-black">
+                        <p className="mb-0 text-primary fw-bold text-uppercase" style={{fontSize: '16px', letterSpacing: '1px'}}>Paso {pasoActual} de 4</p>
+                        <h6 className="fw-bold mb-0 text-black ">
                           {pasoActual === 1 && "Selecciona Especialidad"}
-                          {pasoActual === 2 && "Selecciona Especialista"}
+                          {pasoActual === 2 && "Selecciona Medico"}
                           {pasoActual === 3 && "Fecha y Hora"}
                           {pasoActual === 4 && "Confirmación de Pago"}
                         </h6>
@@ -476,8 +699,7 @@ export default function CitaV2({  direccionClinica = "Sede Central" , onLogout }
                       </div>
                     )}
                     <div className={`d-flex flex-column gap-2 ${cargando ? 'opacity-25' : ''}`}>
-                      {/* PASO 1: ESPECIALIDADES (API 1) */}
-                      {pasoActual === 1 && cache.especialidades.map(espec => (
+      //                {pasoActual === 1 && cache.especialidades.map(espec => (
                         <div key={espec.idEspecialidad} 
                               onClick={() => seleccionarEspecialidad(espec)} 
                               className="tarjeta-personalizada bg-white p-4 shadow-sm d-flex align-items-center gap-3 cursor-pointer">
@@ -493,8 +715,7 @@ export default function CitaV2({  direccionClinica = "Sede Central" , onLogout }
                         </div>
                       ))}
 
-                      {/* PASO 2: MÉDICOS (API 2) */}
-                      {pasoActual === 2 && (medicosActuales || []).map(doctor => (
+    //                  {pasoActual === 2 && (medicosActuales || []).map(doctor => (
                         <div key={doctor.id} onClick={() => seleccionarMedico(doctor)} className="tarjeta-personalizada bg-white p-3 shadow-sm d-flex align-items-center gap-3 cursor-pointer">
                           <div className="bg-light rounded-circle p-2 text-secondary"><User size={24} /></div>
                           <div className="flex-grow-1">
@@ -504,15 +725,13 @@ export default function CitaV2({  direccionClinica = "Sede Central" , onLogout }
                           <ChevronRight size={18} className="text-light" />
                         </div>
                       ))}
-                      {pasoActual === 3 && (
+  //                    {pasoActual === 3 && (
                         <div className="fade-in">
-                          {/* Título de sección */}
                           <div className="mb-4">
                             <h5 className="fw-bold mb-1">Selecciona Fecha y Hora</h5>
                             <p className="text-muted small">Los días marcados con un reloj tienen disponibilidad.</p>
                           </div>
                           <div className="row g-4">
-                            {/* COLUMNA IZQUIERDA: El Calendario */}
                             <div className="col-12 col-lg-7">
                               <CalendarioReserva 
                                 fechaObjeto={datosReserva.fechaObjeto}
@@ -531,9 +750,7 @@ export default function CitaV2({  direccionClinica = "Sede Central" , onLogout }
                                   onHoraSeleccionada={handleHoraSeleccionada}
                                 />
                           </div>
-                            {/* COLUMNA DERECHA: Selector de Horas (Se activa al elegir un día) */}
                           </div>
-                          {/* Botón de navegación inferior */}
                           <div className="mt-4 d-flex justify-content-between">
                             <button className="btn btn-light px-4" onClick={() => setPasoActual(2)}>Atrás</button>
                             <button 
@@ -548,7 +765,6 @@ export default function CitaV2({  direccionClinica = "Sede Central" , onLogout }
                       )}
 
 
-                      {/* PASO 4: CONFIRMACIÓN Y PAGO (API 5) */}
                       {pasoActual === 4 && (
                         <FinalizarReserva 
                           datosReserva={datosReserva} 
@@ -566,38 +782,5 @@ export default function CitaV2({  direccionClinica = "Sede Central" , onLogout }
             )}
           </div>
         )}
-
-        {/* --- VISTA PAGOS --- */}
-          {pestanaActual === 'pagos' && (
-            <div className="fade-in">
-                {/* LLAMADA AL COMPONENTE QUE LISTA LAS CITAS SEPARADAS */}
-                <CitaSeparada datosReserva={datosReserva}/> 
-            </div>          
-          )}
-      </main>
-
-      {/* NAVEGACIÓN INFERIOR (Mantenida idéntica) */}
-      <footer className="fixed-bottom bg-white border-top py-3 nav-difuminado" style={{zIndex: 1000}}>
-        <div className="d-flex justify-content-around align-items-center">
-          {[
-            { id: 'inicio', icono: Home, etiqueta: 'Inicio' },
-            { id: 'citas', icono: Calendar, etiqueta: 'Citas' },
-            { id: 'pagos', icono: CreditCard, etiqueta: 'Pagos' }
-          ].map(item => (
-            <div 
-              key={item.id} 
-              onClick={() => {setPestanaActual(item.id); setModoReserva(false);}}
-              className={`d-flex flex-column align-items-center cursor-pointer transition-all ${pestanaActual === item.id ? 'text-primary' : 'text-secondary opacity-50'}`}
-              style={{flex: 1}}
-            >
-              <item.icono size={22} className="mb-1" />
-              <span className="fw-bold" style={{fontSize: '10px'}}>{item.etiqueta}</span>
-            </div>
-          ))}
-        </div>
-      </footer>
-    </div>
-  );
-}
-
-
+        
+         */

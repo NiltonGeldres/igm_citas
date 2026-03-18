@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Form, Row, Col, Button, Card, InputGroup } from 'react-bootstrap';
 import { FaHashtag, FaCalendarAlt, FaUser, FaPhone, FaEnvelope, FaUniversity } from 'react-icons/fa';
 import PagoVirtualService from './PagoVirtualService';
-import FormatDate from '../Maestros/FormatDate';
 import Swal from 'sweetalert2';
-import { useAuth } from  "../context/AuthContext"
+import { useAuth } from '../../shared/context/AuthContext';
+import FormatDate from '../../shared/utils/FormatDate';
 
 function PagoVirtual({
     idCitaSeparada,

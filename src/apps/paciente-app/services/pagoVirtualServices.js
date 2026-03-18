@@ -1,7 +1,5 @@
-import FormatDate from "../../shared/utils/FormatDate";
-import header from "../../shared/utils/Header";
+import header from "../../../shared/utils/Header";
 import axios from "axios";
-//const API_URL = "http://192.168.0.200:8080";
 const API_URL = process.env.REACT_APP_URL_API;
 const API_PAGO_VIRTUAL= "/citaSeparadaPagoVirtualCrear";
 
@@ -42,29 +40,9 @@ const setPagoVirtualCrear = (
 };
 
 
-const PagoVirtualService = {
+const pagoVirtualService = {
     setPagoVirtualCrear
 };
 
-export default PagoVirtualService;
+export default pagoVirtualService;
 
-
-/**
- * 
-     console.log('FORMDATA   '+nroOperacion)
-    console.log('DATOS ENVIAR'+ 
-      idCitaSeparada
-      +'- '+fecha
-      +'- '+nroOperacion
-      +'- '+correo
-      +'- '+celular
-      +'- '+precioUnitario
-      +'- '+idTipoOperacion
-      +'- '+origenNombre
-      +'- '+destino
-      +'- '+entidadDestino
-      +'- '+usuario
-         
-    ) 
- 
- */
