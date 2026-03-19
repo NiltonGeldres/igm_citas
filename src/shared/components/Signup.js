@@ -3,7 +3,10 @@ import { useSearchParams, useNavigate } from "react-router-dom";
 import AuthService from "../../master-data/services/auth.service";
 import EntidadService from "../../master-data/services/EntidadService";
 import Swal from "sweetalert2";
-import { User, Mail, Lock, Phone, IdCard, Building2, ArrowRight, Loader2, CheckCircle } from "lucide-react";
+import { 
+    User, Mail, Lock, Phone, IdCard, Building2, 
+    Loader2, CheckCircle, Search, X, CheckCircle2 
+} from "lucide-react";
 import "../../shared/components/Signup.css";
 
 const Signup = () => {
@@ -11,6 +14,8 @@ const Signup = () => {
     const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
     const [entidad, setEntidad] = useState(null);
+    const [sugerencias, setSugerencias] = useState([]);
+    const [mostrarSugerencias, setMostrarSugerencias] = useState(false);
 
     const [formData, setFormData] = useState({
         username: "",
@@ -27,6 +32,7 @@ const Signup = () => {
         codigoEntidad: searchParams.get("cod") || ""
     });
 
+    // DETECCIÓN DE CONTEXTO AL CARGAR
     useEffect(() => {
         if (formData.codigoEntidad) {
             handleValidarEntidad(formData.codigoEntidad);
@@ -38,10 +44,33 @@ const Signup = () => {
         try {
             const res = await EntidadService.getEntidadByCodigo(codigo);
             setEntidad(res.data);
+            setMostrarSugerencias(false);
         } catch (error) {
             setEntidad(null);
-            console.error("Código de centro médico no válido");
+            console.error("Código no válido");
         }
+    };
+
+    const handleBuscarEntidades = async (texto) => {
+        setFormData(prev => ({ ...prev, codigoEntidad: texto }));
+        if (texto.length < 3) {
+            setSugerencias([]);
+            setMostrarSugerencias(false);
+            return;
+        }
+        try {
+            const res = await EntidadService.obtenerEntidadesporNombre(texto); 
+            setSugerencias(res.data);
+            setMostrarSugerencias(true);
+        } catch (error) {
+            console.error("Error buscando clínicas");
+        }
+    };
+
+    const seleccionarEntidad = (ent) => {
+        setEntidad(ent);
+        setFormData(prev => ({ ...prev, codigoEntidad: ent.codigo }));
+        setMostrarSugerencias(false);
     };
 
     const handleChange = (e) => {
@@ -52,7 +81,7 @@ const Signup = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (!entidad) {
-            return Swal.fire("Atención", "Es obligatorio ingresar un código de clínica válido.", "warning");
+            return Swal.fire("Atención", "Es obligatorio seleccionar una clínica válida.", "warning");
         }
 
         setLoading(true);
@@ -65,135 +94,162 @@ const Signup = () => {
             Swal.fire({
                 icon: 'success',
                 title: '¡Cuenta creada!',
-                text: `Bienvenido a ${entidad.nombre}. Ahora puedes iniciar sesión.`,
-                confirmButtonColor: '#007bff'
+                text: `Bienvenido a ${entidad.nombre}.`,
+                confirmButtonColor: '#0078f5'
             });
             navigate("/login");
         } catch (error) {
-            Swal.fire("Error", "No se pudo completar el registro. Verifica los datos.", "error");
+            Swal.fire("Error", "No se pudo completar el registro.", "error");
         } finally {
             setLoading(false);
         }
     };
 
- return (
-    <div className="auth-page">
-        <div className="signup-card">
-            <div className="auth-header text-center">
-                {entidad?.logoUrl ? (
-                    <img src={entidad.logoUrl} alt="Logo Empresa" className="entidad-logo" />
-                ) : (
-                    <div className="default-icon" style={{color: '#007bff'}}><Building2 size={40} /></div>
-                )}
-                <h2 className="fw-bold mt-3">Registro de Usuario</h2>
-                <p className="text-muted small">
-                    {entidad ? `Sede: ${entidad.nombre}` : "Ingresa el código de clínica para activar el registro"}
-                </p>
-            </div>
-
-            <form onSubmit={handleSubmit} className="mt-4">
+    return (
+        <div className="auth-page">
+            <div className="signup-card">
                 
-                {/* SECCIÓN SEDE: El botón depende de que esto sea válido */}
-                <div className="form-group mb-4">
-                    <label className="label-title">Centro Médico / Clínica</label>
-                    <div className={`input-box ${entidad ? 'is-valid' : ''}`}>
-                        <Building2 className="icon" size={18} />
-                        <input
-                            name="codigoEntidad"
-                            placeholder="Ej: SAN-PABLO"
-                            value={formData.codigoEntidad}
-                            onChange={handleChange}
-                            onBlur={(e) => handleValidarEntidad(e.target.value)}
-                            required
-                        />
-                        {entidad && <CheckCircle className="icon-valid" size={18} />}
+                {/* Header Adaptativo */}
+                <div className="auth-header-blue">
+                    <h2 className="fw-bold m-0" style={{fontSize: '1.25rem'}}>Registro de Paciente</h2>
+                    <p className="m-0" style={{fontSize: '0.8rem', opacity: 0.8}}>
+                        {entidad ? `Sede: ${entidad.nombre}` : "MediFlow Cloud"}
+                    </p>
+                </div>
+
+                <form onSubmit={handleSubmit} className="auth-form-body">
+                    
+                    {/* SECCIÓN DE ENTIDAD INTELIGENTE */}
+                    <div className="form-group mb-4">
+                        <label className="list-title">Centro Médico de Atención</label>
+                        
+                        {entidad ? (
+                            /* ESTADO ENLAZADO: Muestra Mini-Tarjeta */
+                            <div className="entity-selected-card animate__animated animate__fadeIn">
+                                <div className="entity-info">
+                                    <div className="entity-icon-bg">
+                                        <Building2 size={20} color="#0078f5" />
+                                    </div>
+                                    <div>
+                                        <div className="entity-name">{entidad.nombre}</div>
+                                        <div className="entity-badge"><CheckCircle2 size={10} /> Sede Verificada</div>
+                                    </div>
+                                </div>
+                                <button 
+                                    type="button" 
+                                    className="btn-change-entity" 
+                                    onClick={() => { setEntidad(null); setFormData(p => ({...p, codigoEntidad: ""})); }}
+                                >
+                                    Cambiar
+                                </button>
+                            </div>
+                        ) : (
+                            /* ESTADO LIBRE: Buscador con Sugerencias */
+                            <div className="position-relative">
+                                <div className="mediflow-search-box">
+                                    <Search className="search-icon" size={18} />
+                                    <input
+                                        name="codigoEntidad"
+                                        placeholder="Escribe el nombre de tu clínica..."
+                                        value={formData.codigoEntidad}
+                                        autoComplete="off"
+                                        onChange={(e) => handleBuscarEntidades(e.target.value)}
+                                        required
+                                    />
+                                </div>
+                                
+                                {mostrarSugerencias && sugerencias.length > 0 && (
+                                    <div className="sugerencias-container shadow-lg">
+                                        {sugerencias.map((ent) => (
+                                            <div key={ent.id} className="sugerencia-item" onClick={() => seleccionarEntidad(ent)}>
+                                                <Building2 size={14} className="me-2 text-primary" />
+                                                <div>
+                                                    <div className="sugerencia-nombre">{ent.nombre}</div>
+                                                    <div className="sugerencia-codigo text-uppercase">{ent.codigo}</div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        )}
                     </div>
-                    {!entidad && formData.codigoEntidad.length > 0 && (
-                        <small className="text-danger">Código no encontrado. El botón permanecerá desactivado.</small>
-                    )}
-                </div>
 
-                <div className="divider"><span>Datos Personales</span></div>
+                    {/* Formulario bloqueado hasta elegir entidad */}
+                    <div className={!entidad ? "form-content-disabled" : "form-content-active"}>
+                        
+                        <div className="divider"><span>Identificación</span></div>
 
-                {/* CAMPO DNI Y CELULAR */}
-                <div className="form-grid">
-                    <div className="input-box">
-                        <IdCard className="icon" size={18} />
-                        <input 
-                            name="numeroDocumento" 
-                            type="text"
-                            maxLength={12}
-                            placeholder="Nro. de DNI / CE" 
-                            onChange={handleChange} 
-                            required 
-                        />
+                        {/* Fila DNI: Especial para móvil (siempre 2 columnas pequeñas) */}
+                        <div className="dni-grid mb-3">
+                            <select name="idTipoDocumento" className="select-simple" onChange={handleChange} disabled={!entidad}>
+                                <option value="1">DNI</option>
+                                <option value="2">C.E.</option>
+                            </select>
+                            <div className="input-box">
+                                <IdCard className="icon" size={18} />
+                                <input name="numeroDocumento" placeholder="Número" onChange={handleChange} required disabled={!entidad} />
+                            </div>
+                        </div>
+
+                        {/* Resto de campos: 1 col en móvil, 2 en desktop vía CSS Grid */}
+                        <div className="responsive-grid">
+                            <div className="input-box">
+                                <Phone className="icon" size={18} />
+                                <input name="numeroCelular" placeholder="Celular" onChange={handleChange} required disabled={!entidad} />
+                            </div>
+                            <select name="idSexo" className="select-simple" onChange={handleChange} disabled={!entidad}>
+                                <option value="1">Masculino</option>
+                                <option value="2">Femenino</option>
+                            </select>
+                        </div>
+
+                        <div className="responsive-grid">
+                            <input name="primerNombre" placeholder="Primer Nombre" className="input-simple" onChange={handleChange} required disabled={!entidad} />
+                            <input name="segundoNombre" placeholder="Segundo Nombre" className="input-simple" onChange={handleChange} disabled={!entidad} />
+                        </div>
+
+                        <div className="responsive-grid">
+                            <input name="apellidoPaterno" placeholder="Ap. Paterno" className="input-simple" onChange={handleChange} required disabled={!entidad} />
+                            <input name="apellidoMaterno" placeholder="Ap. Materno" className="input-simple" onChange={handleChange} required disabled={!entidad} />
+                        </div>
+
+                        <div className="divider"><span>Seguridad</span></div>
+
+                        <div className="input-box mb-3">
+                            <Mail className="icon" size={18} />
+                            <input name="email" type="email" placeholder="Correo Electrónico" className="input-simple" onChange={handleChange} required disabled={!entidad} />
+                        </div>
+
+                        <div className="responsive-grid">
+                            <div className="input-box">
+                                <User className="icon" size={18} />
+                                <input name="username" placeholder="Usuario" className="input-simple" onChange={handleChange} required disabled={!entidad} />
+                            </div>
+                            <div className="input-box">
+                                <Lock className="icon" size={18} />
+                                <input name="password" type="password" placeholder="Contraseña" className="input-simple" onChange={handleChange} required disabled={!entidad} />
+                            </div>
+                        </div>
+
+                        <button 
+                            type="submit" 
+                            className="btn-submit mt-4" 
+                            disabled={loading || !entidad}
+                        >
+                            {loading ? <Loader2 className="spinner" size={20} /> : "CREAR MI CUENTA"}
+                        </button>
+
+                        {!entidad && (
+                            <p className="text-center mt-3 text-danger small fw-bold">
+                                * Selecciona una clínica para continuar
+                            </p>
+                        )}
                     </div>
-                    <div className="input-box">
-                        <Phone className="icon" size={18} />
-                        <input 
-                            name="numeroCelular" 
-                            type="text"
-                            maxLength={9}
-                            placeholder="Celular" 
-                            onChange={handleChange} 
-                            required 
-                        />
-                    </div>
-                </div>
-
-                {/* NOMBRES Y APELLIDOS */}
-                <div className="form-grid">
-                    <input name="primerNombre" placeholder="Primer Nombre" className="input-simple" onChange={handleChange} required />
-                    <input name="segundoNombre" placeholder="Segundo Nombre" className="input-simple" onChange={handleChange} />
-                </div>
-
-                <div className="form-grid">
-                    <input name="apellidoPaterno" placeholder="Ap. Paterno" className="input-simple" onChange={handleChange} required />
-                    <input name="apellidoMaterno" placeholder="Ap. Materno" className="input-simple" onChange={handleChange} required />
-                </div>
-
-                <div className="form-grid">
-                    <select name="idSexo" className="select-simple" onChange={handleChange}>
-                        <option value="1">Masculino</option>
-                        <option value="2">Femenino</option>
-                    </select>
-                    <select name="idTipoDocumento" className="select-simple" onChange={handleChange}>
-                        <option value="1">DNI</option>
-                        <option value="2">C.E.</option>
-                    </select>
-                </div>
-
-                <div className="divider"><span>Seguridad de Cuenta</span></div>
-
-                <div className="input-box mb-3">
-                    <User className="icon" size={18} />
-                    <input name="username" placeholder="Usuario" className="input-account" onChange={handleChange} required />
-                </div>
-                <div className="input-box mb-3">
-                    <Mail className="icon" size={18} />
-                    <input name="email" type="email" placeholder="Correo" className="input-account" onChange={handleChange} required />
-                </div>
-                <div className="input-box mb-4">
-                    <Lock className="icon" size={18} />
-                    <input name="password" type="password" placeholder="Contraseña" className="input-account" onChange={handleChange} required />
-                </div>
-
-                {/* BOTÓN: Se activa solo si 'entidad' existe y no está cargando */}
-                <button 
-                    type="submit" 
-                    className="btn-submit" 
-                    disabled={loading || !entidad}
-                >
-                    {loading ? (
-                        <Loader2 className="spinner" />
-                    ) : (
-                        <>CREAR MI CUENTA <ArrowRight size={20} /></>
-                    )}
-                </button>
-            </form>
+                </form>
+            </div>
         </div>
-    </div>
-);
+    );
 };
 
 export default Signup;
