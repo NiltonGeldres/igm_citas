@@ -3,7 +3,10 @@ import { useAuth } from "./components/context/AuthContext";
 import { BaseHeader } from "./shared/components/layout/BaseHeader";
 import { MedicoRouter } from "./apps/medicos-app/routes/MedicoRouter";
 import Login from "./components/Login/Login";
-import Signup from "./components/Login/Signup";
+//import Signup from "./components/Login/Signup";
+import Signup from "./shared/components/Signup";
+
+
 //import CitaV2 from "./components/Cita/CitaV2";
 import AuthService from "./master-data/services/auth.service";
 import { useState } from "react";
@@ -73,8 +76,3 @@ export default App;
 
 
  
-//         {/* 3. MUNDO MÉDICO: El MedicoRouter ya incluye el Layout con el BaseHeader completo */}
-//        <Route path="/pac/*" element={
-//          user?.rol === 'Usuarios' ? <PacienteoRouter onLogout={logOut}/> : <Navigate to="/login" replace />
-//        } />
-//          user?.rol === 'Usuarios' ? <CitaV2 onLogout={logOut}/> : <Navigate to="/login" replace />

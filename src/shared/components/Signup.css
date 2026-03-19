@@ -1,0 +1,166 @@
+/* --- Signup.css --- */
+:root {
+  --mf-blue: #007bff;
+  --mf-bg: #f4f7fe;
+  --mf-text: #2d3436;
+  --mf-muted: #718096;
+}
+
+.auth-page {
+    background-color: var(--mf-bg);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    font-family: 'Inter', sans-serif;
+}
+
+.signup-card {
+    background: white;
+    width: 100%;
+    max-width: 580px;
+    padding: 2.5rem;
+    border-radius: 20px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+    transition: all 0.3s ease;
+}
+
+/* Títulos de Sección */
+.divider {
+    display: flex;
+    align-items: center;
+    text-align: center;
+    margin: 2rem 0 1rem 0;
+}
+
+.divider::before, .divider::after {
+    content: '';
+    flex: 1;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.divider span {
+    padding: 0 15px;
+    color: var(--mf-muted);
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* Grillas Responsivas (Móvil primero) */
+.form-grid {
+    display: grid;
+    grid-template-columns: 1fr; /* 1 columna en móvil */
+    gap: 12px;
+    margin-bottom: 12px;
+    width: 100%;
+}
+
+@media (min-width: 520px) {
+    .form-grid {
+        grid-template-columns: 1fr 1fr; /* 2 columnas en escritorio/tablet */
+        gap: 15px;
+    }
+}
+
+/* Inputs y Cajas */
+.input-box {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+
+.input-box .icon {
+    position: absolute;
+    left: 15px;
+    color: #a0aec0;
+    z-index: 5;
+}
+
+.input-box input, .input-simple, .select-simple {
+    width: 100%;
+    padding: 12px 15px 12px 45px;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 12px;
+    font-size: 0.95rem;
+    transition: all 0.2s;
+    background: white;
+    box-sizing: border-box;
+}
+
+.input-simple, .select-simple {
+    padding-left: 15px;
+}
+
+/* Estilo especial para la sección de Cuenta (Azul MediFlow suave) */
+.input-account {
+    background-color: #f0f7ff !important;
+    border-color: #d0e1f9 !important;
+}
+
+.input-account:focus {
+    background-color: #ffffff !important;
+}
+
+/* Validaciones */
+.input-box.is-valid input {
+    border-color: #38a169;
+    background-color: #f0fff4;
+}
+
+.icon-valid {
+    position: absolute;
+    right: 15px;
+    color: #38a169;
+}
+
+/* Botón MediFlow */
+.btn-submit {
+    width: 100%;
+    background: var(--mf-blue);
+    color: white;
+    padding: 14px;
+    border: none;
+    border-radius: 12px;
+    font-weight: 700;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    transition: 0.3s;
+    margin-top: 10px;
+}
+
+.btn-submit:hover:not(:disabled) {
+    background: #0062cc;
+    transform: translateY(-1px);
+}
+
+.btn-submit:disabled {
+    background: #cbd5e0;
+    cursor: not-allowed;
+}
+
+.entidad-logo {
+    height: 45px;
+    max-width: 200px;
+    object-fit: contain;
+}
+
+.spinner { animation: spin 1s linear infinite; }
+@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+/* Ajustes finales para pantallas muy pequeñas */
+@media (max-width: 480px) {
+    .signup-card {
+        padding: 1.5rem;
+    }
+    .auth-page {
+        padding: 10px;
+        align-items: flex-start;
+    }
+}

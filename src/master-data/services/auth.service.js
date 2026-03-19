@@ -85,21 +85,12 @@ const login = (user, password) => {
 
 const logout = () => {
     sessionStorage.removeItem('user');
-    // Eliminar TODOS los ítems de sessionStorage relacionados con el usuario
     sessionStorage.removeItem('username'); // Username guardado aparte
     sessionStorage.removeItem('authority'); // Autoridad/rol guardado aparte
     sessionStorage.removeItem('user'); // Objeto de usuario con el token
     sessionStorage.removeItem('user_profile'); // Objeto de perfil completo
-//    sessionStorage.removeItem('nombres'); // Nombres completos
-//    sessionStorage.removeItem('idusuario'); // ID de usuario
-//    sessionStorage.removeItem('userProfile'); // Objeto de perfil completo
-    // Si usas localStorage para algo, también deberías limpiarlo aquí
-    // localStorage.removeItem('someOtherUserSetting');
-
-
 }
 
-// AuthService.js o un archivo similar
 export const getContextoActual = () => {
     const profile = JSON.parse(sessionStorage.getItem('user_profile'));
     if (!profile) return null;

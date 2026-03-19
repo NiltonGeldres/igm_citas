@@ -12,7 +12,7 @@ import AuthService from '../../../master-data/services/auth.service';
 //import citaService from '../services/citaServices';
 import CitaSeparada from '../../../feactures/CitaSeparada/CitaSeparada';
 import CitaService from '../../../feactures/Cita/CitaService';
-
+import citaService from "../../paciente-app/services/citaServices"
 import { transformarEspecialidades } from '../mapper/CitaEspecialidad';
 import { transformarMedicos } from '../mapper/CitaMedicoUI';
 import { transformarProgramacion } from '../mapper/CitaProgramacionMedicaUI';
@@ -27,7 +27,7 @@ import { Paso3Horario } from '../components/reserva/Paso3Horario';
 import { ListaMisCitas } from '../components/reserva/ListaMisCitas';
 import { Paso4Confirmacion } from '../components/reserva/Paso4Confirmacion';
 
-//import "../../paciente-app/styles/paciente-app.css"
+import "../../paciente-app/styles/paciente-app.css"
 
 let timerInterval;
 
@@ -110,6 +110,7 @@ export default function PacientePage({  direccionClinica = "Sede Central" , onLo
     fechaYYYYMMDD: '', 
     hora: '' ,
     idCitaBloqueada:0
+    
   });
 
   const [misCitas, setMisCitas] = useState([]);
@@ -157,7 +158,7 @@ export default function PacientePage({  direccionClinica = "Sede Central" , onLo
   const obtenerCitas = async (idPaciente, fecha) => {
     setCargando(true);
     try {
-      const data = await CitaService.getCitaPacienteListarPendientes(19, '2026-03-13');
+      const data = await citaService.getCitaPacienteListarPendientes(19, fecha);
       console.log("DATA "+JSON.stringify(data))
       setMisCitas(data);
     } catch (error) {
@@ -258,36 +259,19 @@ export default function PacientePage({  direccionClinica = "Sede Central" , onLo
     };
 
     const cambiarMes = (direccion) => { // direccion será 1 o -1
-      
-      // 1. Obtenemos el mes y año que el usuario está viendo actualmente
       const mesActual = datosReserva.fechaObjeto.mes; 
       const anioActual = datosReserva.fechaObjeto.anio;
-
-      // 2. Creamos una fecha temporal basada en lo que vemos
       const fechaTemporal = new Date(anioActual, mesActual, 1);
-
-      // 3. AQUÍ es donde ocurre el aumento o reducción:
-      // Si direccion es 1:  mesActual + 1 (Avanza)
-      // Si direccion es -1: mesActual - 1 (Retrocede)
       fechaTemporal.setMonth(fechaTemporal.getMonth() + direccion);
-
-      // JavaScript es inteligente: 
-      // Si estás en Diciembre (mes 11) y sumas 1, automáticamente cambia el año a 2027 y el mes a 0 (Enero).
       const nuevoMesIndice = fechaTemporal.getMonth(); 
       const nuevoAnio = fechaTemporal.getFullYear();
-
-      // 4. Actualizamos el estado para que la interfaz cambie
       setDatosReserva(prev => ({
         ...prev,
         fechaObjeto: { ...prev.fechaObjeto, mes: nuevoMesIndice, anio: nuevoAnio, dia: null }
       }));
-
-      // 5. Llamamos a la API con el mes corregido (+1)
       const medId = datosReserva.doctor?.id;
       const espId = datosReserva.especialidad?.idEspecialidad;
-      
       if (medId && espId) {
-        // IMPORTANTE: nuevoMesIndice + 1 porque la API no entiende de 0 a 11, sino de 1 a 12
         obtenerProgramacionMedicaMes(nuevoMesIndice + 1, nuevoAnio, espId, medId, 10);
       }
     };
@@ -295,12 +279,8 @@ export default function PacientePage({  direccionClinica = "Sede Central" , onLo
     const handleHoraSeleccionada = async (hora, idProg, idServ) => {
       console.log("handleHoraSeleccionada " +hora+"  "+idProg+"  "+ idServ)
       try {
-        console.log("handleHoraSeleccionada resp " )
         const respBloqueo = await CitaService.getCitaBloquear(hora, datosReserva.fechaYYYYMMDD, datosReserva.doctor.id);        
-      console.log("handleHoraSeleccionada resp " +respBloqueo)
         const idBloqueo = respBloqueo.data.idCitaBloqueada;
-        
-        // 2. Mostrar confirmación con Timer
         Swal.fire({
           title: '¿Confirmar horario?',
           html: `Has seleccionado las <b>${hora}</b>.<br/>Confirma en <b>60</b> segundos.`,
@@ -318,19 +298,6 @@ export default function PacientePage({  direccionClinica = "Sede Central" , onLo
           willClose: () => clearInterval(timerInterval)
         }).then(async (result) => {
           if (result.isConfirmed) {
-
-            console.log(
-                datosReserva.fechaYYYYMMDD 
-                +' ' + hora 
-                +' ' + hora
-                +'  ' + 0
-                +'    ' +datosReserva.doctor?.id
-                +'   ' +datosReserva.especialidad?.idEspecialidad
-                +'   ' +idServ
-                +'   ' +idProg
-                +'   ' +0
-                +'   ' + datosReserva.doctor?.montoFormateado
-          )
               await CitaSeparadaService.getCitaSeparadaCrear(
                 datosReserva.fechaYYYYMMDD, 
                 hora, 
@@ -343,7 +310,6 @@ export default function PacientePage({  direccionClinica = "Sede Central" , onLo
                 0, 
                 datosReserva.doctor?.monto
               );
-            // Proceder al siguiente paso o guardar
             setDatosReserva(prev => ({ 
                     ...prev, 
                     hora: hora, 

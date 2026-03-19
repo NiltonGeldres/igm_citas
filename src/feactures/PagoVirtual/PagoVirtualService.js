@@ -18,6 +18,16 @@ const setPagoVirtualCrear = (
     ,destino
    ,entidadDestino
 ) => {
+   console.log(idCitaSeparada
+    +"-"+fecha
+    +"-"+nroOperacion
+    +"-"+correo
+    +"-"+celular
+    +"-"+precioUnitario
+    +"-"+idTipoOperacion
+    +"-"+origenNombre
+    +"-"+destino
+   +"-"+entidadDestino)  
    return axios.post(API_URL+API_PAGO_VIRTUAL
     ,{ 
         idCitaSeparada: idCitaSeparada

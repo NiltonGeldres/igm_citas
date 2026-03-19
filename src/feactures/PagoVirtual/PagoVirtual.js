@@ -3,7 +3,6 @@ import { Form, Row, Col, Button, Card, InputGroup } from 'react-bootstrap';
 import { FaHashtag, FaCalendarAlt, FaUser, FaPhone, FaEnvelope, FaUniversity } from 'react-icons/fa';
 import PagoVirtualService from './PagoVirtualService';
 import Swal from 'sweetalert2';
-import { useAuth } from '../../shared/context/AuthContext';
 import FormatDate from '../../shared/utils/FormatDate';
 
 function PagoVirtual({
@@ -15,8 +14,8 @@ function PagoVirtual({
     celular,
     nombreEntidad }) {
 
-// Lo pides al contexto directamente
-  const { entidad, user } = useAuth();
+
+      
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     idCitaSeparada,
@@ -24,11 +23,11 @@ function PagoVirtual({
     nroOperacion: '',
     correo: email || '',
     celular: celular || '',
-    precioUnitario,
+    precioUnitario: precioUnitario || 0,
     idTipoOperacion: '1',
     origenNombre: '',
-    destino: entidad?.nombre || 'CENTRO ',
-    entidadDestino: "1" // Default Yape
+    destino: nombreDestino || '',
+    entidadDestino: nombreDestino || "" // Default Yape
   });
 
   const handleChange = (e) => {
@@ -42,9 +41,6 @@ function PagoVirtual({
     if (!formData.nroOperacion || !formData.origenNombre) {
       return Swal.fire("Campos incompletos", "Por favor llena todos los datos del voucher", "warning");
     }
-
-
-    
     setLoading(true);
     try {
       const fechaEnviar = FormatDate.format_yyyymmdd(new Date(formData.fecha));
@@ -132,7 +128,7 @@ function PagoVirtual({
 
         <Col md={6}>
           <Form.Group>
-            <Form.Label className="small fw-bold"><FaPhone /> Celular de Origen</Form.Label>
+            <Form.Label className="small fw-bold"><FaPhone /> Celular de Origen de Pago</Form.Label>
             <Form.Control name="celular" value={formData.celular} onChange={handleChange} required />
           </Form.Group>
         </Col>

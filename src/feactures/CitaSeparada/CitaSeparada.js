@@ -49,14 +49,15 @@ useEffect(() => {
   };
 
   const abrirPago = (cita) => {
+    console.log(JSON.stringify(cita))
     setPagoSeleccionado({
-      idProgramacion: cita.idProgramacion,
-      horaInicio: cita.horaInicio,
-      idCitaSeparada: cita.idCitaSeparada,
-      precioUnitario: cita.precioUnitario,
-      nombreDestino: datosReserva?.nombreEntidad,
-      email: usuarioData?.email,
-      celular: usuarioData?.numero_celular
+      idProgramacion: cita.idProgramacion, 
+      horaInicio: cita.horaInicio, 
+      idCitaSeparada: cita.idCitaSeparada, 
+      precioUnitario: cita.precioUnitario, //Precio
+      nombreDestino: cita.destino_cuenta, //Nombre Entidad destino
+      email: usuarioData?.email, //correo confirmacion
+      celular: usuarioData?.numero_celular //celular de origen
     });
     setShowModal(true);
   };
@@ -191,3 +192,27 @@ useEffect(() => {
 };
 
 export default CitaSeparada;
+
+
+/*﻿
+CitaSeparada.js:52 
+{ "idCitaSeparada":299,
+  "idProgramacion":2925,
+  "horaInicio":"08:00",
+  "precioUnitario":80,
+  "fecha":"20260304",
+  "horaFin":"08:00",
+  "idPaciente":0,
+  "idMedico":1762,
+  "idEspecialidad":9,
+  "idServicio":1,
+  "idProducto":0,
+  "fechaSolicitud":"1773810000000",
+  "horaSolicitud":"18:47",
+  "tipoUsuario":"WEB       ",
+  "fechaSeparacion":"1773810000000",
+  "nombreMedico":"Acuña Jimenez Mayra Selenne",
+  "nombreEspecialidad":"MEDICINA INTERNA",
+  "nombreServicio":"Medicina 1",
+  "idCita":0}
+    */
