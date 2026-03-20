@@ -5,7 +5,7 @@ import EntidadService from "../../master-data/services/EntidadService";
 import Swal from "sweetalert2";
 import { 
     User, Mail, Lock, Phone, IdCard, Building2, 
-    Loader2, CheckCircle, Search, X, CheckCircle2 
+    Loader2, Search, CheckCircle2 
 } from "lucide-react";
 import "../../shared/components/Signup.css";
 
@@ -14,7 +14,7 @@ const Signup = () => {
     const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
     const [entidad, setEntidad] = useState(null);
-    const [sugerencias, setSugerencias] = useState([]);
+    const [sugerencias, setSugerencias] = useState([]); // Siempre inicializado como array
     const [mostrarSugerencias, setMostrarSugerencias] = useState(false);
 
     const [formData, setFormData] = useState({
@@ -32,7 +32,7 @@ const Signup = () => {
         codigoEntidad: searchParams.get("cod") || ""
     });
 
-    // DETECCIÓN DE CONTEXTO AL CARGAR
+    // 1. CARGA INICIAL (QR o Link con código)
     useEffect(() => {
         if (formData.codigoEntidad) {
             handleValidarEntidad(formData.codigoEntidad);
@@ -43,27 +43,39 @@ const Signup = () => {
         if (!codigo) return;
         try {
             const res = await EntidadService.getEntidadByCodigo(codigo);
-            setEntidad(res.data);
-            setMostrarSugerencias(false);
+            // Aseguramos que tomamos la data correctamente
+            const data = res.data || res; 
+            if (data) {
+                setEntidad(data);
+                setMostrarSugerencias(false);
+            }
         } catch (error) {
-            setEntidad(null);
             console.error("Código no válido");
         }
     };
 
+    // 2. BUSCADOR DINÁMICO
     const handleBuscarEntidades = async (texto) => {
         setFormData(prev => ({ ...prev, codigoEntidad: texto }));
+        
         if (texto.length < 3) {
             setSugerencias([]);
             setMostrarSugerencias(false);
             return;
         }
+
         try {
-            const res = await EntidadService.obtenerEntidadesporNombre(texto); 
-            setSugerencias(res.data);
-            setMostrarSugerencias(true);
+            const res = await EntidadService.obtenerEntidadesPorNombre(texto); 
+            console.log(JSON.stringify(res))
+            // IMPORTANTE: Si tu Service ya devuelve la data transformada, res es el array.
+            // Si no, usa res.data. Aquí usamos un fallback seguro:
+            const lista = Array.isArray(res) ? res : (res.data || []);
+            
+            setSugerencias(lista);
+            setMostrarSugerencias(lista.length > 0);
         } catch (error) {
-            console.error("Error buscando clínicas");
+            console.error("Error buscando clínicas", error);
+            setSugerencias([]);
         }
     };
 
@@ -81,14 +93,14 @@ const Signup = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (!entidad) {
-            return Swal.fire("Atención", "Es obligatorio seleccionar una clínica válida.", "warning");
+            return Swal.fire("Atención", "Es obligatorio seleccionar una clínica.", "warning");
         }
 
         setLoading(true);
         try {
             await AuthService.signup({
                 ...formData,
-                idEntidad: entidad.id
+                idEntidad: entidad.idEntidad // CORRECCIÓN: Usar idEntidad, no id
             });
 
             Swal.fire({
@@ -108,8 +120,6 @@ const Signup = () => {
     return (
         <div className="auth-page">
             <div className="signup-card">
-                
-                {/* Header Adaptativo */}
                 <div className="auth-header-blue">
                     <h2 className="fw-bold m-0" style={{fontSize: '1.25rem'}}>Registro de Paciente</h2>
                     <p className="m-0" style={{fontSize: '0.8rem', opacity: 0.8}}>
@@ -118,13 +128,10 @@ const Signup = () => {
                 </div>
 
                 <form onSubmit={handleSubmit} className="auth-form-body">
-                    
-                    {/* SECCIÓN DE ENTIDAD INTELIGENTE */}
                     <div className="form-group mb-4">
                         <label className="list-title">Centro Médico de Atención</label>
                         
                         {entidad ? (
-                            /* ESTADO ENLAZADO: Muestra Mini-Tarjeta */
                             <div className="entity-selected-card animate__animated animate__fadeIn">
                                 <div className="entity-info">
                                     <div className="entity-icon-bg">
@@ -144,7 +151,6 @@ const Signup = () => {
                                 </button>
                             </div>
                         ) : (
-                            /* ESTADO LIBRE: Buscador con Sugerencias */
                             <div className="position-relative">
                                 <div className="mediflow-search-box">
                                     <Search className="search-icon" size={18} />
@@ -158,14 +164,15 @@ const Signup = () => {
                                     />
                                 </div>
                                 
-                                {mostrarSugerencias && sugerencias.length > 0 && (
-                                    <div className="sugerencias-container shadow-lg">
+                                {/* ELIMINACIÓN DE ERROR DE LENGTH */}
+                                {mostrarSugerencias && sugerencias?.length > 0 && (
+                                    <div className="sugerencias-container shadow-lg" style={{ zIndex: 100, background: 'white', position: 'absolute', width: '100%' }}>
                                         {sugerencias.map((ent) => (
-                                            <div key={ent.id} className="sugerencia-item" onClick={() => seleccionarEntidad(ent)}>
+                                            <div key={ent.idEntidad} className="sugerencia-item" onClick={() => seleccionarEntidad(ent)}>
                                                 <Building2 size={14} className="me-2 text-primary" />
                                                 <div>
                                                     <div className="sugerencia-nombre">{ent.nombre}</div>
-                                                    <div className="sugerencia-codigo text-uppercase">{ent.codigo}</div>
+                                                    <div className="sugerencia-codigo text-uppercase" style={{fontSize: '0.7rem'}}>{ent.codigo}</div>
                                                 </div>
                                             </div>
                                         ))}
@@ -175,12 +182,9 @@ const Signup = () => {
                         )}
                     </div>
 
-                    {/* Formulario bloqueado hasta elegir entidad */}
+                    {/* Sección de inputs (Solo activa si hay entidad) */}
                     <div className={!entidad ? "form-content-disabled" : "form-content-active"}>
-                        
                         <div className="divider"><span>Identificación</span></div>
-
-                        {/* Fila DNI: Especial para móvil (siempre 2 columnas pequeñas) */}
                         <div className="dni-grid mb-3">
                             <select name="idTipoDocumento" className="select-simple" onChange={handleChange} disabled={!entidad}>
                                 <option value="1">DNI</option>
@@ -192,7 +196,6 @@ const Signup = () => {
                             </div>
                         </div>
 
-                        {/* Resto de campos: 1 col en móvil, 2 en desktop vía CSS Grid */}
                         <div className="responsive-grid">
                             <div className="input-box">
                                 <Phone className="icon" size={18} />
@@ -215,7 +218,6 @@ const Signup = () => {
                         </div>
 
                         <div className="divider"><span>Seguridad</span></div>
-
                         <div className="input-box mb-3">
                             <Mail className="icon" size={18} />
                             <input name="email" type="email" placeholder="Correo Electrónico" className="input-simple" onChange={handleChange} required disabled={!entidad} />
@@ -232,19 +234,9 @@ const Signup = () => {
                             </div>
                         </div>
 
-                        <button 
-                            type="submit" 
-                            className="btn-submit mt-4" 
-                            disabled={loading || !entidad}
-                        >
+                        <button type="submit" className="btn-submit mt-4" disabled={loading || !entidad}>
                             {loading ? <Loader2 className="spinner" size={20} /> : "CREAR MI CUENTA"}
                         </button>
-
-                        {!entidad && (
-                            <p className="text-center mt-3 text-danger small fw-bold">
-                                * Selecciona una clínica para continuar
-                            </p>
-                        )}
                     </div>
                 </form>
             </div>

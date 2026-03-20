@@ -275,3 +275,48 @@
     .entity-selected-card { flex-direction: column; gap: 10px; text-align: center; }
     .entity-info { flex-direction: column; }
 }
+
+/* Este es el contenedor que "ancla" la lista */
+.position-relative {
+    position: relative !important;
+}
+
+.sugerencias-container {
+    position: absolute;
+    top: 100%; /* Se pega al borde inferior del input */
+    left: 0;
+    right: 0;
+    background-color: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 0 0 8px 8px; /* Redondeado solo abajo */
+    box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+    z-index: 9999; /* Super importante para que no lo tapen los inputs de abajo */
+    max-height: 250px;
+    overflow-y: auto;
+    margin-top: 2px; /* Pequeña separación del input */
+}
+
+.sugerencia-item {
+    padding: 10px 15px;
+    display: flex;
+    align-items: center;
+    border-bottom: 1px solid #f5f5f5;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.sugerencia-item:hover {
+    background-color: #f0f7ff;
+}
+
+.sugerencia-nombre {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #333;
+}
+
+.sugerencia-codigo {
+    font-size: 0.75rem;
+    color: #666;
+    text-transform: uppercase;
+}

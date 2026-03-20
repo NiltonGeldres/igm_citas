@@ -8,6 +8,11 @@ export let ENTIDAD =  {
     }
 ;
 
+ export const mapearEntidadRequest = (nombre) => {
+  return {
+    nombre: nombre
+  };
+};
 
 export const obtenerEntidad = () => ENTIDAD;
 
@@ -32,4 +37,29 @@ const obtenerColorPorIndice = (i) => {
         'bg-dark text-white'
     ];
     return colores[i % colores.length];
+};
+
+
+export const transformarEntidades = (apiData) => {
+  // 1. Si apiData es null, undefined, un string vacío o no es un array, retornamos []
+  if (!apiData || !Array.isArray(apiData) || apiData.length === 0) {
+    return [];
+  }
+
+  return apiData.map((entidad) => {
+    // Si la entidad por alguna razón es nula dentro del array
+    if (!entidad) return null;
+
+    return {
+      // Data original para no perder campos extra
+      ...entidad,
+      // Mapeo con valores por defecto (null-safety)
+      idEntidad:      entidad.idEntidad || 0,
+      nombre:         entidad.nombre || "Sin Nombre",
+      direccion:      entidad.direccion || "Dirección no disponible",
+      nombreDistrito: entidad.nombreDistrito || "N/A",
+      codigo:         entidad.codigo || "",
+      logoUrl:        entidad.logoUrl || null,
+    };
+  }).filter(item => item !== null); // Limpiamos posibles nulos
 };
