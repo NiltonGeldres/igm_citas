@@ -34,7 +34,9 @@ const obtenerColorPorIndice = (i) => {
         'bg-success text-white', 
         'bg-warning text-dark', 
         'bg-info text-dark', 
+        'bg-info text-dark', 
         'bg-dark text-white'
+        
     ];
     return colores[i % colores.length];
 };
