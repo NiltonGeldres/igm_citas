@@ -45,14 +45,7 @@ const obtenerEntidadesPorNombre = async (nombre) => {
 };
 
 
-const obtenerEntidadesPorNombre1 = (nombre) => {
-console.log(nombre)
-  return axios.get(API_URL+SERVICE_ENTIDAD_POR_NOMBRE
-       ,{nombre: nombre}
-      ).catch(function (error) {
-        console.log(error.toJSON());
-      });
-};
+
 
 const getTodos = () => {
     return axios.post(API_URL+SERVICE

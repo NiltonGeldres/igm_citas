@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import  { useState, useEffect } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import AuthService from "../../master-data/services/auth.service";
 import EntidadService from "../../master-data/services/EntidadService";
@@ -21,15 +21,21 @@ const Signup = () => {
         username: "",
         password: "",
         email: "",
-        primerNombre: "",
-        segundoNombre: "",
         apellidoPaterno: "",
         apellidoMaterno: "",
+        primerNombre: "",
+        segundoNombre: "",
         numeroCelular: "",
-        idSexo: "1",
-        idTipoDocumento: "1",
+        idSexo: 1,
+        idTipoDocumento: 1,
         numeroDocumento: "",
-        codigoEntidad: searchParams.get("cod") || ""
+        fechaAlta: "",
+        fechaBaja:"",
+        fechaModificacion:"",
+        estado: "A",
+        idEntidad: searchParams.get("cod") || "",
+        idReferenciaRol : 1
+
     });
 
     // 1. CARGA INICIAL (QR o Link con código)
@@ -98,9 +104,8 @@ const Signup = () => {
 
         setLoading(true);
         try {
-            await AuthService.signup({
-                ...formData,
-                idEntidad: entidad.idEntidad // CORRECCIÓN: Usar idEntidad, no id
+            await AuthService.usuarioCrear({
+                ...formData
             });
 
             Swal.fire({
@@ -111,7 +116,11 @@ const Signup = () => {
             });
             navigate("/login");
         } catch (error) {
-            Swal.fire("Error", "No se pudo completar el registro.", "error");
+           const datosError = error.response.data; 
+           const mensajeServidor = datosError.username; 
+
+            Swal.fire(mensajeServidor, "error");
+//            Swal.fire("Error", "No se pudo completar el registro.", "error");
         } finally {
             setLoading(false);
         }

@@ -2,12 +2,60 @@ import header from "../../components/Security/Header";
 import { React} from "react";
 import axios from "axios";
 import { jwtDecode } from "jwt-decode";
+import { mapearUsuarioRequest } from "../mappers/UsuarioMapper";
+import { transformarUsuarios } from "../mappers/UsuarioMapper";
+import Swal from "sweetalert2";
+
 
 const API_URL = process.env.REACT_APP_URL_API;
 const LOGIN = "/auth";
 const SIGNUP = "/signin";
+const USUARIO_CREAR = "/signin";
 const GETUSUARIO = "/getUsuarioUsername";
 const UPDATEUSUARIO = "/updateUsuario";
+
+
+
+const ejecutarAPI = async (endpoint, params = {}) => {
+//    console.log("Ingreso"+endpoint+JSON.stringify(params))
+    try {
+
+
+       const response = await axios.post(API_URL + endpoint, params, { 
+             // Aquí van los tokens/auth
+            // Si necesitas enviar query params (URL?id=1), usa: params: { ... }
+        });
+
+        console.log("data api :", JSON.stringify(response.data));
+        const rawData = response.data ;
+        return transformarUsuarios(rawData);
+        } catch (error) {
+            if (error.response) {
+                // 1. Aquí capturas el objeto UsuarioResponse que enviaste en el body
+                const datosError = error.response.data; 
+                
+                console.log("Status:", error.response.status); // 409
+                console.log("Cuerpo del error:", datosError); // Aquí verás el JSON completo
+                
+                // 2. Accedes al campo donde guardaste el mensaje (username o mensaje)
+                const mensajeServidor = datosError.username; 
+                //alert("Atención: " + mensajeServidor); 
+                //Swal.fire("Error"+mensajeServidor, "Cuenta","error");                
+
+            } else {
+                console.log("Error de red o sin respuesta");
+            }
+            throw error; 
+        }
+};
+
+
+const usuarioCrear = async (usuario) => {
+  //  console.log(JSON.stringify(usuario))
+    const params = mapearUsuarioRequest(usuario);
+    return await ejecutarAPI(USUARIO_CREAR, params);
+};
+
 
 const signup = (
      username ,
@@ -163,17 +211,8 @@ const AuthService = {
     getCurrentAuthority,
     getContextoActual,
     leerPerfil,
+    usuarioCrear
 };
 
 export default AuthService;
 
-
-                
-//                sessionStorage.setItem('user',  JSON.stringify(response.data)) ;
-//                sessionStorage.setItem('username',  user) ;    
-
-
-/**
- * 
- 
- */
