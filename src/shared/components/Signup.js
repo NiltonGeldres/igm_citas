@@ -120,6 +120,7 @@ const Signup = () => {
            const mensajeServidor = datosError.username; 
 
             Swal.fire(mensajeServidor, "error");
+            Swal.fire(mensajeServidor, "error");
 //            Swal.fire("Error", "No se pudo completar el registro.", "error");
         } finally {
             setLoading(false);
