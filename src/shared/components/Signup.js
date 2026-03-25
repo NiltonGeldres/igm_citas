@@ -87,7 +87,7 @@ const Signup = () => {
 
     const seleccionarEntidad = (ent) => {
         setEntidad(ent);
-        setFormData(prev => ({ ...prev, codigoEntidad: ent.codigo }));
+        setFormData(prev => ({ ...prev, idEntidad: ent.idEntidad }));
         setMostrarSugerencias(false);
     };
 
@@ -101,7 +101,6 @@ const Signup = () => {
         if (!entidad) {
             return Swal.fire("Atención", "Es obligatorio seleccionar una clínica.", "warning");
         }
-
         setLoading(true);
         try {
             await AuthService.usuarioCrear({
@@ -155,7 +154,7 @@ const Signup = () => {
                                 <button 
                                     type="button" 
                                     className="btn-change-entity" 
-                                    onClick={() => { setEntidad(null); setFormData(p => ({...p, codigoEntidad: ""})); }}
+                                    onClick={() => { setEntidad(null); setFormData(p => ({...p, idEntidad: ""})); }}
                                 >
                                     Cambiar
                                 </button>

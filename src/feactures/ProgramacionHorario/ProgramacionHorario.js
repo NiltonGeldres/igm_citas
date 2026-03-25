@@ -57,7 +57,7 @@ export default function ProgramacionHorario() {
             // Datos del Login (JWT)
             idEntidad: perfil?.idEntidad,
             idMedico: perfil?.idMedico,
-            usuarioNombres: perfil?.username,
+            usuario: perfil?.username,
             
             // Datos de la Selección Actual (Tus componentes independientes)
             idEspecialidad: idEspecialidad,
