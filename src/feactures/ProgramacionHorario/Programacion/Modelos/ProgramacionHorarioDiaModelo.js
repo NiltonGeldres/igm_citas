@@ -89,6 +89,7 @@ export const modelarCrearProgramacion = (datosContexto, listaDiasActualizada) =>
     return {
         fecha: datosContexto.fechaActualFormateada, // Ej: "11022026"
         idEspecialidad: String(datosContexto.idEspecialidad || ""),
+        tiempoPromedioAtencion: datosContexto.tiempoPromedioAtencion || 5,
         idServicio: String(datosContexto.idServicio || "1"),
         codigoServicio: String(datosContexto.codigoServicio || ""),
         idMedico: String(datosContexto.idMedico || ""),

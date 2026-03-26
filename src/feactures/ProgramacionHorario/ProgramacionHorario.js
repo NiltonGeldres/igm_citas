@@ -35,6 +35,7 @@ export default function ProgramacionHorario() {
   //  const [descripcionEntidad, setDescipcionEntidad] = useState(""); 
     const [idEspecialidad, setIdEspecialidad] = useState(''); 
     const [descripcionEspecialidad, setDescripcionEspecialidad] = useState(""); 
+    const [tiempoPromedioAtencion, setTiempoPromedioAtencion] = useState(""); 
     const [idServicio, setIdServicio] = useState(""); 
     const [descripcionServicio, setDescripcionServicio] = useState(""); 
 
@@ -62,6 +63,7 @@ export default function ProgramacionHorario() {
             // Datos de la Selección Actual (Tus componentes independientes)
             idEspecialidad: idEspecialidad,
             nombreEspecialidad: descripcionEspecialidad,
+            tiempoPromedioAtencion: tiempoPromedioAtencion,
             idServicio: idServicio,
             nombreServicio: descripcionServicio,
             
@@ -134,7 +136,6 @@ export default function ProgramacionHorario() {
                 cargarProgramacionCompleta();
             }
     }, [contexto.idMedico, contexto.idEspecialidad,  contexto.mes, cargarProgramacionCompleta]);
-//    }, [contexto.idMedico, contexto.idEspecialidad, contexto.idServicio, contexto.mes, cargarProgramacionCompleta]);
 
     //...............................................................................
     // Guardado de datos
@@ -144,7 +145,7 @@ export default function ProgramacionHorario() {
 
         try {
             const fuenteDeDatos = horarioActualizado || horarioCalendario;
-            console.log("fuenteDeDatos  :  "+JSON.stringify(fuenteDeDatos))
+//            console.log("fuenteDeDatos  :  "+JSON.stringify(fuenteDeDatos))
             
             // Mapeamos usando la "foto" de los datos originales
             const diasConTurnos = datosOriginalesBackend.map(dia => {
@@ -182,7 +183,6 @@ export default function ProgramacionHorario() {
         }
         // Agregamos 'contexto' porque si cambias de médico, la función debe renovarse
     }, [horarioCalendario, datosOriginalesBackend, cargarProgramacionCompleta, contexto]);
-
 
     const irMesAnterior = useCallback(() => {
         setFechaActual(prev => {
@@ -233,14 +233,8 @@ export default function ProgramacionHorario() {
 
     const aplicarProgramacionMasiva = useCallback(() => {
         if (diasMasivosSeleccionados.length === 0 || turnosMasivosSeleccionados.length === 0) return;
-        //const nuevoHorario = { ...horarioCalendario };
-        //const turnosAAplicar = turnosMasivosSeleccionados.length === 0 ? ['libre'] : turnosMasivosSeleccionados;
-        //diasMasivosSeleccionados.forEach(clave => { nuevoHorario[clave] = turnosAAplicar; });
-
-        //---ultima modificacion------------//
         const nuevoHorario = { ...horarioCalendario };
         const turnoId = turnosMasivosSeleccionados[0] || 'libre';
-
         diasMasivosSeleccionados.forEach(clave => { 
             nuevoHorario[clave] = {
                 idTurno: turnoId,
@@ -319,7 +313,6 @@ export default function ProgramacionHorario() {
     const handleEspecialidadChange = (id, texto) => {
             setIdEspecialidad(id);
             setDescripcionEspecialidad(texto || "");
-                
             // Resetear el servicio para que el usuario deba elegir uno nuevo
             setIdServicio(""); 
             setDescripcionServicio("");
@@ -352,7 +345,8 @@ export default function ProgramacionHorario() {
                         <div className='mb-1' style={{width:400}}>
                             <Especialidad
                                 valueEspecialidad={(val) => handleEspecialidadChange(val, null)}
-                                textEspecialidad={(txt) => setDescripcionEspecialidad(txt)}                                />
+                                textEspecialidad={(txt) => setDescripcionEspecialidad(txt)}                                
+                                tiempoPromedioAtencion={(tiempo) => setTiempoPromedioAtencion(tiempo)}/>
                         </div>           
                 
                     </div>

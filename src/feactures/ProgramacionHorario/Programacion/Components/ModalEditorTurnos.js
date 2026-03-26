@@ -70,22 +70,9 @@ const ModalEditorTurnos = ({ estaAbierto, claveDia, alCerrar, horario, setHorari
                 idServicio: servicioIdLocal 
             } 
         };
-
         setHorario(nuevoHorario);
         if (alGuardar) alGuardar(nuevoHorario); 
         alCerrar()
-
-        /*if (!claveDia) return; // Supervivencia: si no hay clave, no guardes nada
-        const idsFinales = idsTurnosSeleccionados.length > 0 ? idsTurnosSeleccionados : ['libre'];
-
-        // 1. Actualizamos el mapa visual { "2026-02-12": ["1"] }
-        const nuevoHorario = { ...horario, [claveDia]: idsFinales };
-        setHorario(nuevoHorario);
-        
-        // 2. Notificamos al padre (si existe la prop alGuardar)
-        if (alGuardar) alGuardar(nuevoHorario); 
-        
-        alCerrar();*/
     };
 
     

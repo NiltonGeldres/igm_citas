@@ -13,7 +13,7 @@ import {
   useToast,    // Para notificaciones
 } from "@chakra-ui/react";
 
-const Especialidad = ({ valueEspecialidad, textEspecialidad }) => {
+const Especialidad = ({ valueEspecialidad, textEspecialidad , setTiempoPromedioAtencion}) => {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
@@ -26,6 +26,7 @@ const Especialidad = ({ valueEspecialidad, textEspecialidad }) => {
         // Asumiendo que EspecialidadService.getXUsuario() es la llamada correcta
         const response = await EspecialidadService.getXUsuario(); 
         if (response && response.data && response.data.especialidad) {
+          console.log("ESPECIALIDADES:  "+response.data.especialidad)
           setPosts(response.data.especialidad);
         } else {
           setPosts([]); // Asegurarse de que sea un array vacío si no hay datos
@@ -64,10 +65,35 @@ const Especialidad = ({ valueEspecialidad, textEspecialidad }) => {
 
   // Función para manejar el cambio de selección
   const handleSelectChange = (e) => {
-    const selectedValue = e.target.value;
-    const selectedText = e.target.options[e.target.selectedIndex].text;
-    valueEspecialidad(selectedValue); // Pasa el ID de la especialidad al padre
-    textEspecialidad(selectedText);   // Pasa la descripción al padre
+      const selectedId = e.target.value;
+//      const selectedValue = e.target.value;
+//    const selectedText = e.target.options[e.target.selectedIndex].text;
+//    const selectedTiempoPromedioAtencion = e.target.options[e.target.selectedIndex].text;
+//    valueEspecialidad(selectedValue); // Pasa el ID de la especialidad al padre
+//    textEspecialidad(selectedText);   // Pasa la descripción al padre
+
+      // Buscamos el objeto completo en nuestra lista 'posts' usando el ID seleccionado
+        const especialidadSeleccionada = posts.find(
+          (p) => String(p.idEspecialidad) === String(selectedId)
+        );
+
+        if (especialidadSeleccionada) {
+          // Enviamos los 3 datos al padre
+          valueEspecialidad(especialidadSeleccionada.idEspecialidad);
+          textEspecialidad(especialidadSeleccionada.descripcionEspecialidad);
+          
+          // Enviamos el tiempo de atención (asegúrate que el nombre en la prop sea el mismo que en el componente padre)
+          if (setTiempoPromedioAtencion) {
+            setTiempoPromedioAtencion(especialidadSeleccionada.tiempoPromedioAtencion);
+          }
+        } else {
+          // Limpiar si selecciona la opción por defecto
+          valueEspecialidad("");
+          textEspecialidad("");
+          if (setTiempoPromedioAtencion) setTiempoPromedioAtencion(0);
+        }
+     
+
   };
 
   if (loading) {
