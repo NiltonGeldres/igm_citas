@@ -93,6 +93,6 @@ export const modelarCrearProgramacion = (datosContexto, listaDiasActualizada) =>
         codigoServicio: String(datosContexto.codigoServicio || ""),
         idMedico: String(datosContexto.idMedico || ""),
         programacion: programacionLimpia, // La lista de días
-        usuario: datosContexto.usuario || "macuna"
+        usuario: datosContexto.usuario || ""
     };
 };
