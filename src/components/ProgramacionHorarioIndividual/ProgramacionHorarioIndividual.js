@@ -1,3 +1,5 @@
+/*
+
 import  { useState, useCallback, useMemo, useEffect, Box} from 'react';
 import { Icono } from "../ProgramacionHorarioIndividual/Programacion/Components/Icono.js";
 import BarraFiltros from "../ProgramacionHorarioIndividual/Programacion/Components/BarraFiltros.js";
@@ -324,10 +326,6 @@ export default function ProgramacionHorarioIndividual() {
                 
             // Opcional: Limpiar el calendario visualmente hasta que elijan el nuevo servicio
             setHorarioCalendario({});        
-        /*setIdEspecialidad(id);
-        if (texto) setDescripcionEspecialidad(texto);
-            setIdServicio(null); 
-            setDescripcionServicio("");*/
     }
     
     const listoParaProgramar = idEspecialidad ;
@@ -449,5 +447,5 @@ export default function ProgramacionHorarioIndividual() {
     );
 };
 
-
+*/
 

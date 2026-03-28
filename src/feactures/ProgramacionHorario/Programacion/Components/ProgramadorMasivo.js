@@ -16,7 +16,7 @@ const ProgramadorMasivo = ({
                             desServ,
                             idServicioActual
                         }) => {
-console.log("turnosSeleccionados"+JSON.stringify(turnosSeleccionados))                            
+
 
     const cantidadSeleccionada = turnosSeleccionados.length;
     const estaListoParaAplicar = cantidadSeleccionada > 0;

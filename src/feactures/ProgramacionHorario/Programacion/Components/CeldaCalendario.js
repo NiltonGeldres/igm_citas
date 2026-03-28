@@ -76,7 +76,7 @@ const CeldaCalendario = React.memo(({ dia, claveFecha, esHoy, tieneHorario, esta
                                     minWidth: esLibre ? '45px' : '20px' // Le damos más ancho si es la palabra "Libre"
                                 }}
                             >
-                                {esLibre && <Icono nombre="X" size={10} className="me-1" />} 
+                                {/*esLibre && <Icono nombre="X" size={10} className="me-1" />*/} 
                                 {textoMostrar}
                             </span>
                         );

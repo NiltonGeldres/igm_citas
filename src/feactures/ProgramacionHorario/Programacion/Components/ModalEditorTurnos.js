@@ -6,7 +6,7 @@ import { obtenerListaTurnos } from '../Constants/TODOS_LOS_TURNOS';
 import Servicio from "../../../../shared/components/Servicio";
 
 //const ModalEditorTurnos = ({ estaAbierto, claveDia, alCerrar, horario, setHorario, alGuardar,idEntidad,idServ,desServ }) => {
-const ModalEditorTurnos = ({ estaAbierto, claveDia, alCerrar, horario, setHorario, alGuardar, idEntidad, idServ, desServ }) => {    
+const ModalEditorTurnos = ({ estaAbierto, claveDia, alCerrar, horario,  alGuardar, idEntidad, idServ, desServ }) => {    
 // 1. Extraemos de forma segura el turno y servicio actual del objeto o array
     const dataActual = horario[claveDia];
     const idTurnoInicial = dataActual?.idTurno || (Array.isArray(dataActual) ? dataActual[0] : 'libre');
@@ -70,7 +70,7 @@ const ModalEditorTurnos = ({ estaAbierto, claveDia, alCerrar, horario, setHorari
                 idServicio: servicioIdLocal 
             } 
         };
-        setHorario(nuevoHorario);
+//        setHorario(nuevoHorario);
         if (alGuardar) alGuardar(nuevoHorario); 
         alCerrar()
     };
@@ -140,70 +140,3 @@ const ModalEditorTurnos = ({ estaAbierto, claveDia, alCerrar, horario, setHorari
 };
 export default ModalEditorTurnos;
 
-
-/*
-    const alternarTurno = (turnoId) => {
-        if (turnoId === 'libre') {
-            setIdsTurnosSeleccionados(['libre']);
-        } else {
-            setIdsTurnosSeleccionados(prev => {
-                const filtrados = prev.filter(id => id !== 'libre');
-                if (filtrados.includes(turnoId)) {
-                    const nuevosIds = filtrados.filter(id => id !== turnoId);
-                    return nuevosIds.length > 0 ? nuevosIds : ['libre']; 
-                } else {
-                    return [...filtrados, turnoId];
-                }
-            });
-        }
-    };
-*/
-
-/*
-
-                        <div className="mb-4">
-                            <select 
-                                className={`form-select form-select-lg fw-bold transition-all ${
-                                    turnoActualObj?.claseColor || 'bg-light text-secondary border'
-                                }`}
-                                value={idsTurnosSeleccionados[0] || 'libre'}
-                                onChange={(e) => seleccionarTurnoUnico(e.target.value)}
-                                style={{ minHeight: '60px', borderRadius: '12px' }}
-                            >
-                                <option value="libre" className="bg-white text-dark">-- Día Libre --</option>
-                                {listaDeTurnos.map(turno => (
-                                    <option 
-                                        key={turno.idTurno} 
-                                        value={turno.idTurno}
-                                        className="bg-white text-dark"
-                                    >
-                                        {turno.descripcion} ({turno.hora})
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-
-                        {turnoActualObj && idsTurnosSeleccionados[0] !== 'libre' && (
-                            <div className={`p-3 rounded-3 border d-flex align-items-center gap-3 animate__animated animate__fadeIn`}>
-                                <div className={`p-2 rounded-circle bg-white text-primary shadow-sm`}>
-                                    <Icono nombre="Clock" size={20} />
-                                </div>
-                                <div>
-                                    <div className="fw-bold">{turnoActualObj.descripcion}</div>
-                                    <div className="small opacity-75">{turnoActualObj.hora}</div>
-                                </div>
-                            </div>
-                        )}
-                    </div>
-
-*/
-
-/**
- * 
-                             <Servicio    
-                                    idEntidad={idEntidad} // Viene de tu perfil/contexto
-                                    valueServicio={(id) => {  idServ(id)}} // Solo actualiza el ID
-                                    textServicio={(txt) =>    desServ(txt)}                                
-                            />
-
- */

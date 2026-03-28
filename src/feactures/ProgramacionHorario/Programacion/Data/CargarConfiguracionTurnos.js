@@ -1,6 +1,40 @@
+/*export const transformarTurnosAPI = (turnosDesdeApi) => {
+    const colores = [
+        'bg-primary text-white', 
+        'bg-success text-white', 
+        'bg-warning text-dark', 
+        'bg-info text-dark', 
+        'bg-dark text-white'
+    ];
+
+    // Iniciamos con el estado 'libre' siempre presente
+    const mapeo = {
+        'libre': { 
+            idTurno: 'libre', 
+            descripcion: 'Libre', 
+            hora: 'Libre', 
+            claseColor: 'bg-light text-secondary border' 
+        }
+    };
+
+    turnosDesdeApi.forEach((turno, index) => {
+        mapeo[turno.idTurno] = {
+            idTurno: turno.idTurno,
+            descripcion: turno.descripcion,
+            hora: `${turno.horaInicio}-${turno.horaFin}`,
+            claseColor: colores[index % colores.length]
+        };
+    });
+
+    return mapeo;
+};
+
+*/
+
 //cargarConfiguracionTurnos.js
 
 // Esta es tu única "Constante", pero es dinámica
+
 export let MAPEO_TURNOS = {
     'libre': { 
         idTurno: 'libre', 
@@ -37,3 +71,6 @@ const obtenerColorPorIndice = (i) => {
     ];
     return colores[i % colores.length];
 };
+
+
+

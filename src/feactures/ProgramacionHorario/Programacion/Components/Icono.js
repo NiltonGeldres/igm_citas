@@ -9,8 +9,8 @@ const ChevronLeft = (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg
 const ChevronRight = (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m9 18 6-6-6-6"/></svg>;
 
 // Componente Wrapper para Iconos
-export const Icono = ({ name, ...props }) => {
-    const LucideIcon = { CalendarCheck, ChevronLeft, ChevronRight, X, PlusCircle, Clock, CheckCircle }[name];
+export const Icono = ({ nombre, ...props }) => {
+    const LucideIcon = { CalendarCheck, ChevronLeft, ChevronRight, X, PlusCircle, Clock, CheckCircle }[nombre];
     if (!LucideIcon) return null;
     return <LucideIcon {...props} />;
 };

@@ -1,4 +1,4 @@
-import  { useState, useCallback, useMemo, useEffect, Box} from 'react';
+import  { useState, useCallback, useMemo, useEffect } from 'react';
 import { Icono } from './Programacion/Components/Icono.js';
 
 import BarraFiltros from "./Programacion/Components/BarraFiltros.js";
@@ -16,7 +16,8 @@ import { actualizarTurnoEnDia } from "../ProgramacionHorario/Programacion/Modelo
 import { modelarCrearProgramacion ,modelarDia} from "../ProgramacionHorario/Programacion/Modelos/ProgramacionHorarioDiaModelo.js";
 import Especialidad from "../../shared/components/Especialidad.js"
 import ProgramacionHorarioService from "../../feactures/ProgramacionHorario/ProgramacionHorarioService.js"
-
+import Swal from 'sweetalert2';
+import { transformarTurnosAPI } from './Programacion/Data/CargarConfiguracionTurnos.js';
 
 export default function ProgramacionHorario() {
     
@@ -45,12 +46,22 @@ export default function ProgramacionHorario() {
  //   const [idEspSeleccionada, setIdEspSeleccionada] = useState(null);
  //   const [idServSeleccionado, setIdServSeleccionado] = useState(null);
     //Turnos
+
+    const [mapeoTurnos, setMapeoTurnos] = useState({
+        'libre': { idTurno: 'libre', descripcion: 'Libre', hora: 'Libre', claseColor: 'bg-light border' }
+    });    
+
+
     useEffect(() => {
         TurnoService.getTodos().then(res => {
             cargarConfiguracionTurnos(res.data);
             const turnosParaEstado = Object.values(MAPEO_TURNOS);
             setTurnosCargados(turnosParaEstado);        });
     }, []);
+
+
+
+
 
     const contexto = useMemo(() => {
         const perfil = JSON.parse(sessionStorage.getItem('user_profile'));
@@ -81,7 +92,6 @@ export default function ProgramacionHorario() {
             const { mes, anio, idEspecialidad, idServicio, idMedico } = contexto;
             if (!idMedico || !idEspecialidad ) return;
             setEstadoGuardado('cargando');
-            console.log("EJECUTANDO API CON:", mes, anio, idEspecialidad, idMedico, idServicio);
 
             try {
                 let res = await ProgramacionHorarioService.obtenerProgramacionMesUsuario(
@@ -103,7 +113,6 @@ export default function ProgramacionHorario() {
                         setEnvoltorioOriginal(envoltorioBack);
                         const modelosProcesados = listaRaw.map(item => modelarDia(item));
                         setDatosOriginalesBackend(modelosProcesados);
-                        console.log("modelosProcesados por modelarDia():", JSON.stringify(modelosProcesados));
                         const mapaParaUI = modelosProcesados.reduce((acc, dia) => {
                             const clave = dia.getClaveCalendario();
                             // Si idTurno es 0, es 'libre'. Si tiene ID (ej: 1, 2), se guarda como string.
@@ -115,8 +124,7 @@ export default function ProgramacionHorario() {
                             };
                             return acc;
                         }, {});
-                        console.log("mapaParaUI  modelosProcesados por modelarDia():", JSON.stringify(mapaParaUI ));
-
+                 //       console.log("mapaParaUI  modelosProcesados por modelarDia():", JSON.stringify(mapaParaUI ));
                         setHorarioCalendario(mapaParaUI);
                         console.log("Programación cargada y sincronizada:", envoltorioBack);
                     }
@@ -140,43 +148,55 @@ export default function ProgramacionHorario() {
     //...............................................................................
     // Guardado de datos
     //...............................................................................
-    const manejarGuardado = useCallback(async (horarioActualizado = null) => {
+    const manejarGuardado = useCallback( async (horarioActualizado = null) => {
         setEstadoGuardado('guardando');
-
         try {
             const fuenteDeDatos = horarioActualizado || horarioCalendario;
-//            console.log("fuenteDeDatos  :  "+JSON.stringify(fuenteDeDatos))
-            
-            // Mapeamos usando la "foto" de los datos originales
             const diasConTurnos = datosOriginalesBackend.map(dia => {
                 const clave = dia.getClaveCalendario();
                 const seleccion = fuenteDeDatos[clave];
-                
-                //const nuevoIdTurno = (seleccion && seleccion[0] !== 'libre') ? Number(seleccion[0]) : 0;
                 const nuevoIdTurno = (seleccion && seleccion.idTurno !== 'libre') ? Number(seleccion.idTurno) : 0;
                 const servicioDeEsteDia = seleccion?.idServicio || contexto.idServicio; // Fallback al global si no hay                
-                
                 const diaActualizado = actualizarTurnoEnDia(dia, nuevoIdTurno);
                 diaActualizado.idServicio = servicioDeEsteDia;                
-
-                // Retorna un objeto nuevo con el ID actualizado (idProgramacion se mantiene si existía)
-//                return actualizarTurnoEnDia(dia, nuevoIdTurno);
                 return diaActualizado;
             });
 
-            // El payload necesita el contexto actual (Médico, Especialidad, Sede)
             const payloadFinal = modelarCrearProgramacion(contexto, diasConTurnos);
             const response = await ProgramacionHorarioService.crearProgramacionMesUsuario(payloadFinal);
-//            console.log("payload final  :  "+JSON.stringify(payloadFinal))
+            //const response = [];
             
-            if (response.status === 200) {
-                // REFRESH: Llamamos a la versión actual de la función de carga
+            if (response && response.status === 200) {
                 await cargarProgramacionCompleta(); 
                 setEstadoGuardado('guardado');
+                Swal.fire({
+                    icon: 'success',
+                    title: '¡Guardado correctamente!',
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 3000,
+                    timerProgressBar: true,
+                });                
+                return true;
             }
+            
+            throw new Error("Servidor no responde");
+            setEstadoGuardado('error');
+            return false;
+
         } catch (error) {
             console.error("Error al guardar:", error);
             setEstadoGuardado('error');
+            Swal.fire({
+                icon: 'error',
+                title: '¡Ups! Algo salió mal',
+                text: 'No pudimos conectar con el servidor para guardar los cambios. Por favor, verifica tu conexión o intenta más tarde.',
+                confirmButtonText: 'Entendido',
+                confirmButtonColor: '#d33', // Color rojo para error
+                backdrop: `rgba(255,0,0,0.1)` // Un fondo sutil rojizo
+            });            
+            return false;
         } finally {
             // Limpiamos el feedback visual
             setTimeout(() => setEstadoGuardado(null), 3000);
@@ -231,7 +251,7 @@ export default function ProgramacionHorario() {
         setDiasMasivosSeleccionados(clavesTodosLosDias);
     }, [fechaActual]);
 
-    const aplicarProgramacionMasiva = useCallback(() => {
+    const aplicarProgramacionMasiva = useCallback(async () => {
         if (diasMasivosSeleccionados.length === 0 || turnosMasivosSeleccionados.length === 0) return;
         const nuevoHorario = { ...horarioCalendario };
         const turnoId = turnosMasivosSeleccionados[0] || 'libre';
@@ -243,11 +263,19 @@ export default function ProgramacionHorario() {
         });
         //---------------------------------
 
-        setHorarioCalendario(nuevoHorario);
-        manejarGuardado(nuevoHorario);
-        setTurnosMasivosSeleccionados([]);
-        setDiasMasivosSeleccionados([]);
-        alternarModoMasivo();
+        const exito = await manejarGuardado(nuevoHorario);
+        if (exito) {
+                setTurnosMasivosSeleccionados([]);
+                setDiasMasivosSeleccionados([]);
+                alternarModoMasivo();
+        } else {
+                console.log("No se pudo aplicar la programación masiva por error en servidor.");
+        }     
+//        setHorarioCalendario(nuevoHorario);
+//        setTurnosMasivosSeleccionados([]);
+//        setDiasMasivosSeleccionados([]);
+//        alternarModoMasivo();
+//        manejarGuardado(nuevoHorario);
     }, [diasMasivosSeleccionados, turnosMasivosSeleccionados, horarioCalendario, alternarModoMasivo, manejarGuardado]);
 
     const manejarClickDia = useCallback((claveFecha) => {
@@ -273,33 +301,46 @@ export default function ProgramacionHorario() {
         for (let i = 0; i < offsetInicio; i++) {
             celdas.push(<CeldaCalendario key={`vacia-${i}`} dia={null} />);
         }
-        console.log("datosCalendario diasEnMes ===> "+JSON.stringify(diasEnMes));
         for (let d = 1; d <= diasEnMes; d++) {
             const dPadded = String(d).padStart(2, '0');
             const mPadded = String(mes + 1).padStart(2, '0');
             const clave = `${año}-${mPadded}-${dPadded}`;
             const turnos = horarioCalendario[clave];
             //const tieneDatos = turnos && turnos.length > 0 && !(turnos.length === 1 && turnos[0] === 'libre');
+        //    console.log("horarioCalendario   "+JSON.stringify(horarioCalendario))                    
 
             const dataDia = horarioCalendario[clave];
-            console.log("data dia  ===> "+JSON.stringify(dataDia));
-            const tieneDatos = dataDia && dataDia.idTurno !== 'libre';        
+           // console.log("data dia  ===> "+JSON.stringify(dataDia));
+            //const tieneDatos = dataDia && dataDia.idTurno !== 'libre';        
+
+            const tieneTurnoAsignado = 
+                    dataDia && 
+                    dataDia.idTurno !== 0 && 
+                    dataDia.idTurno !== '0' && 
+                    dataDia.idTurno !== 'libre' &&
+                    dataDia.idTurno !== null;
+       //     console.log("dataDia   "+JSON.stringify(dataDia))                    
+       //     console.log("tieneTurnoAsignado   "+tieneTurnoAsignado)                    
+
+        //    const diaConfirmado = datosOriginalesBackend.find(diaBack => diaBack.getClaveCalendario() === clave);
+        //    const confirmadoEnBackend = diaConfirmado && diaConfirmado.idTurno !== 0 && diaConfirmado.idTurno !== '0';            
             //const codServ    = dataDia && dataDia.codigoServicio !== '' ;        
             const codServ = dataDia?.codigoServicio || "";
-            console.log("datosCalendario dPadded ===> "+JSON.stringify(dPadded)
+        /*    console.log("datosCalendario dPadded ===> "+JSON.stringify(dPadded)
                 +" mPadded ===> "+JSON.stringify(mPadded)
                 +" clave ===> "+JSON.stringify(clave)
                 +" turnos ===> "+JSON.stringify(turnos)
                 +" tieneDatos ===> "+JSON.stringify(tieneDatos)
                 +" codServ ===> "+JSON.stringify(codServ)
-            );
+            );*/
             celdas.push(
                 <CeldaCalendario
                     key={clave}
                     dia={d}
                     claveFecha={clave}
                     esHoy={clave === claveHoy}
-                    tieneHorario={tieneDatos}
+                    tieneHorario={tieneTurnoAsignado}
+//                    tieneHorario={tieneDatos}
                     estaSeleccionadoMasivo={diasMasivosSeleccionados.includes(clave)}
                     manejarClickDia={manejarClickDia}
                     horario={horarioCalendario}
@@ -433,8 +474,12 @@ export default function ProgramacionHorario() {
                     claveDia={diaSeleccionadoParaEdicion}
                     alCerrar={() => setModalAbierto(false)}
                     horario={horarioCalendario}
-                    setHorario={setHorarioCalendario}
-                    alGuardar={manejarGuardado} 
+ //                   setHorario={setHorarioCalendario}
+ //                   alGuardar={manejarGuardado} 
+                    alGuardar={async (nuevoHorarioDelDia) => {
+                        const exito = await manejarGuardado(nuevoHorarioDelDia);
+                        if (exito) { setModalAbierto(false); }
+                    }}                   
                     idEntidad={contexto.idEntidad}
                     idServ={(id) => {  setIdServicio(id)}} // Solo actualiza el ID
                     desServ={(txt) => setDescripcionServicio(txt)}                                

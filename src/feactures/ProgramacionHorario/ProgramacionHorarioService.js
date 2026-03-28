@@ -9,6 +9,7 @@ const SERVICE = "/programacionMedicoMes";
 const SERVICE_CREAR = "/programacionMedicaCrear";
 
 const obtenerProgramacionMesBlanco = (mes, anio, idEspecialidad, idMedico) => {
+  console.log("obtenerProgramacionMesBLANCO parametros "+mes+"---"+anio+"----"+idEspecialidad+"----"+idMedico+"----")
   return axios.post(API_URL + SERVICE_BLANCO
       , { mes,  anio,  usuario,   idEspecialidad, idMedico  }
       , { headers: header() }
