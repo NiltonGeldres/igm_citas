@@ -103,7 +103,9 @@ export default function ProgramacionHorario() {
                         res = await ProgramacionHorarioService.obtenerProgramacionMesBlanco(
                             mes, anio, idEspecialidad, idMedico,idServicio
                         );
+                        console.log("DATA  BLACO "+JSON.stringify(res.data))
                     }
+                        console.log("DATA CARGAR PROGRAMACION COMPLETA "+JSON.stringify(res.data))
                     // Se obtiene la respuesta del API ,se toma data: que tiene cantidad registros y la lista
                     const envoltorioBack = res.data; 
                     // se obtitne la lista programacionMedicaDiaResponse de la respuesta API
