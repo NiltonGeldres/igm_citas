@@ -22,7 +22,7 @@ const ProgramacionHoras = ({
       setLoading(true);
       try {
         const response = await CitaService.getCitaDisponible(idMedico, idEspecialidad, fechaCalendar);
-        console.log("HORAS  :", JSON.stringify(response));
+//        console.log("HORAS  :", JSON.stringify(response));
         setHoras(response.data.cita || []);
       } catch (error) {
         console.error("Error cargando horas:", error);
