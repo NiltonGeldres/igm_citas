@@ -70,7 +70,8 @@ const login = (user, password) => {
                 username: decoded.sub,
                 rol: decoded.rol.authority,
                 idMedico: decoded.idMedico, // <-- Asegúrate que el backend lo envíe
-                idEntidad: decoded.idEntidad,     // <-- Asegúrate que el backend lo envíe
+                idEntidad: decoded.idEntidad,     // <-- Asegúrate que el backend lo 
+                idPaciente: decoded.idPaciente,
                 usuarioNombres: decoded.usuarioNombres // Opcional para la UI
             };
             sessionStorage.setItem('username',  u) ;    

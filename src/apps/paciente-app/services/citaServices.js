@@ -39,7 +39,6 @@ const ejecutarAPI = async (endpoint, params = {}) => {
 };
 
 const getCitaPacienteListarPendientes = async (idPaciente, fechaUI) => {
-    console.log("parameter :", idPaciente+ "--"+ fechaUI)
     const params = mapearCitaPacienteRequest(idPaciente, fechaUI);
     return await ejecutarAPI(SERVICE_CITA_PACIENTE_PENDIENTE, params);
 };

@@ -8,13 +8,14 @@ import FormatDate from '../../../../components/Maestros/FormatDate';
 import Swal from 'sweetalert2';
 //import { useAuth } from "../context/AuthContext";
 import { useAuth } from '../../../../components/context/AuthContext';
-
-function PagoVirtual({
+/*
+function PagoVirtual1({
     idCitaSeparada,
     precioUnitario, 
-    modalClose, 
+    nombreDestino,
     email, 
-    celular 
+    celular, 
+    modalClose 
 }) {
   const { entidad } = useAuth();
   const [loading, setLoading] = useState(false);
@@ -28,7 +29,33 @@ function PagoVirtual({
     idTipoOperacion: '1',
     origenNombre: '',
     destino: entidad?.nombre || 'CENTRO MÉDICO',
-    entidadDestino: "1" 
+    entidadDestino: nombreDestino 
+  });
+
+  */
+function PagoVirtual1({
+    idCitaSeparada,
+    precioUnitario, 
+    nombreDestino, 
+    modalClose, 
+    email, 
+    celular,
+    nombreEntidad }) {
+
+
+      
+  const [loading, setLoading] = useState(false);
+  const [formData, setFormData] = useState({
+    idCitaSeparada,
+    fecha: new Date().toISOString().substring(0, 10),
+    nroOperacion: '',
+    correo: email || '',
+    celular: celular || '',
+    precioUnitario: precioUnitario || 0,
+    idTipoOperacion: '1',
+    origenNombre: '',
+    destino: nombreDestino || '',
+    entidadDestino: nombreDestino || "" // Default Yape
   });
 
   const handleChange = (e) => {
@@ -101,19 +128,19 @@ function PagoVirtual({
         </div>
 
         <div style={{ gridColumn: 'span 2' }}>
-          <label className="small fw-bold mb-1 d-block"><User size={14} /> Nombre Titular</label>
+          <label className="small fw-bold mb-1 d-block"><User size={14} /> Origen Nombre Titular</label>
           <input name="origenNombre" placeholder="Nombre en el voucher" value={formData.origenNombre} 
                  onChange={handleChange} className="form-control-custom" required />
         </div>
 
         <div>
-          <label className="small fw-bold mb-1 d-block"><Phone size={14} /> Celular</label>
+          <label className="small fw-bold mb-1 d-block"><Phone size={14} /> Origen Celular</label>
           <input name="celular" value={formData.celular} onChange={handleChange} 
                  className="form-control-custom" required />
         </div>
 
         <div>
-          <label className="small fw-bold mb-1 d-block"><Mail size={14} /> Email</label>
+          <label className="small fw-bold mb-1 d-block"><Mail size={14} /> Origen Email</label>
           <input name="correo" value={formData.correo} className="form-control-custom bg-light" disabled />
         </div>
       </div>
@@ -144,4 +171,4 @@ function PagoVirtual({
   );
 }
 
-export default PagoVirtual;
+export default PagoVirtual1;

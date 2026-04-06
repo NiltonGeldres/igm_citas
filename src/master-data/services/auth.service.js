@@ -106,10 +106,12 @@ const login = (user, password) => {
     .then((response) => {
 
         if(response.data.jwtToken){
-
+            console.log(JSON.stringify(response.data.jwtToken))
+            console.log(JSON.stringify(response.data))
             const decoded = jwtDecode(response.data.jwtToken);
             let a = decoded.rol.authority
             let u = decoded.sub
+            console.log(JSON.stringify(decoded))
 
             // Guardamos el token para las cabeceras de Axios
             sessionStorage.setItem('token', response.data.jwtToken);
@@ -119,6 +121,7 @@ const login = (user, password) => {
                 rol: decoded.rol.authority,
                 idMedico: decoded.idMedico, // <-- Asegúrate que el backend lo envíe
                 idEntidad: decoded.idEntidad,     // <-- Asegúrate que el backend lo envíe
+                idPaciente: decoded.idPaciente,     // <-- Asegúrate que el backend lo envíe
                 usuarioNombres: decoded.usuarioNombres // Opcional para la UI
             };
             sessionStorage.setItem('username',  u) ;    

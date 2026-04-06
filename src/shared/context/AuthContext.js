@@ -13,6 +13,7 @@ export const AuthProvider = ({ children }) => {
 
   const actualizarDatosGlobales = async () => {
     const perfil = AuthService.leerPerfil();
+    console.log("PERFIL   "+JSON.stringify(perfil))
     if (perfil) {
       setUser(perfil);
       try {

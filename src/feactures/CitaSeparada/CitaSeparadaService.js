@@ -14,15 +14,9 @@ const usuario = sessionStorage.getItem('username');
 
 const getCitasSeparadaLeer = () => {
     return axios.post(API_URL+API_LEER_CITA_SEPARADA_XUSUARIO
-    ,{ 
-      usuario    : usuario
-      }
-    ,{ headers: header()}
-     )
-/*     .catch(function (error) {
-        console.log(error.toJSON());
-      })*/
-      ;
+        ,{ usuario    : usuario }
+        ,{ headers: header()}
+     );
 };
 
 const getCitasSeparadaConPagoVirtualLeer = () => {

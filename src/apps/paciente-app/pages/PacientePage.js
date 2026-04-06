@@ -18,7 +18,7 @@ import { transformarMedicos } from '../mapper/CitaMedicoUI';
 import { transformarProgramacion } from '../mapper/CitaProgramacionMedicaUI';
 import { useAuth } from '../../../components/context/AuthContext';
 import { BaseHeader } from '../../../shared/components/layout/BaseHeader';
-
+import { obtenerFechaActualYYYYMMDD } from '../../../shared/utils/ObtenerFechaActualYYYYMMDD';
 
 import { InicioDashboard } from '../components/InicioDashboard';
 import { Paso1Especialidad } from '../components/reserva/Paso1Especialidad';
@@ -26,6 +26,7 @@ import { Paso2Medico } from '../components/reserva/Paso2Medico';
 import { Paso3Horario } from '../components/reserva/Paso3Horario';
 import { ListaMisCitas } from '../components/reserva/ListaMisCitas';
 import { Paso4Confirmacion } from '../components/reserva/Paso4Confirmacion';
+import { mapperCitaSeparadaApiToReserva } from '../mapper/CitaSeparadaMapper';
 
 import "../../paciente-app/styles/paciente-app.css"
 
@@ -91,10 +92,7 @@ export default function PacientePage({  direccionClinica = "Sede Central" , onLo
   const [mostrarExito, setMostrarExito] = useState(false);
   const [programacionMensual, setProgramacionMensual] = useState([]);
   const [medicosActuales, setMedicosActuales] = useState([]);
-  const [fechaFiltro, setFechaFiltro] = useState("2026-03-16"); // Fecha actual por defecto
-
-//  const { entidad, user } = useAuth();
-
+  const [fechaFiltro, setFechaFiltro] = useState(obtenerFechaActualYYYYMMDD());
   // --- ESTADO DE CACHÉ Y DATOS ---
   const [cache, setCache] = useState({
     especialidades: [],
@@ -102,6 +100,7 @@ export default function PacientePage({  direccionClinica = "Sede Central" , onLo
   });
 
   const [datosReserva, setDatosReserva] = useState({ 
+    idCitaSeparada:0,
     especialidad: null, 
     servicio: null, 
     doctor: null, 
@@ -109,19 +108,23 @@ export default function PacientePage({  direccionClinica = "Sede Central" , onLo
     fechaObjeto: { mes: new Date().getMonth(), anio: new Date().getFullYear(), dia: null },
     fechaYYYYMMDD: '', 
     hora: '' ,
-    idCitaBloqueada:0
-    
+    idCitaBloqueada:0,
+    precioUnitario: 0,
+    nombreDestino: '',
+    email: '',
+
   });
 
   const [misCitas, setMisCitas] = useState([]);
   const [misPagos, setMisPagos] = useState([]);
+  
 
   // 1. CARGAR ESPECIALIDADES (Al entrar a Citas)
   useEffect(() => {
     const cargar = async () => {
       // 1. Verificamos si ya existen especialidades en el caché
       if (cache.especialidades.length > 0) {
-        console.log("Cargando especialidades desde el caché...");
+        console.log("Cargando especialidades desde el caché..."+JSON.stringify(user));
         return; 
       }
       try {
@@ -158,8 +161,7 @@ export default function PacientePage({  direccionClinica = "Sede Central" , onLo
   const obtenerCitas = async (idPaciente, fecha) => {
     setCargando(true);
     try {
-      const data = await citaService.getCitaPacienteListarPendientes(19, fecha);
-      console.log("DATA "+JSON.stringify(data))
+      const data = await citaService.getCitaPacienteListarPendientes(user.idPaciente, fechaFiltro);
       setMisCitas(data);
     } catch (error) {
       console.error("Error al traer citas:", error);
@@ -275,7 +277,7 @@ export default function PacientePage({  direccionClinica = "Sede Central" , onLo
         obtenerProgramacionMedicaMes(nuevoMesIndice + 1, nuevoAnio, espId, medId, 10);
       }
     };
-
+/*
     const handleHoraSeleccionada = async (hora, idProg, idServ) => {
       console.log("handleHoraSeleccionada " +hora+"  "+idProg+"  "+ idServ)
       try {
@@ -327,6 +329,136 @@ export default function PacientePage({  direccionClinica = "Sede Central" , onLo
       } catch (error) {
         Swal.fire('Error', 'Este horario acaba de ser tomado por otro usuario.', 'error');
       }
+    };
+*/
+
+
+    const handleHoraSeleccionada = async (hora, idProg, idServ) => {
+        let timerInterval;
+        
+        try {
+            // PASO 1: Bloqueo temporal en el Servidor
+            const respBloqueo = await CitaService.getCitaBloquear(hora, datosReserva.fechaYYYYMMDD, datosReserva.doctor.id);
+            const idBloqueo = respBloqueo.data.idCitaBloqueada;
+
+            // PASO 2: Confirmación con el Usuario
+            const result = await Swal.fire({
+                title: '¿Confirmar horario?',
+                html: `Has seleccionado las <b>${hora}</b>.<br/>Confirma en <b>60</b> segundos.`,
+                timer: 60000,
+                timerProgressBar: true,
+                showCancelButton: true,
+                confirmButtonText: 'Sí, reservar',
+                cancelButtonText: 'Cancelar',
+                didOpen: () => {
+                    const b = Swal.getHtmlContainer().querySelector('b');
+                    timerInterval = setInterval(() => {
+                        if (b) b.textContent = Math.ceil(Swal.getTimerLeft() / 1000);
+                    }, 1000);
+                },
+                willClose: () => clearInterval(timerInterval)
+            });
+
+            // PASO 3: Acciones según respuesta
+            if (result.isConfirmed) {
+                await finalizarReserva(hora, idProg, idServ, idBloqueo);
+            } else {
+                // Liberar si cancela, cierra o expira el timer
+                await CitaService.getEliminarCitaBloqueada(idBloqueo);
+            }
+
+        } catch (error) {
+            Swal.fire('Error', 'El horario ya no está disponible o hubo un problema de conexión.', 'error');
+        }
+    };
+
+    const finalizarReserva = async (hora, idProg, idServ, idBloqueo) => {
+        try {
+              // 1. Crear la cita separada en el Backend
+            const  res =  await CitaSeparadaService.getCitaSeparadaCrear(
+                  datosReserva.fechaYYYYMMDD,
+                  hora,
+                  hora,
+                  0,
+                  datosReserva.doctor?.id,
+                  datosReserva.especialidad?.idEspecialidad,
+                  idServ,
+                  idProg,
+                  0,
+                  datosReserva.doctor?.monto
+              );
+          console.log("DATA API CS "+JSON.stringify(res.data))  
+          if (res.data?.idCitaSeparada) {
+              
+              // 1. Mapeamos (la limpieza de campos ocurre aquí dentro)
+              const reservaFinal = mapperCitaSeparadaApiToReserva(res.data, datosReserva);
+              
+              // 2. Guardamos en estado
+              setDatosReserva(reservaFinal);
+              
+              // 3. Solo si hubo éxito, avanzamos de fase
+              setPasoActual(4);
+
+          } else {
+              // Si entró aquí, es porque la API respondió pero sin el ID esperado
+              Swal.fire("Atención", "No pudimos confirmar tu reserva. Por favor, intenta nuevamente.", "warning");
+          }
+
+           /* const {
+              idCitaSeparada = 0,
+              especialidad = null,
+              servicio = null,
+              doctor = null,
+              fecha = '',
+              fechaObjeto = { mes: new Date().getMonth(), anio: new Date().getFullYear(), dia: null },
+              fechaYYYYMMDD = '',
+              hora = '',
+              idCitaBloqueada = 0,
+              precioUnitario = 0,
+              nombreDestino = 'ENTIDAD MÉDICA', // Valor por defecto amigable
+              email = ''
+          } = r.data || {}; // El '|| {}' evita errores si 'data' es null
+
+          // 2. Validación de Seguridad: Si no hay ID, no procedemos al pago
+          if (!idCitaSeparada || idCitaSeparada === 0) {
+              return Swal.fire("Error de Registro", "La cita no se pudo crear en el servidor.", "error");
+          }
+
+          // 3. Actualizamos el estado con datos limpios
+          setDatosReserva(prev => ({
+              ...prev,
+              idCitaSeparada,
+              especialidad,
+              servicio,
+              doctor,
+              fecha,
+              fechaObjeto,
+              fechaYYYYMMDD,
+              hora,
+              idCitaBloqueada,
+              precioUnitario,
+              nombreDestino,
+              email
+          }));
+          
+              // 2. Actualizar estado global de la reserva
+              setDatosReserva(prev => ({
+                  ...prev,
+                  hora: hora,
+                  idProgramacion: idProg,
+                  idCitaBloqueada: idBloqueo
+              }));
+*/
+              // 3. Limpiar el bloqueo (ya que ahora es una reserva real)
+              await CitaService.getEliminarCitaBloqueada(idBloqueo);
+
+              // 4. Avanzar al siguiente paso (Pago/Confirmación)
+              setPasoActual(4);
+
+        } catch (error) {
+            console.error("Error al finalizar reserva:", error);
+            throw new Error("No se pudo procesar la reserva final.");
+        }
     };
 
   const manejarAtras = () => {
@@ -458,6 +590,7 @@ export default function PacientePage({  direccionClinica = "Sede Central" , onLo
                   setPestanaActual(item.id);
                   setModoReserva(false);
                   if (item.id === 'citas') {
+                    console.log(user.id+ ""+ fechaFiltro)
                     obtenerCitas(user.id, fechaFiltro);
                   }                  
               }}

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { CheckCircle, Clock, AlertTriangle, CreditCard, ArrowRight, X } from "lucide-react";
 import PagoVirtual from './PagoVirtual';
 
+
 export const Paso4Confirmacion = ({ datosReserva, onFinalizar, onPagarTarde }) => {
   const [showPagoModal, setShowPagoModal] = useState(false);
 
@@ -15,7 +16,7 @@ export const Paso4Confirmacion = ({ datosReserva, onFinalizar, onPagarTarde }) =
     usuarioCelular, 
     nombreEntidad 
   } = datosReserva;
-
+console.log("datosReserva   "+JSON.stringify(datosReserva))
   const handlePagoExitoso = (success) => {
     if (success) {
       setShowPagoModal(false);
@@ -102,7 +103,7 @@ export const Paso4Confirmacion = ({ datosReserva, onFinalizar, onPagarTarde }) =
                 celular={usuarioCelular}
                 modalClose={handlePagoExitoso}
               />
-            </div>
+            </div>     
           </div>
         </div>
       )}

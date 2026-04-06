@@ -71,7 +71,7 @@ function PagoVirtual({
       <Card className="border-0 bg-light mb-3">
         <Card.Body className="py-2 px-3">
           <div className="d-flex justify-content-between align-items-center text-muted small">
-            <span>Pagar a: <strong>{formData.destino}</strong></span>
+            <span>Destino: Pagar a: <strong>{formData.destino}</strong></span>
             <span className="fs-5 text-primary fw-bold">S/ {precioUnitario}</span>
           </div>
         </Card.Body>
@@ -81,7 +81,7 @@ function PagoVirtual({
         {/* Entidad de Destino */}
         <Col md={6}>
           <Form.Group>
-            <Form.Label className="small fw-bold"><FaUniversity /> Método de Pago</Form.Label>
+            <Form.Label className="small fw-bold"><FaUniversity /> Origen: Método de Pago</Form.Label>
             <Form.Select name="entidadDestino" value={formData.entidadDestino} onChange={handleChange} className="rounded-3">
               <option value="1">Yape</option>
               <option value="2">Plin</option>
@@ -93,7 +93,7 @@ function PagoVirtual({
         {/* Número de Operación */}
         <Col md={6}>
           <Form.Group>
-            <Form.Label className="small fw-bold"><FaHashtag /> Nro. de Operación</Form.Label>
+            <Form.Label className="small fw-bold"><FaHashtag /> Origen: Nro. de Operación</Form.Label>
             <Form.Control 
               name="nroOperacion" 
               placeholder="Ej: 982371" 
@@ -107,7 +107,7 @@ function PagoVirtual({
         {/* Fecha de Pago */}
         <Col md={6}>
           <Form.Group>
-            <Form.Label className="small fw-bold"><FaCalendarAlt /> Fecha del Voucher</Form.Label>
+            <Form.Label className="small fw-bold"><FaCalendarAlt /> Origen: Fecha del Voucher</Form.Label>
             <Form.Control type="date" name="fecha" value={formData.fecha} onChange={handleChange} required />
           </Form.Group>
         </Col>
@@ -115,7 +115,7 @@ function PagoVirtual({
         {/* Nombre de quien pagó */}
         <Col md={6}>
           <Form.Group>
-            <Form.Label className="small fw-bold"><FaUser /> Nombre Titular de Pago</Form.Label>
+            <Form.Label className="small fw-bold"><FaUser /> Origen: Nombre Titular de Pago</Form.Label>
             <Form.Control 
               name="origenNombre" 
               placeholder="Nombre según voucher" 
@@ -128,14 +128,14 @@ function PagoVirtual({
 
         <Col md={6}>
           <Form.Group>
-            <Form.Label className="small fw-bold"><FaPhone /> Celular de Origen de Pago</Form.Label>
+            <Form.Label className="small fw-bold"><FaPhone /> Origen: Nro Celular de Pago</Form.Label>
             <Form.Control name="celular" value={formData.celular} onChange={handleChange} required />
           </Form.Group>
         </Col>
 
         <Col md={6}>
           <Form.Group>
-            <Form.Label className="small fw-bold"><FaEnvelope /> Correo Confirmación</Form.Label>
+            <Form.Label className="small fw-bold"><FaEnvelope /> Origen: Correo Confirmación</Form.Label>
             <Form.Control name="correo" value={formData.correo} readOnly disabled className="bg-white" />
           </Form.Group>
         </Col>

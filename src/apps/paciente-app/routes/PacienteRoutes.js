@@ -12,7 +12,7 @@ export const PacienteRouter = ({ onLogout }) => {
         <Route path="inicio" element={<PacientePage />} />
         
         {/* Asegúrate que diga "scheduling" (como en el footer) */}
-        <Route path="citas" element={<Citas />} />
+        <Route path="citas" element={<Citas/>} />
         
         <Route path="Pagos" element={<Facturacion/>} />
 

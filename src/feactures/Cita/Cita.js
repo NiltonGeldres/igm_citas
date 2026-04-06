@@ -46,6 +46,7 @@ const initialState = {
 };
 
 function citaReducer(state, action) {
+
   switch (action.type) {
     case 'SET_FIELD':
       return { ...state, [action.field]: action.value, error: null };
@@ -65,6 +66,7 @@ function citaReducer(state, action) {
 }
 
 const Cita = ({ modoCita = "paciente", medicoIdPreseleccionado, especialidadIdPreseleccionada }) => {
+  alert("en citas feacure")
   const navigate = useNavigate();
   const [state, dispatch] = useReducer(citaReducer, initialState);
   const toast = useToast();

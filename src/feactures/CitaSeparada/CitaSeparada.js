@@ -10,7 +10,7 @@ import CitaSeparadaService from "../CitaSeparada/CitaSeparadaService"
 import PagoVirtual from "../PagoVirtual/PagoVirtual";
 import FormatDate from "../../shared/utils/FormatDate";
 
-const CitaSeparada = ({datosReserva}) => {
+const CitaSeparada = ({}) => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [citasPendientes, setCitasPendientes] = useState([]);
@@ -36,6 +36,7 @@ useEffect(() => {
       setUsuarioData(user.data);
 
       const resPendientes = await CitaSeparadaService.getCitasSeparadaLeer();
+      console.log("API res  "+JSON.stringify(resPendientes.data))
       setCitasPendientes(resPendientes.data.citaSeparada || []);
 
       const resVerificacion = await CitaSeparadaService.getCitasSeparadaConPagoVirtualLeer();
@@ -49,7 +50,7 @@ useEffect(() => {
   };
 
   const abrirPago = (cita) => {
-    console.log(JSON.stringify(cita))
+    console.log("abrirPago cita "+JSON.stringify(cita))
     setPagoSeleccionado({
       idProgramacion: cita.idProgramacion, 
       horaInicio: cita.horaInicio, 
