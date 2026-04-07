@@ -1,3 +1,4 @@
+/*
 import React, { useEffect, useState } from "react";
 import { Table, Button, Modal, Badge, Card, Spinner } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
@@ -59,12 +60,11 @@ useEffect(() => {
     });
     setShowModal(true);
   };
-
+*/
+/*
   return (
-    // Quitamos el minHeight: 100vh y el background gris para que herede del padre
     <div className="animate__animated animate__fadeIn px-2">
       
-      {/* Cabecera simplificada y acoplada */}
       <div className="d-flex justify-content-between align-items-center my-4">
         <div>
           <h3 className="fw-bold mb-0 text-dark">Mis Pagos</h3>
@@ -82,7 +82,6 @@ useEffect(() => {
 
       <div className="container-fluid p-0">
         
-        {/* SECCIÓN 1: CITAS POR PAGAR */}
         <h6 className="fw-bold text-danger mb-3 d-flex align-items-center">
           <span className="bg-danger p-1 rounded-circle me-2" style={{width: '10px', height: '10px', display: 'inline-block'}}></span>
           Pendientes de Pago (Próximas 2h)
@@ -134,7 +133,6 @@ useEffect(() => {
           </Card.Body>
         </Card>
 
-        {/* SECCIÓN 2: EN VERIFICACIÓN */}
         <h6 className="fw-bold text-secondary mb-3">Historial Reciente / Verificación</h6>
         <Card className="border-0 shadow-sm rounded-4 mb-5">
           <Card.Body className="p-0">
@@ -166,7 +164,6 @@ useEffect(() => {
         </Card>
       </div>
 
-      {/* Modal de Pago */}
       <Modal show={showModal} onHide={() => setShowModal(false)} centered size="lg" backdrop="static">
         <Modal.Header closeButton className="border-0 pb-0">
           <Modal.Title className="fw-bold">Completar Pago</Modal.Title>
@@ -190,3 +187,4 @@ useEffect(() => {
 };
 
 export default CitaSeparada;
+*/

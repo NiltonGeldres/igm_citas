@@ -1,3 +1,4 @@
+/*
 import FormatDate from "../../shared/utils/FormatDate";
 import header from "../../shared/utils/Header";
 import axios from "axios";
@@ -44,9 +45,6 @@ const setPagoVirtualCrear = (
        }
     ,{ headers: header()}
       )
-      /*.catch(function (error) {
-        console.log(error.toJSON());
-  })*/
   ;
   
 };
@@ -59,22 +57,4 @@ const PagoVirtualService = {
 export default PagoVirtualService;
 
 
-/**
- * 
-     console.log('FORMDATA   '+nroOperacion)
-    console.log('DATOS ENVIAR'+ 
-      idCitaSeparada
-      +'- '+fecha
-      +'- '+nroOperacion
-      +'- '+correo
-      +'- '+celular
-      +'- '+precioUnitario
-      +'- '+idTipoOperacion
-      +'- '+origenNombre
-      +'- '+destino
-      +'- '+entidadDestino
-      +'- '+usuario
-         
-    ) 
- 
- */
+*/

@@ -1,5 +1,5 @@
+/*
 import { useState } from 'react';
-import { Form, Row, Col, Button, Card, InputGroup } from 'react-bootstrap';
 import { FaHashtag, FaCalendarAlt, FaUser, FaPhone, FaEnvelope, FaUniversity } from 'react-icons/fa';
 import PagoVirtualService from './PagoVirtualService';
 import Swal from 'sweetalert2';
@@ -7,15 +7,14 @@ import FormatDate from '../../shared/utils/FormatDate';
 
 function PagoVirtual({
     idCitaSeparada,
-    precioUnitario, 
-    nombreDestino, 
-    modalClose, 
-    email, 
+    precioUnitario,
+    nombreDestino,
+    modalClose,
+    email,
     celular,
-    nombreEntidad }) {
-
-
-      
+    nombreEntidad 
+}) {
+ alert("PagoVirtual")   
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     idCitaSeparada,
@@ -27,7 +26,7 @@ function PagoVirtual({
     idTipoOperacion: '1',
     origenNombre: '',
     destino: nombreDestino || '',
-    entidadDestino: nombreDestino || "" // Default Yape
+    entidadDestino: '1' // Default Yape
   });
 
   const handleChange = (e) => {
@@ -67,93 +66,128 @@ function PagoVirtual({
   };
 
   return (
-    <Form onSubmit={handleSubmit} className="p-2">
-      <Card className="border-0 bg-light mb-3">
-        <Card.Body className="py-2 px-3">
-          <div className="d-flex justify-content-between align-items-center text-muted small">
-            <span>Destino: Pagar a: <strong>{formData.destino}</strong></span>
-            <span className="fs-5 text-primary fw-bold">S/ {precioUnitario}</span>
+    <form onSubmit={handleSubmit} className="p-2">
+      <div className="card border-0 bg-light mb-4 rounded-3">
+        <div className="card-body py-3 px-3">
+          <div className="d-flex justify-content-between align-items-center">
+            <div>
+               <span className="text-muted small d-block">Destino: Pagar a:</span>
+               <strong className="text-dark small">{formData.destino}</strong>
+            </div>
+            <div className="text-end">
+                <span className="fs-4 text-primary fw-bold">S/ {precioUnitario}</span>
+            </div>
           </div>
-        </Card.Body>
-      </Card>
+        </div>
+      </div>
 
-      <Row className="g-3">
-        {/* Entidad de Destino */}
-        <Col md={6}>
-          <Form.Group>
-            <Form.Label className="small fw-bold"><FaUniversity /> Origen: Método de Pago</Form.Label>
-            <Form.Select name="entidadDestino" value={formData.entidadDestino} onChange={handleChange} className="rounded-3">
-              <option value="1">Yape</option>
-              <option value="2">Plin</option>
-              <option value="3">Transferencia Bancaria</option>
-            </Form.Select>
-          </Form.Group>
-        </Col>
+      <div className="row g-3">
+        <div className="col-md-6">
+          <label className="form-label small fw-bold text-secondary">
+            <FaUniversity className="me-1" /> Origen: Método de Pago
+          </label>
+          <select 
+            className="form-select border-2 rounded-3" 
+            name="entidadDestino" 
+            value={formData.entidadDestino} 
+            onChange={handleChange}
+          >
+            <option value="1">Yape</option>
+            <option value="2">Plin</option>
+            <option value="3">Transferencia Bancaria</option>
+          </select>
+        </div>
 
-        {/* Número de Operación */}
-        <Col md={6}>
-          <Form.Group>
-            <Form.Label className="small fw-bold"><FaHashtag /> Origen: Nro. de Operación</Form.Label>
-            <Form.Control 
-              name="nroOperacion" 
-              placeholder="Ej: 982371" 
-              value={formData.nroOperacion} 
-              onChange={handleChange} 
-              required 
-            />
-          </Form.Group>
-        </Col>
+        <div className="col-md-6">
+          <label className="form-label small fw-bold text-secondary">
+            <FaHashtag className="me-1" /> Origen: Nro. de Operación
+          </label>
+          <input 
+            type="text"
+            className="form-control border-2 rounded-3"
+            name="nroOperacion" 
+            placeholder="Ej: 982371" 
+            value={formData.nroOperacion} 
+            onChange={handleChange} 
+            required 
+          />
+        </div>
 
-        {/* Fecha de Pago */}
-        <Col md={6}>
-          <Form.Group>
-            <Form.Label className="small fw-bold"><FaCalendarAlt /> Origen: Fecha del Voucher</Form.Label>
-            <Form.Control type="date" name="fecha" value={formData.fecha} onChange={handleChange} required />
-          </Form.Group>
-        </Col>
+        <div className="col-md-6">
+          <label className="form-label small fw-bold text-secondary">
+            <FaCalendarAlt className="me-1" /> Origen: Fecha del Voucher
+          </label>
+          <input 
+            type="date" 
+            className="form-control border-2 rounded-3"
+            name="fecha" 
+            value={formData.fecha} 
+            onChange={handleChange} 
+            required 
+          />
+        </div>
 
-        {/* Nombre de quien pagó */}
-        <Col md={6}>
-          <Form.Group>
-            <Form.Label className="small fw-bold"><FaUser /> Origen: Nombre Titular de Pago</Form.Label>
-            <Form.Control 
-              name="origenNombre" 
-              placeholder="Nombre según voucher" 
-              value={formData.origenNombre} 
-              onChange={handleChange} 
-              required 
-            />
-          </Form.Group>
-        </Col>
+        <div className="col-md-6">
+          <label className="form-label small fw-bold text-secondary">
+            <FaUser className="me-1" /> Origen: Nombre Titular
+          </label>
+          <input 
+            type="text"
+            className="form-control border-2 rounded-3"
+            name="origenNombre" 
+            placeholder="Nombre según voucher" 
+            value={formData.origenNombre} 
+            onChange={handleChange} 
+            required 
+          />
+        </div>
 
-        <Col md={6}>
-          <Form.Group>
-            <Form.Label className="small fw-bold"><FaPhone /> Origen: Nro Celular de Pago</Form.Label>
-            <Form.Control name="celular" value={formData.celular} onChange={handleChange} required />
-          </Form.Group>
-        </Col>
+        <div className="col-md-6">
+          <label className="form-label small fw-bold text-secondary">
+            <FaPhone className="me-1" /> Origen: Nro Celular
+          </label>
+          <input 
+            type="text"
+            className="form-control border-2 rounded-3"
+            name="celular" 
+            value={formData.celular} 
+            onChange={handleChange} 
+            required 
+          />
+        </div>
 
-        <Col md={6}>
-          <Form.Group>
-            <Form.Label className="small fw-bold"><FaEnvelope /> Origen: Correo Confirmación</Form.Label>
-            <Form.Control name="correo" value={formData.correo} readOnly disabled className="bg-white" />
-          </Form.Group>
-        </Col>
-      </Row>
+        <div className="col-md-6">
+          <label className="form-label small fw-bold text-secondary">
+            <FaEnvelope className="me-1" /> Origen: Correo
+          </label>
+          <input 
+            type="email"
+            className="form-control border-2 rounded-3 bg-white"
+            name="correo" 
+            value={formData.correo} 
+            readOnly 
+            disabled 
+          />
+        </div>
+      </div>
 
       <div className="d-grid mt-4">
-        <Button 
-          variant="primary" 
+        <button 
           type="submit" 
-          size="lg" 
           disabled={loading}
-          className="rounded-pill fw-bold shadow-sm"
+          className="btn btn-primary btn-lg rounded-pill fw-bold shadow-sm py-3"
         >
-          {loading ? "Procesando..." : "REGISTRAR PAGO AHORA"}
-        </Button>
+          {loading ? (
+            <>
+              <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+              PROCESANDO...
+            </>
+          ) : "REGISTRAR PAGO AHORA"}
+        </button>
       </div>
-    </Form>
+    </form>
   );
 }
 
 export default PagoVirtual;
+*/

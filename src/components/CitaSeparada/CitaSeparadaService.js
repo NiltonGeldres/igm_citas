@@ -1,3 +1,4 @@
+/*
 import header from "../Security/Header";
 import axios from "axios";
 //(http://localhost:8081/api_salud_v2/webresources/especialidadService
@@ -18,9 +19,6 @@ const getCitasSeparadaLeer = () => {
       }
     ,{ headers: header()}
      )
-/*     .catch(function (error) {
-        console.log(error.toJSON());
-      })*/
       ;
 };
 
@@ -75,9 +73,6 @@ const getCitaSeparadaCrear = (
     ,{ headers: header()}
       )
       
-      /*.catch(function (error) {
-        console.log(error.toJSON());
-  })*/
   ;
 };
 
@@ -98,3 +93,4 @@ const CitaSeparadaService = {
     getCitasSeparadasConPagoVirtualXMedicoLeer
 };
 export default CitaSeparadaService;
+*/

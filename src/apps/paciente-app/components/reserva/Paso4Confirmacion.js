@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { CheckCircle, Clock, AlertTriangle, CreditCard, ArrowRight, X } from "lucide-react";
+//import PagoVirtual from './PagoVirtual';
+//import PagoVirtual from '../../../../feactures/PagoVirtual/PagoVirtual';
 import PagoVirtual from './PagoVirtual';
-
 
 export const Paso4Confirmacion = ({ datosReserva, onFinalizar, onPagarTarde }) => {
   const [showPagoModal, setShowPagoModal] = useState(false);
@@ -12,9 +13,9 @@ export const Paso4Confirmacion = ({ datosReserva, onFinalizar, onPagarTarde }) =
     fechaYYYYMMDD, 
     hora, 
     idCitaSeparada, 
-    usuarioEmail, 
+    email, 
     usuarioCelular, 
-    nombreEntidad 
+    nombreDestino 
   } = datosReserva;
 console.log("datosReserva   "+JSON.stringify(datosReserva))
   const handlePagoExitoso = (success) => {
@@ -98,8 +99,8 @@ console.log("datosReserva   "+JSON.stringify(datosReserva))
               <PagoVirtual
                 idCitaSeparada={idCitaSeparada}
                 precioUnitario={doctor?.monto || 77}
-                nombreDestino={nombreEntidad}
-                email={usuarioEmail}
+                nombreDestino={nombreDestino}
+                email={email}
                 celular={usuarioCelular}
                 modalClose={handlePagoExitoso}
               />

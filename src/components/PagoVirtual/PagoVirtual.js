@@ -1,3 +1,4 @@
+/*
 import React, { useState } from 'react';
 import { Form, Row, Col, Button, Card, InputGroup } from 'react-bootstrap';
 import { FaHashtag, FaCalendarAlt, FaUser, FaPhone, FaEnvelope, FaUniversity } from 'react-icons/fa';
@@ -69,7 +70,8 @@ function PagoVirtual({
       setLoading(false);
     }
   };
-
+*/
+/*
   return (
     <Form onSubmit={handleSubmit} className="p-2">
       <Card className="border-0 bg-light mb-3">
@@ -82,7 +84,6 @@ function PagoVirtual({
       </Card>
 
       <Row className="g-3">
-        {/* Entidad de Destino */}
         <Col md={6}>
           <Form.Group>
             <Form.Label className="small fw-bold"><FaUniversity /> Método de Pago</Form.Label>
@@ -94,7 +95,6 @@ function PagoVirtual({
           </Form.Group>
         </Col>
 
-        {/* Número de Operación */}
         <Col md={6}>
           <Form.Group>
             <Form.Label className="small fw-bold"><FaHashtag /> Nro. de Operación</Form.Label>
@@ -108,7 +108,6 @@ function PagoVirtual({
           </Form.Group>
         </Col>
 
-        {/* Fecha de Pago */}
         <Col md={6}>
           <Form.Group>
             <Form.Label className="small fw-bold"><FaCalendarAlt /> Fecha del Voucher</Form.Label>
@@ -116,7 +115,6 @@ function PagoVirtual({
           </Form.Group>
         </Col>
 
-        {/* Nombre de quien pagó */}
         <Col md={6}>
           <Form.Group>
             <Form.Label className="small fw-bold"><FaUser /> Nombre Titular de Pago</Form.Label>
@@ -161,3 +159,4 @@ function PagoVirtual({
 }
 
 export default PagoVirtual;
+*/
