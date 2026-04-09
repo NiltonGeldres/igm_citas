@@ -39,6 +39,8 @@ export const mapperCitaSeparadaApiToReserva = (apiData, prevReserva) => {
       ? `Cuenta: ${apiData.numeroCuenta}` 
       : (prevReserva.nombreDestino || 'Consultar en recepción'),
       
+    email: (apiData.email || 'vacio'),
+
     idProgramacion: apiData.idProgramacion || 0,
     
     // IDs de negocio para auditoría

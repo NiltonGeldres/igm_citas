@@ -117,6 +117,7 @@ export default function PacientePage({  direccionClinica = "Sede Central" , onLo
 
   const [misCitas, setMisCitas] = useState([]);
   const [misPagos, setMisPagos] = useState([]);
+  const [misMedicosEntidad, setMisMedicosEntidad] = useState([]);
   
 
   // 1. CARGAR ESPECIALIDADES (Al entrar a Citas)
@@ -152,6 +153,11 @@ export default function PacientePage({  direccionClinica = "Sede Central" , onLo
     }
   }, [user?.id]); // Solo se ejecuta al cargar el componente
 
+   useEffect(() => {
+      obtenerMedicosEntidad(user.idEntidad);
+  }, []); // Solo se ejecuta al cargar el componente
+ 
+
   const manejarClickMisCitas = () => {
     setPestanaActual('citas');
     setModoReserva(false);
@@ -163,6 +169,20 @@ export default function PacientePage({  direccionClinica = "Sede Central" , onLo
     try {
       const data = await citaService.getCitaPacienteListarPendientes(user.idPaciente, fechaFiltro);
       setMisCitas(data);
+    } catch (error) {
+      console.error("Error al traer citas:", error);
+    } finally {
+      setCargando(false);
+    }
+  };
+
+  const obtenerMedicosEntidad = async (idEntidad) => {
+    setCargando(true);
+    try {
+      const data1 = await MedicoService.getListarMedicosEntidad(idEntidad);
+      console.log("DATA MEDICOS :", data1.data);
+      
+     setMisMedicosEntidad(data1.data.medicos || []);      
     } catch (error) {
       console.error("Error al traer citas:", error);
     } finally {
@@ -277,60 +297,7 @@ export default function PacientePage({  direccionClinica = "Sede Central" , onLo
         obtenerProgramacionMedicaMes(nuevoMesIndice + 1, nuevoAnio, espId, medId, 10);
       }
     };
-/*
-    const handleHoraSeleccionada = async (hora, idProg, idServ) => {
-      console.log("handleHoraSeleccionada " +hora+"  "+idProg+"  "+ idServ)
-      try {
-        const respBloqueo = await CitaService.getCitaBloquear(hora, datosReserva.fechaYYYYMMDD, datosReserva.doctor.id);        
-        const idBloqueo = respBloqueo.data.idCitaBloqueada;
-        Swal.fire({
-          title: '¿Confirmar horario?',
-          html: `Has seleccionado las <b>${hora}</b>.<br/>Confirma en <b>60</b> segundos.`,
-          timer: 60000,
-          timerProgressBar: true,
-          showCancelButton: true,
-          confirmButtonText: 'Sí, reservar',
-          cancelButtonText: 'Cancelar',
-          didOpen: () => {
-            const b = Swal.getHtmlContainer().querySelector('b');
-            timerInterval = setInterval(() => {
-              b.textContent = Math.ceil(Swal.getTimerLeft() / 1000);
-            }, 1000);
-          },
-          willClose: () => clearInterval(timerInterval)
-        }).then(async (result) => {
-          if (result.isConfirmed) {
-              await CitaSeparadaService.getCitaSeparadaCrear(
-                datosReserva.fechaYYYYMMDD, 
-                hora, 
-                hora,
-                0, 
-                datosReserva.doctor?.id, 
-                datosReserva.especialidad?.idEspecialidad,
-                idServ,
-                idProg,
-                0, 
-                datosReserva.doctor?.monto
-              );
-            setDatosReserva(prev => ({ 
-                    ...prev, 
-                    hora: hora, 
-                    idProgramacion: idProg, 
-                    idCitaBloqueada: idBloqueo // Guardamos el ID para liberarlo luego si es necesario
-            }));
-            await CitaService.getEliminarCitaBloqueada(idBloqueo);
-            setPasoActual(4); 
-          } else {
-            // 3. Liberar si cancela o se acaba el tiempo
-            await CitaService.getEliminarCitaBloqueada(idBloqueo);
-          }
-        });
 
-      } catch (error) {
-        Swal.fire('Error', 'Este horario acaba de ser tomado por otro usuario.', 'error');
-      }
-    };
-*/
 
 
     const handleHoraSeleccionada = async (hora, idProg, idServ) => {
@@ -493,6 +460,7 @@ export default function PacientePage({  direccionClinica = "Sede Central" , onLo
             perfil={perfil}
             entidad={entidad}
             misCitas={misCitas}
+            misMedicosEntidad={misMedicosEntidad}
             direccionClinica={direccionClinica}
             onNuevaCita={() => { 
               setPestanaActual('citas'); 

@@ -10,6 +10,7 @@ const API_URL = process.env.REACT_APP_URL_API;
 //const API_URL = "http://192.168.0.200:8080";
 const SERVICE = "/medicosEspecialidad";
 const SERVICE_MEDICO_ESPECIALIDAD = "/medicoEspecialidad";
+const SERVICE_MEDICO_ENTIDAD = "/medicosEntidad";
 const usuario = sessionStorage.getItem('username');
 
 
@@ -60,10 +61,20 @@ const getMedicoEspecialidad = (idEspecialidad) => {
       });
 };
 
+const getListarMedicosEntidad = (idEntidad) => {
+  console.log("ENTIDAD "+idEntidad)
+  return axios.post(API_URL+SERVICE_MEDICO_ENTIDAD 
+       ,{idEntidad:idEntidad}
+        ,{ headers: header()}
+      ).catch(function (error) {
+        console.log(error.toJSON());
+      });
+};
 
 const MedicoService = {
     getTodos,
     getMedicoEspecialidad,
-    obtenerTodosEspecialidad
+    obtenerTodosEspecialidad,
+    getListarMedicosEntidad
 };
 export default MedicoService;

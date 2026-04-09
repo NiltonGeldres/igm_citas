@@ -19,7 +19,7 @@ function PagoVirtual({
     fecha: new Date().toISOString().substring(0, 10),
     nroOperacion: '',
     correo: email || '',
-    celular: celular || '',
+    celular: '',
     precioUnitario: precioUnitario || 0,
     idTipoOperacion: '1',
     origenNombre: '',
@@ -152,6 +152,7 @@ function PagoVirtual({
           <input 
             type="text"
             className="form-control border-2 rounded-3"
+            placeholder="Numero segun voucher "             
             name="celular" 
             value={formData.celular} 
             onChange={handleChange} 
@@ -161,11 +162,11 @@ function PagoVirtual({
 
         <div className="col-md-6">
           <label className="form-label small fw-bold text-secondary">
-            <FaEnvelope className="me-1" /> Origen: Correo
+            <FaEnvelope className="me-1" /> Correo
           </label>
           <input 
             type="email"
-            className="form-control border-2 rounded-3 bg-white"
+            className="form-control border-2 rounded-3 bg-secoundary"
             name="correo" 
             value={formData.correo} 
             readOnly 

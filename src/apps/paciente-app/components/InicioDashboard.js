@@ -5,6 +5,7 @@ export const InicioDashboard = ({
   perfil, 
   entidad, 
   misCitas, 
+  misMedicosEntidad,
   direccionClinica, 
   onNuevaCita, 
   onIrAPagos 
@@ -21,7 +22,7 @@ export const InicioDashboard = ({
             <div className="bg-white bg-opacity-10 p-2 rounded-4 text-center">
               <p className="small mb-0 opacity-75" style={{ fontSize: '10px' }}>PRÓXIMA CITA</p>
               <p className="small fw-bold mb-0 text-truncate">
-                {misCitas && misCitas.length > 0 ? `${misCitas[0].horainicio}` : 'Sin citas'}
+                {misCitas && misCitas.length > 0 ? `${misCitas[0].fecha +' - '+misCitas[0].horainicio}` : 'Sin citas'}
               </p>
             </div>
           </div>
@@ -61,22 +62,33 @@ export const InicioDashboard = ({
       </h6>
       
       <div className="d-flex flex-column gap-3">
-        {[
-          { id: 'd1', nombre: 'Dr. Roberto Gómez', calificacion: 4.8 },
-          { id: 'd2', nombre: 'Dra. Elena Martínez', calificacion: 4.9 }
-        ].map(doctor => (
-          <div key={doctor.id} className="tarjeta-personalizada bg-white p-3 shadow-sm d-flex align-items-center gap-3">
-            <div className="bg-light rounded-circle p-2 text-secondary"><User size={24} /></div>
-            <div className="flex-grow-1">
-              <p className="mb-0 fw-bold small text-dark">{doctor.nombre}</p>
-              <p className="mb-0 text-secondary" style={{ fontSize: '11px' }}>{direccionClinica}</p>
-            </div>
-            <div className="text-warning fw-bold small d-flex align-items-center gap-1">
-              <Star size={12} fill="currentColor" /> {doctor.calificacion}
-            </div>
-          </div>
-        ))}
+
+                  {misMedicosEntidad.length === 0 ? (
+                    <tr><td className="text-center py-3 text-muted">No hay pagos en verificación.</td></tr>
+                  ) : (
+                    misMedicosEntidad.map((doctor) => (
+                      <div key={doctor.id} className="tarjeta-personalizada bg-white p-3 shadow-sm d-flex align-items-center gap-3">
+                        <div className="bg-light rounded-circle p-2 text-secondary"><User size={24} /></div>
+                        <div className="flex-grow-1">
+                          <p className="mb-0 fw-bold small text-dark">{doctor.nombre}</p>
+                          <p className="mb-0 text-secondary" style={{ fontSize: '11px' }}>{doctor.nombreEspecialidad}</p>
+                        </div>
+                        <div className="text-warning fw-bold small d-flex align-items-center gap-1">
+                          <Star size={12} fill="currentColor" /> {4.9}
+                        </div>
+                      </div>
+                    ))
+                  )}
+
+
       </div>
     </div>
   );
 };
+
+/**
+ [
+          { id: 'd1', nombre: 'Dr. Roberto Gómez', calificacion: 4.8 },
+          { id: 'd2', nombre: 'Dra. Elena Martínez', calificacion: 4.9 }
+        ]
+*/

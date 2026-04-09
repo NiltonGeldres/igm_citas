@@ -113,12 +113,20 @@ const CitaSeparada = ({}) => {
                         </td>
                         <td className="text-center fw-bold">S/ {cita.precioUnitario}</td>
                         <td className="text-center pe-3">
-                          <button 
-                            className="btn btn-primary btn-sm rounded-pill px-3 fw-bold shadow-sm"
-                            onClick={() => abrirPago(cita)}
-                          >
-                            Pagar
-                          </button>
+                          { cita.estadoReserva === 'PENDIENTE_PAGO' ? (
+                            <button 
+                              className="btn btn-primary btn-sm rounded-pill px-3 fw-bold shadow-sm"
+                              onClick={() => abrirPago(cita)}
+                            >
+                              Pagar
+                            </button>
+
+                          ):( 
+                              <button  className="btn btn-sm rounded-pill px-3 fw-bold shadow-sm bg-warning" >
+                                {cita.estadoReserva}
+                              </button>
+
+                          )}
                         </td>
                       </tr>
                     ))
