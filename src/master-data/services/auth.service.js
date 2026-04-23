@@ -1,10 +1,9 @@
 import header from "../../components/Security/Header";
-import { React} from "react";
 import axios from "axios";
 import { jwtDecode } from "jwt-decode";
 import { mapearUsuarioRequest } from "../mappers/UsuarioMapper";
 import { transformarUsuarios } from "../mappers/UsuarioMapper";
-import Swal from "sweetalert2";
+
 
 
 const API_URL = process.env.REACT_APP_URL_API;
@@ -32,13 +31,13 @@ const ejecutarAPI = async (endpoint, params = {}) => {
         } catch (error) {
             if (error.response) {
                 // 1. Aquí capturas el objeto UsuarioResponse que enviaste en el body
-                const datosError = error.response.data; 
+              //  const datosError = error.response.data; 
                 
-                console.log("Status:", error.response.status); // 409
-                console.log("Cuerpo del error:", datosError); // Aquí verás el JSON completo
+             //   console.log("Status:", error.response.status); // 409
+            //    console.log("Cuerpo del error:", datosError); // Aquí verás el JSON completo
                 
                 // 2. Accedes al campo donde guardaste el mensaje (username o mensaje)
-                const mensajeServidor = datosError.username; 
+                //const mensajeServidor = datosError.username; 
                 //alert("Atención: " + mensajeServidor); 
                 //Swal.fire("Error"+mensajeServidor, "Cuenta","error");                
 
@@ -175,14 +174,28 @@ const leerUsuario = (username) => {
         
 };
 
+const leerUsuarioUsername = () => {
+    const username = getCurrentUsername();
+    
+    // Validación preventiva
+    if (!username) {
+        return Promise.reject("No se encontró un nombre de usuario");
+    }
 
+    return axios.post(
+        API_URL + GETUSUARIO, 
+        { username: username }, 
+        { headers: header() }
+    );
+}
 
+/*
 const leerUsuarioUsername = () => {
     let username= getCurrentUsername()
    return axios.post(API_URL+GETUSUARIO,{username: username}
                 ,{ headers: header()}
          )
-};
+};*/
 
 
 const actualizaUsuario = (usuarioData) => {

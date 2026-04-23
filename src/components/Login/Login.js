@@ -1,12 +1,10 @@
 
-import React, { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import AuthService from "./services/auth.service";
 // import { jwtDecode } from "jwt-decode"; // No se usa directamente aquí
 import Styles from '../../Styles'; // Importa tus estilos globales
 import MessageModal from '../AtencionMedica/common/MessageModal'; // Importa el nuevo componente MessageModal
-import { jwtDecode } from "jwt-decode";
-import UsuarioService from "../Usuario/UsuarioService"
 import { useAuth } from "../context/AuthContext";
 
 const Login = () => {
@@ -18,7 +16,7 @@ const Login = () => {
   const [loading, setLoading] = useState(false); // Estado para el indicador de carga
   const [showErrorModal, setShowErrorModal] = useState(false); // Estado para el modal de error
   const [errorMessage, setErrorMessage] = useState(""); // Mensaje de error
-  const [usuarioData, setUsuarioData] = useState({
+/*  const [usuarioData, setUsuarioData] = useState({
         id_usuario          : 0,
         username            :"",        
         password            :"",
@@ -35,7 +33,7 @@ const Login = () => {
         fecha_alta          :"",
         fecha_baja          :"",
         fecha_modificacion  :""
-      });    
+      });    */
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -51,7 +49,7 @@ const Login = () => {
     } catch (err) {
         // 1. Obtenemos el código de error del backend (ej: 401, 403, 500)
         const statusCode = err.response?.status;
-        const serverMessage = err.response?.data?.message; // Si tu API devuelve un mensaje
+//        const serverMessage = err.response?.data?.message; // Si tu API devuelve un mensaje
 
         let mensajeParaUsuario = "";
 
@@ -125,28 +123,3 @@ export default Login;
 
 
 
-
-/*  const handleLogin = async (e) => {
-    e.preventDefault();
-    try {
-        await AuthService.login(email, password)
-        .then(() => {
-          
-         //   UsuarioService.leerUsuario()
-            navigate("/private");
-            window.location.reload();
-          }
-        ,(error) => {
-            AuthService.logout();
-            navigate("/login");
-            window.location.reload();          
-            alert("Comuniquese con el soporte tecnico: "+error)
-          });
-    } catch (err) {
-        AuthService.logout();
-        navigate("/login");
-        window.location.reload();          
-        alert("Comuniquese con el soporte tecnico: "+err)
-    }
-  };
- */ 

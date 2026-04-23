@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import AuthService from "../../master-data/services/auth.service";
+//import { useNavigate } from "react-router-dom";
+
 import CitaSeparadaService from "../../master-data/services/CitaSeparadaService";
 import FacturacionRow from "./FacturacionRow";
 import { Search, FilterX, Loader2 } from "lucide-react";
@@ -10,7 +10,7 @@ const FacturacionList = () => {
   const [filteredCitas, setFilteredCitas] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(false);
-  const navigate = useNavigate();
+  //const navigate = useNavigate();
 
   useEffect(() => {
     setLoading(true);

@@ -1,7 +1,7 @@
 //CeldaCalendario.js
 import React from "react";
 import { Icono } from "./Icono";
-import { TODOS_LOS_TURNOS } from "../Constants/TODOS_LOS_TURNOS";
+//import { TODOS_LOS_TURNOS } from "../Constants/TODOS_LOS_TURNOS";
 //import { MAPEO_TURNOS } from "../Constants/MAPEO_TURNOS";
 import { MAPEO_TURNOS } from "../Data/CargarConfiguracionTurnos";
 
@@ -24,7 +24,7 @@ const CeldaCalendario = React.memo(({ dia, claveFecha, esHoy, tieneHorario, esta
         : [MAPEO_TURNOS.libre.id];
 
     // Extraemos el código/ID del servicio para mostrarlo
-    const codigoServicio = dataDelDia?.idServicio; 
+   // const codigoServicio = dataDelDia?.idServicio; 
 
     const esLibre = turnosActuales.length === 1 && turnosActuales[0] === MAPEO_TURNOS.libre.id;
     // --- FIN CORRECCIÓN ---
@@ -64,7 +64,7 @@ const CeldaCalendario = React.memo(({ dia, claveFecha, esHoy, tieneHorario, esta
                         // Si el ID es 'libre', no queremos solo la "L", queremos el texto o un icono
                         const esLibre = turnoId === 'libre';
                         const textoMostrar = esLibre ? "Libre" : (t.descripcion || '').substring(0, 1);
-                        const codigoServicio = t.codigoServicio;
+                //        const codigoServicio = t.codigoServicio;
 
 
                         return (

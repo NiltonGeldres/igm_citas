@@ -9,23 +9,22 @@ import Signup from "./shared/components/Signup";
 
 //import CitaV2 from "./components/Cita/CitaV2";
 import AuthService from "./master-data/services/auth.service";
-import { useState } from "react";
+//import { useState } from "react";
 import PacientePage from "./apps/paciente-app/pages/PacientePage";
 function App() {
   // Extraemos todo del contexto (ya no necesitamos estados locales ni useEffects aquí)
   const { user, loading } = useAuth();
   const Authority = user?.rol; // Usamos el rol que viene del perfil decodificado
   const navigate = useNavigate();
-  const [currentUser, setCurrentUser] = useState(undefined);
-  const [userName, setUserName] = useState(undefined);
-  const [userProfileData, setUserProfileData] = useState(null); 
+  //const [userName, setUserName] = useState(undefined);
+  //const [userProfileData, setUserProfileData] = useState(null); 
 
   if (loading) return <div className="loading-screen">Cargando MediFlow...</div>;
 
   const logOut = () => {
   AuthService.logout(); // Limpia sessionStorage
-  setCurrentUser(null);
-  setUserProfileData(null);    
+
+  //setUserProfileData(null);    
   navigate("/login");
 };
 

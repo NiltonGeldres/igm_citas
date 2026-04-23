@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import Swal from "sweetalert2";
-import { Calendar, CreditCard, Home,  CheckCircle2, ChevronLeft, Plus, Loader2 } from 'lucide-react';
+import { Calendar, CreditCard, Home,  CheckCircle2, ChevronLeft,  Loader2 } from 'lucide-react';
 import   "../styles/ESTILOS_CSS";
 import { ESTILOS_CSS } from '../styles/ESTILOS_CSS';
+import { useCallback } from 'react';
 
 import MedicoService from '../../../master-data/services/MedicoService';
 import CitaSeparadaService from '../../../master-data/services/CitaSeparadaService';
@@ -30,7 +31,7 @@ import { mapperCitaSeparadaApiToReserva } from '../mapper/CitaSeparadaMapper';
 
 import "../../paciente-app/styles/paciente-app.css"
 
-let timerInterval;
+//let timerInterval;
 
 const HeaderPasos = ({ pasoActual, onAtras }) => (
   <div className="d-flex align-items-center gap-3 mb-4">
@@ -92,7 +93,8 @@ export default function PacientePage({  direccionClinica = "Sede Central" , onLo
   const [mostrarExito, setMostrarExito] = useState(false);
   const [programacionMensual, setProgramacionMensual] = useState([]);
   const [medicosActuales, setMedicosActuales] = useState([]);
-  const [fechaFiltro, setFechaFiltro] = useState(obtenerFechaActualYYYYMMDD());
+  //const [fechaFiltro, setFechaFiltro] = useState(obtenerFechaActualYYYYMMDD());
+  const fechaFiltro = obtenerFechaActualYYYYMMDD();
   // --- ESTADO DE CACHÉ Y DATOS ---
   const [cache, setCache] = useState({
     especialidades: [],
@@ -116,20 +118,47 @@ export default function PacientePage({  direccionClinica = "Sede Central" , onLo
   });
 
   const [misCitas, setMisCitas] = useState([]);
-  const [misPagos, setMisPagos] = useState([]);
+  //const [misPagos, setMisPagos] = useState([]);
   const [misMedicosEntidad, setMisMedicosEntidad] = useState([]);
   
+
+const obtenerCitas = useCallback(async (idPaciente, fecha) => {  
+    setCargando(true);
+    try {
+      const data = await citaService.getCitaPacienteListarPendientes(user.idPaciente, fechaFiltro);
+      setMisCitas(data);
+    } catch (error) {
+      console.error("Error al traer citas:", error);
+    } finally {
+      setCargando(false);
+    }
+}, [user?.idPaciente,fechaFiltro]);
+
+  const obtenerMedicosEntidad = async (idEntidad) => {
+    setCargando(true);
+    try {
+      const data1 = await MedicoService.getListarMedicosEntidad(idEntidad);
+      console.log("DATA MEDICOS :", data1.data);
+      
+     setMisMedicosEntidad(data1.data.medicos || []);      
+    } catch (error) {
+      console.error("Error al traer citas:", error);
+    } finally {
+      setCargando(false);
+    }
+  };
+
 
   // 1. CARGAR ESPECIALIDADES (Al entrar a Citas)
   useEffect(() => {
     const cargar = async () => {
       // 1. Verificamos si ya existen especialidades en el caché
       if (cache.especialidades.length > 0) {
-        console.log("Cargando especialidades desde el caché..."+JSON.stringify(user));
+        console.log("Cargando especialidades desde el caché...");
         return; 
       }
       try {
-        console.log("Iniciando petición a la API...");
+      //  console.log("Iniciando petición a la API...");
         const data = await EspecialidadService.getXEntidad();
         // 2. Transformamos la data
         const dataListaParaUI = transformarEspecialidades(data);
@@ -147,48 +176,32 @@ export default function PacientePage({  direccionClinica = "Sede Central" , onLo
   }, [cache.especialidades.length]);
 
 
-  useEffect(() => {
+useEffect(() => {
     if (user?.id) {
-      obtenerCitas(user.id, fechaFiltro);
+        obtenerCitas(user.id, fechaFiltro);
     }
-  }, [user?.id]); // Solo se ejecuta al cargar el componente
+}, [user?.id, fechaFiltro, obtenerCitas]);
 
+
+useEffect(() => {
+    if (user?.idEntidad) {
+        obtenerMedicosEntidad(user.idEntidad);
+    }
+}, [user?.idEntidad]);
+
+/*  
    useEffect(() => {
       obtenerMedicosEntidad(user.idEntidad);
   }, []); // Solo se ejecuta al cargar el componente
- 
+ */
 
+/*
   const manejarClickMisCitas = () => {
     setPestanaActual('citas');
     setModoReserva(false);
     obtenerCitas(user.id, fechaFiltro); // <--- Refresca la variable
-  };
+  };*/
 
-  const obtenerCitas = async (idPaciente, fecha) => {
-    setCargando(true);
-    try {
-      const data = await citaService.getCitaPacienteListarPendientes(user.idPaciente, fechaFiltro);
-      setMisCitas(data);
-    } catch (error) {
-      console.error("Error al traer citas:", error);
-    } finally {
-      setCargando(false);
-    }
-  };
-
-  const obtenerMedicosEntidad = async (idEntidad) => {
-    setCargando(true);
-    try {
-      const data1 = await MedicoService.getListarMedicosEntidad(idEntidad);
-      console.log("DATA MEDICOS :", data1.data);
-      
-     setMisMedicosEntidad(data1.data.medicos || []);      
-    } catch (error) {
-      console.error("Error al traer citas:", error);
-    } finally {
-      setCargando(false);
-    }
-  };
 
   const  seleccionarEspecialidad = async (espec) => {
         setDatosReserva(prev => ({ ...prev, especialidad: espec, doctor: null }));
@@ -203,10 +216,10 @@ export default function PacientePage({  direccionClinica = "Sede Central" , onLo
 
         const medId = med.id;
         const espId = datosReserva.especialidad?.idEspecialidad || datosReserva.especialidad?.idEspecialidad;
-        console.log("espID     "+espId)
-        console.log("medID     "+JSON.stringify(med))
-        console.log("medID     "+medId)
-        const serId = datosReserva.servicio?.idServicio || datosReserva.servicio?.id;
+   //     console.log("espID     "+espId)
+  //      console.log("medID     "+JSON.stringify(med))
+  //      console.log("medID     "+medId)
+  //      const serId = datosReserva.servicio?.idServicio || datosReserva.servicio?.id;
 
         // 3. Actualizamos el estado con el médico elegido y pasamos al paso 3
         setDatosReserva(prev => ({ 
@@ -248,7 +261,7 @@ export default function PacientePage({  direccionClinica = "Sede Central" , onLo
       const { mes, anio } = datosReserva.fechaObjeto;
       // Formato para mostrar en el UI (ej: "15 de Marzo")
       const fechaStr = `${dia} ${new Intl.DateTimeFormat('es-ES', { month: 'short' }).format(new Date(anio, mes))}`;
-      const keyHora = `${datosReserva.doctor.id}-${fechaStr}`;
+ //     const keyHora = `${datosReserva.doctor.id}-${fechaStr}`;
 
       const mesFormat = String(mes + 1).padStart(2, '0');
       const diaFormat = String(dia).padStart(2, '0');

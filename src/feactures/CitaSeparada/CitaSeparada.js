@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { FaSync, FaClock, FaCheckCircle } from 'react-icons/fa';
+import { FaClock, FaCheckCircle } from 'react-icons/fa';
 import { X, RefreshCw } from "lucide-react"; // Usamos lucide para consistencia
-
+import { useCallback } from "react";
 import AuthService from "../../master-data/services/auth.service";
 import CitaSeparadaService from "../CitaSeparada/CitaSeparadaService";
 
@@ -10,7 +10,7 @@ import CitaSeparadaService from "../CitaSeparada/CitaSeparadaService";
 import PagoVirtual from "../../apps/paciente-app/components/reserva/PagoVirtual";
 import FormatDate from "../../shared/utils/FormatDate";
 
-const CitaSeparada = ({}) => {
+const CitaSeparada = ({datosReserva}) => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [citasPendientes, setCitasPendientes] = useState([]);
@@ -21,14 +21,8 @@ const CitaSeparada = ({}) => {
   const [pagoSeleccionado, setPagoSeleccionado] = useState(null);
   const [usuarioData, setUsuarioData] = useState(null);
 
-  useEffect(() => {
-    if (actualizar) {
-      cargarDatos();
-      setActualizar(false);
-    }
-  }, [actualizar]);
-
-  const cargarDatos = async () => {
+    const cargarDatos = useCallback(async () => {
+//  const cargarDatos = async () => {
     setLoading(true);
     try {
       const user = await AuthService.leerUsuarioUsername();
@@ -44,7 +38,17 @@ const CitaSeparada = ({}) => {
     } finally {
       setLoading(false);
     }
-  };
+//  };
+}, [navigate]);
+
+
+  useEffect(() => {
+    if (actualizar) {
+      cargarDatos();
+      setActualizar(false);
+    }
+  }, [actualizar, cargarDatos]);
+
 
   const abrirPago = (cita) => {
     setPagoSeleccionado({

@@ -1,7 +1,7 @@
 import  { useState, useCallback, useMemo, useEffect } from 'react';
 import { Icono } from './Programacion/Components/Icono.js';
 
-import BarraFiltros from "./Programacion/Components/BarraFiltros.js";
+//import BarraFiltros from "./Programacion/Components/BarraFiltros.js";
 import ProgramadorMasivo from "./Programacion/Components/ProgramadorMasivo.js";
 import CeldaCalendario from "./Programacion/Components/CeldaCalendario.js";
 import ModalEditorTurnos from "./Programacion/Components/ModalEditorTurnos.js";
@@ -11,13 +11,13 @@ import {DIAS_SEMANA} from "./Programacion/Constants/DIAS_SEMANA.js"
 
 import TurnoService from "../../master-data/services/TurnoService.js";
 import { cargarConfiguracionTurnos, MAPEO_TURNOS } from "./Programacion/Data/CargarConfiguracionTurnos.js";
-import ProgramacioHorarioService from "../ProgramacionHorario/ProgramacionHorarioService.js";
+//import ProgramacioHorarioService from "../ProgramacionHorario/ProgramacionHorarioService.js";
 import { actualizarTurnoEnDia } from "../ProgramacionHorario/Programacion/Modelos/ProgramacionHorarioDiaModelo.js";
 import { modelarCrearProgramacion ,modelarDia} from "../ProgramacionHorario/Programacion/Modelos/ProgramacionHorarioDiaModelo.js";
 import Especialidad from "../../shared/components/Especialidad.js"
 import ProgramacionHorarioService from "../../feactures/ProgramacionHorario/ProgramacionHorarioService.js"
 import Swal from 'sweetalert2';
-import { transformarTurnosAPI } from './Programacion/Data/CargarConfiguracionTurnos.js';
+//import { transformarTurnosAPI } from './Programacion/Data/CargarConfiguracionTurnos.js';
 
 export default function ProgramacionHorario() {
     
@@ -46,10 +46,10 @@ export default function ProgramacionHorario() {
  //   const [idEspSeleccionada, setIdEspSeleccionada] = useState(null);
  //   const [idServSeleccionado, setIdServSeleccionado] = useState(null);
     //Turnos
-
+/*
     const [mapeoTurnos, setMapeoTurnos] = useState({
         'libre': { idTurno: 'libre', descripcion: 'Libre', hora: 'Libre', claseColor: 'bg-light border' }
-    });    
+    });    */
 
 
     useEffect(() => {

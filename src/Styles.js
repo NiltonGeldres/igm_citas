@@ -281,14 +281,8 @@ const Styles = {
     padding: '10px 0',
     transition: 'background-color 0.3s ease',
   },
-  '@media (max-width: 768px)': {
-    navbarNav: {
-      display: 'none',
-    },
-    hamburgerMenu: {
-      display: 'block',
-    },
-  },
+
+ 
 
   autocompleteContainer: {
     position: 'relative',
@@ -853,83 +847,285 @@ const Styles = {
     boxSizing: 'border-box',
   },
 
-  // --- ESTILOS PARA EL COMPONENTE LOGIN ---
-  loginContainer: {
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-    minHeight: 'calc(100vh - 60px)', // Resta la altura de la navbar superior
-    backgroundColor: '#f0f2f5', // Fondo suave
-    padding: '20px',
-    boxSizing: 'border-box',
-  },
-  loginForm: {
-    backgroundColor: '#ffffff',
-    padding: '40px',
-    borderRadius: '12px',
-    boxShadow: '0 8px 20px rgba(0, 0, 0, 0.1)',
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '20px',
-    width: '100%',
-    maxWidth: '400px',
-    textAlign: 'center',
-  },
-  loginTitle: {
-    fontSize: '28px',
-    fontWeight: '700',
-    color: '#333',
-    marginBottom: '10px',
-  },
-  loginInput: {
-    padding: '12px 15px',
-    borderRadius: '8px',
-    border: '1px solid #e0e0e0',
-    fontSize: '16px',
-    outline: 'none',
-    transition: 'border-color 0.2s ease, box-shadow 0.2s ease',
-    '&:focus': {
-      borderColor: '#007bff',
-      boxShadow: '0 0 0 3px rgba(0, 123, 255, 0.25)',
+  /* --- ESCRITORIO --- */
+  '@media (min-width: 769px)': {
+    container: {
+      maxWidth: '700px',
     },
   },
-  loginButton: {
-    backgroundColor: '#007bff',
-    color: 'white',
-    padding: '12px 20px',
-    border: 'none',
-    borderRadius: '8px',
-    fontSize: '18px',
-    fontWeight: 'bold',
-    cursor: 'pointer',
-    transition: 'background-color 0.3s ease, transform 0.2s ease',
-    boxShadow: '0 4px 10px rgba(0, 123, 255, 0.3)',
-    '&:hover': {
-      backgroundColor: '#0056b3',
-      transform: 'translateY(-2px)',
-    },
-    '&:disabled': {
-      backgroundColor: '#cccccc',
-      cursor: 'not-allowed',
-      boxShadow: 'none',
-      transform: 'none',
-    },
-  },
-  loginSignupText: {
-    fontSize: '15px',
-    color: '#555',
-    marginTop: '10px',
-  },
-  loginSignupLink: {
-    color: '#007bff',
-    textDecoration: 'none',
-    fontWeight: '600',
-    '&:hover': {
-      textDecoration: 'underline',
-    },
-  },
-  // --- FIN ESTILOS PARA EL COMPONENTE LOGIN ---
 
+  /* --- TABLET / MÓVIL GENERAL (768px) --- */
+  '@media (max-width: 768px)': {
+    container: {
+      paddingLeft: '15px',
+      paddingRight: '15px',
+      paddingBottom: '80px',
+    },
+    // Se unificó aquí lo que estaba al final del archivo
+    navbarNav: {
+      display: 'none',
+    },
+    hamburgerMenu: {
+      display: 'block',
+    },
+    pageHeader: {
+      padding: '6px 15px',
+    },
+    pageHeaderBackButton: {
+      left: '15px',
+      fontSize: '24px',
+    },
+    pageHeaderTitle: {
+      fontSize: '20px',
+    },
+    patientSummaryCard: {
+      padding: '6px 15px',
+      marginBottom: '15px',
+    },
+    patientSummaryName: {
+      fontSize: '18px',
+    },
+    patientSummaryDetails: {
+      fontSize: '13px',
+    },
+    medicalSection: {
+      padding: '20px',
+      marginBottom: '25px',
+    },
+    textArea: {
+      fontSize: '15px',
+      minHeight: '70px',
+    },
+    micButton: {
+      width: '50px',
+      height: '50px',
+      fontSize: '26px',
+    },
+    micButtonActive: {
+      width: '55px',
+      height: '55px',
+      fontSize: '28px',
+    },
+    saveButton: {
+      padding: '15px 30px',
+      fontSize: '18px',
+    },
+    fixedBottomBar: {
+      height: '65px',
+      padding: '8px 0',
+    },
+    fixedBottomBarButton: {
+      fontSize: '11px',
+      gap: '3px',
+    },
+    fixedBottomBarButtonIcon: {
+      fontSize: '22px',
+    },
+    patientWhatsAppListItem: {
+      padding: '6px 12px',
+      minHeight: '55px',
+    },
+    patientWhatsAppAvatar: {
+      width: '35px',
+      height: '35px',
+      fontSize: '16px',
+    },
+    patientWhatsAppName: {
+      fontSize: '15px',
+    },
+    patientWhatsAppTime: {
+      fontSize: '11px',
+    },
+    patientWhatsAppDetails: {
+      fontSize: '11px',
+    },
+    bubbleListItemNoAvatar: {
+      padding: '6px 12px',
+      minHeight: '55px',
+    },
+    bubbleName: {
+      fontSize: '15px',
+    },
+    bubbleTime: {
+      fontSize: '11px',
+    },
+    bubbleDetails: {
+      fontSize: '11px',
+    },
+    bubbleActionButton: {
+      fontSize: '12px',
+      padding: '3px 6px',
+    },
+    bubbleActionButtonIcon: {
+      width: '16px',
+      height: '16px',
+    },
+    inputContainer: {
+      gap: '10px',
+      flexWrap: 'nowrap',
+    },
+    autocompleteInputWrapper: {
+      flexWrap: 'nowrap',
+    },
+    autocompleteInput: {
+      paddingRight: '35px',
+    },
+    clearInputButton: {
+      right: '60px',
+    },
+    iconNavigationGrid: {
+      gridTemplateColumns: 'repeat(auto-fit, minmax(100px, 1fr))',
+      gap: '15px',
+      marginBottom: '20px',
+    },
+    iconNavigationButton: {
+      padding: '15px 8px',
+      minHeight: '100px',
+    },
+    iconNavigationIconSize: '40px',
+    iconNavigationIcon: {
+      marginBottom: '8px',
+    },
+    iconNavigationText: {
+      fontSize: '14px',
+    },
+    menuTab2Content: {
+      padding: '20px',
+    },
+    loginForm: {
+      padding: '30px',
+      gap: '15px',
+    },
+    loginTitle: {
+      fontSize: '24px',
+    },
+    loginInput: {
+      padding: '10px 12px',
+      fontSize: '15px',
+    },
+    loginButton: {
+      padding: '10px 15px',
+      fontSize: '16px',
+    },
+    loginSignupText: {
+      fontSize: '14px',
+    },
+  },
+
+  /* --- MÓVIL PEQUEÑO (480px) --- */
+  '@media (max-width: 480px)': {
+    container: {
+      paddingLeft: '10px',
+      paddingRight: '10px',
+      paddingBottom: '75px',
+    },
+    pageHeader: {
+      padding: '5px 10px',
+    },
+    pageHeaderBackButton: {
+      left: '10px',
+      fontSize: '22px',
+    },
+    pageHeaderTitle: {
+      fontSize: '18px',
+    },
+    patientSummaryCard: {
+      padding: '5px 10px',
+      marginBottom: '10px',
+    },
+    patientSummaryName: {
+      fontSize: '16px',
+    },
+    patientSummaryDetails: {
+      fontSize: '12px',
+    },
+    medicalSection: {
+      padding: '15px',
+      marginBottom: '20px',
+    },
+    textArea: {
+      fontSize: '14px',
+      minHeight: '60px',
+    },
+    micButton: {
+      width: '45px',
+      height: '45px',
+      fontSize: '24px',
+    },
+    
+    micButtonActive: {
+      width: '50px',
+      height: '50px',
+      fontSize: '26px',
+    },
+    saveButton: {
+      padding: '12px 25px',
+      fontSize: '16px',
+    },
+    fixedBottomBar: {
+      height: '60px',
+      padding: '5px 0',
+    },
+    fixedBottomBarButton: {
+      fontSize: '10px',
+      gap: '2px',
+    },
+    fixedBottomBarButtonIcon: {
+      fontSize: '20px',
+    },
+    inputContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: '8px',
+    },
+    autocompleteInputWrapper: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: '8px',
+    },
+    autocompleteInput: {
+      width: '100%',
+    },
+    iconNavigationGrid: {
+      gridTemplateColumns: 'repeat(auto-fit, minmax(80px, 1fr))',
+      gap: '10px',
+      marginBottom: '15px',
+    },
+    iconNavigationButton: {
+      padding: '10px 5px',
+      minHeight: '80px',
+    },
+    iconNavigationIconSize: '32px',
+    iconNavigationIcon: {
+      marginBottom: '5px',
+    },
+    iconNavigationText: {
+      fontSize: '12px',
+    },
+    menuTab2Content: {
+      padding: '15px',
+    },
+    loginForm: {
+      padding: '25px',
+      gap: '10px',
+    },
+    loginTitle: {
+      fontSize: '22px',
+    },
+    loginInput: {
+      padding: '8px 10px',
+      fontSize: '14px',
+    },
+    loginButton: {
+      padding: '10px 15px',
+      fontSize: '15px',
+    },
+    loginSignupText: {
+      fontSize: '13px',
+    },
+  },
+
+/*
 
   '@media (min-width: 769px)': {
     container: {
@@ -1200,6 +1396,96 @@ const Styles = {
     },
   },
 
+ '@media (max-width: 768px)': {
+    navbarNav: {
+      display: 'none',
+    },
+    hamburgerMenu: {
+      display: 'block',
+    },
+  },  
+  */
+
+  // --- ESTILOS PARA EL COMPONENTE LOGIN ---
+  loginContainer: {
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    minHeight: 'calc(100vh - 60px)', // Resta la altura de la navbar superior
+    backgroundColor: '#f0f2f5', // Fondo suave
+    padding: '20px',
+    boxSizing: 'border-box',
+  },
+  loginForm: {
+    backgroundColor: '#ffffff',
+    padding: '40px',
+    borderRadius: '12px',
+    boxShadow: '0 8px 20px rgba(0, 0, 0, 0.1)',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '20px',
+    width: '100%',
+    maxWidth: '400px',
+    textAlign: 'center',
+  },
+  loginTitle: {
+    fontSize: '28px',
+    fontWeight: '700',
+    color: '#333',
+    marginBottom: '10px',
+  },
+  loginInput: {
+    padding: '12px 15px',
+    borderRadius: '8px',
+    border: '1px solid #e0e0e0',
+    fontSize: '16px',
+    outline: 'none',
+    transition: 'border-color 0.2s ease, box-shadow 0.2s ease',
+    '&:focus': {
+      borderColor: '#007bff',
+      boxShadow: '0 0 0 3px rgba(0, 123, 255, 0.25)',
+    },
+  },
+  loginButton: {
+    backgroundColor: '#007bff',
+    color: 'white',
+    padding: '12px 20px',
+    border: 'none',
+    borderRadius: '8px',
+    fontSize: '18px',
+    fontWeight: 'bold',
+    cursor: 'pointer',
+    transition: 'background-color 0.3s ease, transform 0.2s ease',
+    boxShadow: '0 4px 10px rgba(0, 123, 255, 0.3)',
+    '&:hover': {
+      backgroundColor: '#0056b3',
+      transform: 'translateY(-2px)',
+    },
+    '&:disabled': {
+      backgroundColor: '#cccccc',
+      cursor: 'not-allowed',
+      boxShadow: 'none',
+      transform: 'none',
+    },
+  },
+  loginSignupText: {
+    fontSize: '15px',
+    color: '#555',
+    marginTop: '10px',
+  },
+  loginSignupLink: {
+    color: '#007bff',
+    textDecoration: 'none',
+    fontWeight: '600',
+    '&:hover': {
+      textDecoration: 'underline',
+    },
+  },
+  // --- FIN ESTILOS PARA EL COMPONENTE LOGIN ---
+
+
+
+
 // EMPEZAR AGREGACIÓN DE ESTILOS
 loadingOverlay: {
     position: 'fixed',
@@ -1221,7 +1507,7 @@ loadingOverlay: {
     color: '#007bff',
  },
 // FINALIZAR AGREGACIÓN DE ESTILOS
- loadingOverlay: {
+/* loadingOverlay: {
  position: 'fixed',
  top: 0,
  left: 0,
@@ -1239,7 +1525,7 @@ loadingText: {
  fontSize: '18px',
  fontWeight: '500',
  color: '#007bff',
- },
+ },*/
 
 };
 

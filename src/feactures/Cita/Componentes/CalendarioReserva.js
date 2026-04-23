@@ -16,19 +16,15 @@ const CalendarioReserva = ({
   const celdas = useMemo(() => {
     const diasEnMes = new Date(anio, mes + 1, 0).getDate();
     const primerDiaMes = new Date(anio, mes, 1).getDay(); 
-    // Ajuste para que la semana empiece en Lunes
     const offset = (primerDiaMes === 0 ? 6 : primerDiaMes - 1);
-    
     const nombreMes = new Intl.DateTimeFormat('es-ES', { month: 'long' })
       .format(new Date(anio, mes));
-
     const listaCeldas = [];
 
     // Celdas vacías (Offset)
     for (let i = 0; i < offset; i++) {
       listaCeldas.push(<div key={`vacia-${i}`} className="p-2 border-0 opacity-25" />);
     }
-
     // Días del mes
     for (let d = 1; d <= diasEnMes; d++) {
       // Tu lógica de negocio: ¿Hay programación este día?
@@ -63,10 +59,10 @@ const CalendarioReserva = ({
         </div>
       );
     }
-
     return { listaCeldas, nombreMes };
   }, [anio, mes, programacionMensual, diaSeleccionado, cargando]);
 
+  
   return (
     <div className="card border-0 shadow-sm rounded-4 overflow-hidden">
       {/* Header del Calendario */}
