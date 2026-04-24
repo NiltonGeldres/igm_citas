@@ -60,9 +60,10 @@ const CalendarioReserva = ({
       );
     }
     return { listaCeldas, nombreMes };
-  }, [anio, mes, programacionMensual, diaSeleccionado, cargando]);
+  }, [anio, mes, programacionMensual, diaSeleccionado, cargando,seleccionarDia]);
 
   
+
   return (
     <div className="card border-0 shadow-sm rounded-4 overflow-hidden">
       {/* Header del Calendario */}
