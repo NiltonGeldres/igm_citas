@@ -1,5 +1,5 @@
 import  { useState} from 'react';
-import { SHIFTS_DATA } from "../Data/Data";
+//import { SHIFTS_DATA } from "../Data/Data";
 import { Icono } from "./Icono";
 //import {TODOS_LOS_TURNOS} from "../Constants/TODOS_LOS_TURNOS"
 import { obtenerListaTurnos } from '../Constants/TODOS_LOS_TURNOS';
@@ -23,7 +23,7 @@ const ProgramadorMasivo = ({
     //  Carga de Turnos
     const listaDeTurnos = obtenerListaTurnos();
     const [idServicio, setIdServicio] = useState(""); 
-    const [descripcionServicio, setDescripcionServicio] = useState(""); 
+//    const [descripcionServicio, setDescripcionServicio] = useState(""); 
     
     return (
         <div className="card shadow-lg bg-white h-100 border-0">
@@ -42,7 +42,7 @@ const ProgramadorMasivo = ({
                             idServ(id);
                         }}
                         textServicio={(txt) => {
-                            setDescripcionServicio(txt);
+//                            setDescripcionServicio(txt);
                             desServ(txt);
                         }}                                
                     />                    

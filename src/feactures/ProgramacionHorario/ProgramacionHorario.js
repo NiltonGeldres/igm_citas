@@ -10,7 +10,7 @@ import {MESES_ES} from "./Programacion/Constants/MESES_ES.js"
 import {DIAS_SEMANA} from "./Programacion/Constants/DIAS_SEMANA.js"
 
 import TurnoService from "../../master-data/services/TurnoService.js";
-import { cargarConfiguracionTurnos, MAPEO_TURNOS } from "./Programacion/Data/CargarConfiguracionTurnos.js";
+import { cargarConfiguracionTurnos } from "./Programacion/Data/CargarConfiguracionTurnos.js";
 //import ProgramacioHorarioService from "../ProgramacionHorario/ProgramacionHorarioService.js";
 import { actualizarTurnoEnDia } from "../ProgramacionHorario/Programacion/Modelos/ProgramacionHorarioDiaModelo.js";
 import { modelarCrearProgramacion ,modelarDia} from "../ProgramacionHorario/Programacion/Modelos/ProgramacionHorarioDiaModelo.js";
@@ -40,8 +40,10 @@ export default function ProgramacionHorario() {
     const [idServicio, setIdServicio] = useState(""); 
     const [descripcionServicio, setDescripcionServicio] = useState(""); 
 
-    const [turnosCargados, setTurnosCargados]  = useState([]);
-    const [envoltorioOriginal, setEnvoltorioOriginal] = useState([]);
+//    const [turnosCargados, setTurnosCargados]  = useState([]);
+ //   const [envoltorioOriginal, setEnvoltorioOriginal] = useState([]);
+
+
  //   const [nombreMedico, setNombreMedico] = useState('');
  //   const [idEspSeleccionada, setIdEspSeleccionada] = useState(null);
  //   const [idServSeleccionado, setIdServSeleccionado] = useState(null);
@@ -55,8 +57,9 @@ export default function ProgramacionHorario() {
     useEffect(() => {
         TurnoService.getTodos().then(res => {
             cargarConfiguracionTurnos(res.data);
-            const turnosParaEstado = Object.values(MAPEO_TURNOS);
-            setTurnosCargados(turnosParaEstado);        });
+         //   const turnosParaEstado = Object.values(MAPEO_TURNOS);
+        //    setTurnosCargados(turnosParaEstado);       
+         });
     }, []);
 
 
@@ -82,7 +85,13 @@ export default function ProgramacionHorario() {
             mes: fechaActual.getMonth() + 1,
             anio: fechaActual.getFullYear()
         };
-    }, [idEspecialidad,  fechaActual]);
+    }, [idEspecialidad, 
+        descripcionEspecialidad, 
+        idServicio,
+        descripcionServicio, 
+        tiempoPromedioAtencion, 
+        fechaActual
+    ]);
 
 //...............................................................................
     // Obtener la programacion del mes y su UssEffect
@@ -112,7 +121,7 @@ export default function ProgramacionHorario() {
                     const listaRaw = envoltorioBack?.programacionMedicaDiaResponse;
 
                     if (envoltorioBack && Array.isArray(listaRaw)) {
-                        setEnvoltorioOriginal(envoltorioBack);
+                       // setEnvoltorioOriginal(envoltorioBack);
                         const modelosProcesados = listaRaw.map(item => modelarDia(item));
                         setDatosOriginalesBackend(modelosProcesados);
                         const mapaParaUI = modelosProcesados.reduce((acc, dia) => {
@@ -145,7 +154,12 @@ export default function ProgramacionHorario() {
             if (contexto.idMedico && contexto.idEspecialidad ) {
                 cargarProgramacionCompleta();
             }
-    }, [contexto.idMedico, contexto.idEspecialidad,  contexto.mes, cargarProgramacionCompleta]);
+    }, [contexto.idMedico, 
+        contexto.idEspecialidad, 
+        contexto.idServicio, 
+        contexto.mes, 
+        cargarProgramacionCompleta
+      ]);
 
     //...............................................................................
     // Guardado de datos
@@ -183,9 +197,9 @@ export default function ProgramacionHorario() {
                 return true;
             }
             
+            //setEstadoGuardado('error');
+            //return false;
             throw new Error("Servidor no responde");
-            setEstadoGuardado('error');
-            return false;
 
         } catch (error) {
             console.error("Error al guardar:", error);
@@ -273,12 +287,7 @@ export default function ProgramacionHorario() {
         } else {
                 console.log("No se pudo aplicar la programación masiva por error en servidor.");
         }     
-//        setHorarioCalendario(nuevoHorario);
-//        setTurnosMasivosSeleccionados([]);
-//        setDiasMasivosSeleccionados([]);
-//        alternarModoMasivo();
-//        manejarGuardado(nuevoHorario);
-    }, [diasMasivosSeleccionados, turnosMasivosSeleccionados, horarioCalendario, alternarModoMasivo, manejarGuardado]);
+    }, [diasMasivosSeleccionados, turnosMasivosSeleccionados, horarioCalendario, idServicio, alternarModoMasivo, manejarGuardado]);
 
     const manejarClickDia = useCallback((claveFecha) => {
         if (modoMasivo) {
@@ -307,7 +316,7 @@ export default function ProgramacionHorario() {
             const dPadded = String(d).padStart(2, '0');
             const mPadded = String(mes + 1).padStart(2, '0');
             const clave = `${año}-${mPadded}-${dPadded}`;
-            const turnos = horarioCalendario[clave];
+       //     const turnos = horarioCalendario[clave];
             //const tieneDatos = turnos && turnos.length > 0 && !(turnos.length === 1 && turnos[0] === 'libre');
         //    console.log("horarioCalendario   "+JSON.stringify(horarioCalendario))                    
 

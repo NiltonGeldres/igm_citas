@@ -43,7 +43,7 @@ const Signup = () => {
         if (formData.codigoEntidad) {
             handleValidarEntidad(formData.codigoEntidad);
         }
-    }, []);
+    }, [formData.codigoEntidad]);
 
     const handleValidarEntidad = async (codigo) => {
         if (!codigo) return;

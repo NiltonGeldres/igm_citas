@@ -41,7 +41,7 @@ const ModalEditorTurnos = ({ estaAbierto, claveDia, alCerrar, horario,  alGuarda
 
     if (!estaAbierto || !claveDia) return null;
 
-    const turnoActualObj = listaDeTurnos.find(t => String(t.idTurno) === String(idsTurnosSeleccionados[0]));
+  //  const turnoActualObj = listaDeTurnos.find(t => String(t.idTurno) === String(idsTurnosSeleccionados[0]));
 
     const seleccionarTurnoUnico = (turnoId) => {
         const nuevosSeleccionados = idsTurnosSeleccionados.includes(turnoId) 
