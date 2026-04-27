@@ -40,18 +40,7 @@ export default function ProgramacionHorario() {
     const [idServicio, setIdServicio] = useState(""); 
     const [descripcionServicio, setDescripcionServicio] = useState(""); 
 
-//    const [turnosCargados, setTurnosCargados]  = useState([]);
- //   const [envoltorioOriginal, setEnvoltorioOriginal] = useState([]);
 
-
- //   const [nombreMedico, setNombreMedico] = useState('');
- //   const [idEspSeleccionada, setIdEspSeleccionada] = useState(null);
- //   const [idServSeleccionado, setIdServSeleccionado] = useState(null);
-    //Turnos
-/*
-    const [mapeoTurnos, setMapeoTurnos] = useState({
-        'libre': { idTurno: 'libre', descripcion: 'Libre', hora: 'Libre', claseColor: 'bg-light border' }
-    });    */
 
 
     useEffect(() => {

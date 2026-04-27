@@ -32,23 +32,12 @@ const crearProgramacionMesUsuario = (payloadFinal) => {
     );  
   };
 
-const ProgramacionHorarioIndividualService = {
+const ProgramacionHorarioService = {
     obtenerProgramacionMesUsuario,
     obtenerProgramacionMesBlanco,
     crearProgramacionMesUsuario
 };
-export default ProgramacionHorarioIndividualService;
-
-
-/**
- *const crearProgramacionMes = (fecha,idEspecialidad,idMedico,programacion,idServicio) => {
-  return axios.post(API_URL+SERVICE_CREAR
-      ,{fecha, idEspecialidad, idMedico, programacion, usuario, idServicio }
-      ,{ headers: header()}
-    );  
-  };
-
- */
+export default ProgramacionHorarioService;
 
 
 
