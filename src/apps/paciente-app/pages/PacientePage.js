@@ -30,7 +30,11 @@ import { Paso4Confirmacion } from '../components/reserva/Paso4Confirmacion';
 import { mapperCitaSeparadaApiToReserva } from '../mapper/CitaSeparadaMapper';
 
 //import "../../paciente-app/styles/paciente-app.css"
-import "../styles/paciente-app.css"; //
+//import "../styles/paciente-app.css"; 
+
+
+
+
 
 const HeaderPasos = ({ pasoActual, onAtras }) => (
   <div className="d-flex align-items-center gap-3 mb-4">
