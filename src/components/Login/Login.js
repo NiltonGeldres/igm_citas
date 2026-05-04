@@ -9,6 +9,7 @@ import { useAuth } from "../context/AuthContext";
 
 const Login = () => {
   const navigate = useNavigate();
+  
   const { actualizarDatosGlobales } = useAuth();    
 
   const [email, setEmail] = useState("");

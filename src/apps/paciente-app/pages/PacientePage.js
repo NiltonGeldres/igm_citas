@@ -29,12 +29,6 @@ import { ListaMisCitas } from '../components/reserva/ListaMisCitas';
 import { Paso4Confirmacion } from '../components/reserva/Paso4Confirmacion';
 import { mapperCitaSeparadaApiToReserva } from '../mapper/CitaSeparadaMapper';
 
-//import "../../paciente-app/styles/paciente-app.css"
-//import "../styles/paciente-app.css"; 
-
-
-
-
 
 const HeaderPasos = ({ pasoActual, onAtras }) => (
   <div className="d-flex align-items-center gap-3 mb-4">
@@ -141,7 +135,6 @@ const obtenerCitas = useCallback(async (idPaciente, fecha) => {
     setCargando(true);
     try {
       const data1 = await MedicoService.getListarMedicosEntidad(idEntidad);
-      console.log("DATA MEDICOS :", data1.data);
       
      setMisMedicosEntidad(data1.data.medicos || []);      
     } catch (error) {
@@ -155,17 +148,13 @@ const obtenerCitas = useCallback(async (idPaciente, fecha) => {
   // 1. CARGAR ESPECIALIDADES (Al entrar a Citas)
   useEffect(() => {
     const cargar = async () => {
-      // 1. Verificamos si ya existen especialidades en el caché
       if (cache.especialidades.length > 0) {
         console.log("Cargando especialidades desde el caché...");
         return; 
       }
       try {
-      //  console.log("Iniciando petición a la API...");
         const data = await EspecialidadService.getXEntidad();
-        // 2. Transformamos la data
         const dataListaParaUI = transformarEspecialidades(data);
-        // 3. Guardamos en el estado de caché
         setCache(prev => ({
           ...prev,
           especialidades: dataListaParaUI
@@ -191,20 +180,6 @@ useEffect(() => {
         obtenerMedicosEntidad(user.idEntidad);
     }
 }, [user?.idEntidad]);
-
-/*  
-   useEffect(() => {
-      obtenerMedicosEntidad(user.idEntidad);
-  }, []); // Solo se ejecuta al cargar el componente
- */
-
-/*
-  const manejarClickMisCitas = () => {
-    setPestanaActual('citas');
-    setModoReserva(false);
-    obtenerCitas(user.id, fechaFiltro); // <--- Refresca la variable
-  };*/
-
 
   const  seleccionarEspecialidad = async (espec) => {
         setDatosReserva(prev => ({ ...prev, especialidad: espec, doctor: null }));
@@ -313,8 +288,6 @@ useEffect(() => {
         obtenerProgramacionMedicaMes(nuevoMesIndice + 1, nuevoAnio, espId, medId, 10);
       }
     };
-
-
 
     const handleHoraSeleccionada = async (hora, idProg, idServ) => {
         let timerInterval;
