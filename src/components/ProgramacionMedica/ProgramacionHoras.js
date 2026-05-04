@@ -44,6 +44,7 @@ const ProgramacionHoras = ({ idMedico, idEspecialidad, fechaCalendar, handleClic
         setLoading(true);
         try {
           const response = await CitaService.getCitaDisponible(idMedico, idEspecialidad, fechaCalendar);
+          console.log("data de cupos   :   "+JSON.stringify(response))          
           const fetchedHours = response.data.cita || [];
           setPosts(fetchedHours);
 

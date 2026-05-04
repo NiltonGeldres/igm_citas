@@ -7,11 +7,10 @@ const SERVICE_MEDICO_CITAS = "/citaDisponible";
 const SERVICE_BLOQUEAR_CITA = "/citaBloquear";
 const SERVICE_ELIMINAR_CITA_BLOQUEADA = "/eliminarCitaBloqueada";
 const SERVICE_ELIMINAR_CITA_BLOQUEADA_XUSUARIO = "/eliminarCitaBloqueadaXUsuario";
-
 const usuario = sessionStorage.getItem('username');
-console.log("UASUARIO   "+usuario);
+
 const getCitaDisponible = (idMedico,idEspecialidad,fecha) => {
-  
+    console.log("DATOS ENVIADOS   "+idMedico+ '--' +idEspecialidad+ ' --'+fecha);  
     return axios.post(API_URL+SERVICE_MEDICO_CITAS
          ,{ idMedico:idMedico,
             idEspecialidad:idEspecialidad,

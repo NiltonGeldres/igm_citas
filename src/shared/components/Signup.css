@@ -1,0 +1,322 @@
+/* --- Signup.css (Actualizado con Smart-Selector y Mobile-First) --- */
+:root {
+  --mf-blue: #0078f5;
+  --mf-blue-dark: #0056b3;
+  --mf-bg: #f4f7fe;
+  --mf-text: #2d3436;
+  --mf-muted: #718096;
+  --mf-success: #198754;
+}
+
+.auth-page {
+    background-color: var(--mf-bg);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 15px;
+    font-family: 'Inter', sans-serif;
+}
+
+/* Tarjeta Principal */
+.signup-card {
+    background: white;
+    width: 100%;
+    max-width: 520px;
+    border-radius: 24px;
+    box-shadow: 0 15px 35px rgba(0,0,0,0.07);
+    overflow: hidden; /* Para que el header azul respete el radio */
+    transition: all 0.3s ease;
+}
+
+/* Header Estilo App */
+.auth-header-blue {
+    background: linear-gradient(135deg, var(--mf-blue) 0%, var(--mf-blue-dark) 100%);
+    color: white;
+    padding: 1.8rem 1.5rem;
+    text-align: center;
+}
+
+.auth-form-body {
+    padding: 1.5rem;
+}
+
+/* --- SECCIÓN DINÁMICA DE ENTIDAD (Mini-Tarjeta) --- */
+.entity-selected-card {
+    background: #f0f7ff;
+    border: 1.5px solid #cce3ff;
+    border-radius: 16px;
+    padding: 12px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    animation: fadeIn 0.4s ease;
+}
+
+.entity-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.entity-icon-bg {
+    background: white;
+    padding: 10px;
+    border-radius: 12px;
+    display: flex;
+    box-shadow: 0 4px 8px rgba(0, 120, 245, 0.08);
+}
+
+.entity-name {
+    font-weight: 700;
+    color: var(--mf-blue-dark);
+    font-size: 14px;
+    line-height: 1.2;
+}
+
+.entity-badge {
+    font-size: 10px;
+    color: var(--mf-success);
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    text-transform: uppercase;
+    margin-top: 2px;
+}
+
+.btn-change-entity {
+    background: white;
+    border: 1px solid var(--mf-blue);
+    color: var(--mf-blue);
+    font-size: 11px;
+    font-weight: 700;
+    padding: 6px 14px;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.btn-change-entity:hover {
+    background: var(--mf-blue);
+    color: white;
+}
+
+/* --- BUSCADOR MANUAL --- */
+.mediflow-search-box {
+    position: relative;
+    display: flex;
+    align-items: center;
+    background: #fff;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 14px;
+    padding: 0 15px;
+    height: 50px;
+    transition: all 0.2s;
+}
+
+.mediflow-search-box:focus-within {
+    border-color: var(--mf-blue);
+    box-shadow: 0 0 0 3px rgba(0, 120, 245, 0.1);
+}
+
+.mediflow-search-box input {
+    border: none !important;
+    outline: none !important;
+    width: 100%;
+    padding-left: 10px;
+    font-size: 14px;
+}
+
+.search-icon { color: var(--mf-blue); }
+
+.sugerencias-container {
+    position: absolute;
+    top: 105%;
+    left: 0;
+    right: 0;
+    background: white;
+    border-radius: 14px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+    z-index: 1000;
+    max-height: 220px;
+    overflow-y: auto;
+    border: 1px solid #edf2f7;
+}
+
+.sugerencia-item {
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    border-bottom: 1px solid #f7fafc;
+    cursor: pointer;
+}
+
+.sugerencia-item:hover { background-color: #f0f7ff; }
+
+/* --- GRILLAS RESPONSIVAS --- */
+.responsive-grid {
+    display: grid;
+    grid-template-columns: 1fr; /* Móvil: 1 columna */
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+@media (min-width: 500px) {
+    .responsive-grid {
+        grid-template-columns: 1fr 1fr; /* Desktop: 2 columnas */
+        gap: 15px;
+    }
+}
+
+/* Grid especial para DNI (Siempre 2 columnas incluso en móvil) */
+.dni-grid {
+    display: grid;
+    grid-template-columns: 90px 1fr;
+    gap: 10px;
+}
+
+/* --- ESTADOS DE BLOQUEO --- */
+.form-content-disabled {
+    opacity: 0.4;
+    pointer-events: none;
+    filter: grayscale(0.8);
+    transition: all 0.4s ease;
+}
+
+.form-content-active {
+    opacity: 1;
+    pointer-events: auto;
+    filter: none;
+}
+
+/* --- INPUTS Y DIVIDERS --- */
+.input-box {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.input-box .icon {
+    position: absolute;
+    left: 15px;
+    color: var(--mf-muted);
+}
+
+.input-box input, .input-simple, .select-simple {
+    width: 100%;
+    height: 48px;
+    padding: 10px 15px 10px 42px;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 12px;
+    font-size: 14px;
+    background: #fff;
+}
+
+.input-simple { padding-left: 15px; }
+.select-simple { padding-left: 12px; cursor: pointer; }
+
+.divider {
+    display: flex;
+    align-items: center;
+    margin: 1.5rem 0 1rem 0;
+}
+
+.divider::before, .divider::after {
+    content: '';
+    flex: 1;
+    border-bottom: 1px solid #edf2f7;
+}
+
+.divider span {
+    padding: 0 12px;
+    color: var(--mf-muted);
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* --- BOTÓN Y SPINNER --- */
+.btn-submit {
+    width: 100%;
+    background: var(--mf-blue);
+    color: white;
+    height: 52px;
+    border: none;
+    border-radius: 14px;
+    font-weight: 700;
+    font-size: 15px;
+    cursor: pointer;
+    transition: 0.3s;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+}
+
+.btn-submit:hover:not(:disabled) {
+    background: var(--mf-blue-dark);
+    transform: translateY(-1px);
+    box-shadow: 0 5px 15px rgba(0, 120, 245, 0.2);
+}
+
+.btn-submit:disabled {
+    background: #cbd5e0;
+}
+
+.spinner { animation: spin 1s linear infinite; }
+@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+/* Ajustes para iPhone SE / pantallas pequeñas */
+@media (max-width: 400px) {
+    .auth-header-blue { padding: 1.2rem; }
+    .auth-form-body { padding: 1rem; }
+    .entity-selected-card { flex-direction: column; gap: 10px; text-align: center; }
+    .entity-info { flex-direction: column; }
+}
+
+/* Este es el contenedor que "ancla" la lista */
+.position-relative {
+    position: relative !important;
+}
+
+.sugerencias-container {
+    position: absolute;
+    top: 100%; /* Se pega al borde inferior del input */
+    left: 0;
+    right: 0;
+    background-color: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 0 0 8px 8px; /* Redondeado solo abajo */
+    box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+    z-index: 9999; /* Super importante para que no lo tapen los inputs de abajo */
+    max-height: 250px;
+    overflow-y: auto;
+    margin-top: 2px; /* Pequeña separación del input */
+}
+
+.sugerencia-item {
+    padding: 10px 15px;
+    display: flex;
+    align-items: center;
+    border-bottom: 1px solid #f5f5f5;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.sugerencia-item:hover {
+    background-color: #f0f7ff;
+}
+
+.sugerencia-nombre {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #333;
+}
+
+.sugerencia-codigo {
+    font-size: 0.75rem;
+    color: #666;
+    text-transform: uppercase;
+}

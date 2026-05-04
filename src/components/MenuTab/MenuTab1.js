@@ -25,6 +25,15 @@ const MenuTab1 = () => {
           <span style={Styles.iconNavigationText}>Nueva Cita</span>
         </button>
 
+        <button
+          style={Styles.iconNavigationButton}
+          onClick={() => navigate('/CitaV2')} // Navega a la ruta /citados
+          aria-label="Crear Citas"
+        >
+          <Users size={Styles.iconNavigationIconSize} style={Styles.iconNavigationIcon} />
+          <span style={Styles.iconNavigationText}>Nueva Cita V2</span>
+        </button>
+
         {/* Botón para "Atenciones" */}
         <button
           style={Styles.iconNavigationButton}

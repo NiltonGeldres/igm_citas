@@ -9,7 +9,7 @@ import FormatDate from '../Maestros/FormatDate';
 import { useNavigate } from "react-router-dom";
 import AuthService from '../Login/services/auth.service';
 import ProgramacionHorarioService from './ProgramacionHorarioService';
-import Turno from '../../Turno/Turno';
+import Turno from "../Turno/Turno";
 import { AiOutlineSave } from "react-icons/ai";
 import { RiSave3Line } from "react-icons/ri";
 import MedicoEspecialidad from '../Medico/MedicoEspecialidad';
@@ -158,10 +158,10 @@ const ProgramacionHorario = () => {
         ProgramacionHorarioService.getProgramacionMedicoMes(selectedMonth,selectedYear,idEspecialidad,idMedico)
         .then((response) => {
             if(response.data.programacionMedicaDiaResponse!==undefined ){
-                console.log("ENCONTRADO "+JSON.stringify(response.data.programacionMedicaDiaResponse));
+                console.log("ENCONTRADO LoadData"+JSON.stringify(response));
                 setProgramacion(response.data.programacionMedicaDiaResponse);
             } else {
-                console.log("VACIO");
+                console.log("VACIO LoadData");
                 setProgramacion([]);
             }
             setLoading(false);
@@ -181,12 +181,11 @@ const ProgramacionHorario = () => {
     setLoading(true);
     ProgramacionHorarioService.getProgramacionMedicoMesBlanco(selectedMonth,selectedYear,idEspecialidad,idMedico)
     .then((response) => {
-        console.log(JSON.stringify(response.data.programacionMedicaDiaResponse));
         if(response.data.programacionMedicaDiaResponse!=undefined ){
-                console.log("ENCONTRADO");
+                console.log("ENCONTRADO x LoadDataBlanco" +JSON.stringify(response));
                 setProgramacion(response.data.programacionMedicaDiaResponse);
         } else {
-            console.log("VACIO");
+            console.log("VACIO LoadDataBlanco");
             setProgramacion([]);
         }
         setLoading(false);
@@ -263,10 +262,10 @@ const ProgramacionHorario = () => {
                     </div>    
 
             <div className='mb-1' style={{width:400}}>
-                        <Entidad
-                            valueEntidad = {valueEntidad}
-                            textEntidad= {textEntidad}
-                            />
+                <Entidad
+                    valueEntidad = {valueEntidad}
+                    textEntidad= {textEntidad}
+                />
             </div>           
             <div className='mb-1' style={{width:400}}>
                  <Especialidad

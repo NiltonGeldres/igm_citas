@@ -1,5 +1,5 @@
 import header from "../../Security/Header";
-import { React} from "react";
+
 import axios from "axios";
 import { jwtDecode } from "jwt-decode";
 
@@ -8,25 +8,6 @@ const LOGIN = "/auth";
 const SIGNUP = "/signin";
 const GETUSUARIO = "/getUsuarioUsername";
 const UPDATEUSUARIO = "/updateUsuario";
-/*const usuarioData = ({
-    apellido_materno    :"",
-    apellido_paterno    :"",
-    email               :"",
-    estado              :"" ,
-    fecha_alta          :"",
-    fecha_baja          :"",
-    fecha_modificacion  :"",
-    id_sexo             :"",
-    id_tipo_documento   :"",
-    id_usuario          : 0,
-    numero_celular      :"",
-    numero_documento    :"",
-    password            :"",
-    primer_nombre       :"",
-    segundo_nombre      :"r",
-    username            :""        
-  });    
-*/
 
 const signup = (
      username ,
@@ -75,13 +56,29 @@ const login = (user, password) => {
     return axios
     .post(API_URL+LOGIN,{ user, password })
     .then((response) => {
+
         if(response.data.jwtToken){
+
             const decoded = jwtDecode(response.data.jwtToken);
             let a = decoded.rol.authority
             let u = decoded.sub
+
+            // Guardamos el token para las cabeceras de Axios
+            sessionStorage.setItem('token', response.data.jwtToken);
+            // Creamos un objeto de perfil con lo que el JWT nos da
+            const perfil = {
+                username: decoded.sub,
+                rol: decoded.rol.authority,
+                idMedico: decoded.idMedico, // <-- Asegúrate que el backend lo envíe
+                idEntidad: decoded.idEntidad,     // <-- Asegúrate que el backend lo 
+                idPaciente: decoded.idPaciente,
+                usuarioNombres: decoded.usuarioNombres // Opcional para la UI
+            };
             sessionStorage.setItem('username',  u) ;    
             sessionStorage.setItem('authority',  a) ;    
             sessionStorage.setItem('user',  JSON.stringify(response.data)) ;
+            sessionStorage.setItem('user_profile', JSON.stringify(perfil));
+
             }
         return response.data;
     });
@@ -90,17 +87,31 @@ const login = (user, password) => {
 const logout = () => {
     sessionStorage.removeItem('user');
     // Eliminar TODOS los ítems de sessionStorage relacionados con el usuario
-    sessionStorage.removeItem('user'); // Objeto de usuario con el token
     sessionStorage.removeItem('username'); // Username guardado aparte
     sessionStorage.removeItem('authority'); // Autoridad/rol guardado aparte
-    sessionStorage.removeItem('nombres'); // Nombres completos
-    sessionStorage.removeItem('idusuario'); // ID de usuario
-    sessionStorage.removeItem('userProfile'); // Objeto de perfil completo
+    sessionStorage.removeItem('user'); // Objeto de usuario con el token
+    sessionStorage.removeItem('user_profile'); // Objeto de perfil completo
+//    sessionStorage.removeItem('nombres'); // Nombres completos
+//    sessionStorage.removeItem('idusuario'); // ID de usuario
+//    sessionStorage.removeItem('userProfile'); // Objeto de perfil completo
     // Si usas localStorage para algo, también deberías limpiarlo aquí
     // localStorage.removeItem('someOtherUserSetting');
 
 
 }
+
+// AuthService.js o un archivo similar
+export const getContextoActual = () => {
+    const profile = JSON.parse(sessionStorage.getItem('user_profile'));
+    if (!profile) return null;
+
+    return {
+        idMedico: profile.idMedico,
+        idEntidad: profile.idEntidad,
+        nombreCompleto: profile.nombreCompleto || "", // Valor por defecto si no viene
+    };
+};
+
 
 const getCurrentUser = () => {
    return  JSON.parse(sessionStorage.getItem('user'));
@@ -144,11 +155,13 @@ const actualizaUsuario = (usuarioData) => {
  
 };
 
+const leerPerfil = () => {
+   return  JSON.parse(sessionStorage.getItem('user_profile'));
+};
 
 
 
 const AuthService = {
-    
     login,
     signup,
     logout,
@@ -158,6 +171,8 @@ const AuthService = {
     actualizaUsuario   , 
     leerUsuarioUsername,
     getCurrentAuthority,
+    getContextoActual,
+    leerPerfil,
 };
 
 export default AuthService;

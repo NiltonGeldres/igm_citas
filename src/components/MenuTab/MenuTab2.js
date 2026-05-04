@@ -54,6 +54,15 @@ const MenuTab2 = () => {
           <Calendar size={Styles.iconNavigationIconSize} style={Styles.iconNavigationIcon} />
           <span style={Styles.iconNavigationText}>Programación</span>
         </button>
+        {/* Botón para "Programación" */}
+        <button
+          style={Styles.iconNavigationButton}
+          onClick={() => navigate('/programacionI')} // Navega a la ruta /programacion
+          aria-label="Gestionar Programación Médica I"
+        >
+          <Calendar size={Styles.iconNavigationIconSize} style={Styles.iconNavigationIcon} />
+          <span style={Styles.iconNavigationText}>Programación I</span>
+        </button>
       </div>
 
       {/* Este componente ya NO renderiza el contenido de las secciones directamente.

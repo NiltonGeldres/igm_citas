@@ -1,213 +1,162 @@
+/*
 import React, { useState } from 'react';
-//import 'bootstrap/dist/css/bootstrap.min.css';
+import { Form, Row, Col, Button, Card, InputGroup } from 'react-bootstrap';
+import { FaHashtag, FaCalendarAlt, FaUser, FaPhone, FaEnvelope, FaUniversity } from 'react-icons/fa';
 import PagoVirtualService from './PagoVirtualService';
-import AuthService from "../Login/services/auth.service";
-import { useNavigate } from "react-router-dom";
-import DatePicker from "react-datepicker";
 import FormatDate from '../Maestros/FormatDate';
+import Swal from 'sweetalert2';
+import { useAuth } from  "../context/AuthContext"
 
 function PagoVirtual({
-  idProgramacion,
-  horaInicio,
-  idCitaSeparada,
-  precioUnitario,
-  nombreDestino,
-  modalClose,
-  email,
-  celular
-}) {
+    idCitaSeparada,
+    precioUnitario, 
+    nombreDestino, 
+    modalClose, 
+    email, 
+    celular,
+    nombreEntidad }) {
 
-  //console.log("Ingreso PagoVirtual"+ idProgramacion+'- '+horaInicio+'- '+idCitaSeparada+'- '+precioUnitario+'- '+nombreDestino)
-
-  const navigate = useNavigate();
-  const [loading, setLoading]  = useState(false);
-  var curr = new Date();
-  curr.setDate(curr.getDate() );
-  var fechaActual = curr.toISOString().substring(0,10);
+// Lo pides al contexto directamente
+  const { entidad, user } = useAuth();
+  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
-    idCitaSeparada:idCitaSeparada,
-    fecha:fechaActual,
+    idCitaSeparada,
+    fecha: new Date().toISOString().substring(0, 10),
     nroOperacion: '',
-    correo:email,
-    celular:celular,
-    precioUnitario:precioUnitario,
-    idTipoOperacion:'1',
-    origenNombre:'',
-    destino:nombreDestino,
-    entidadDestino:"2", 
-    idUsuario: ''
+    correo: email || '',
+    celular: celular || '',
+    precioUnitario,
+    idTipoOperacion: '1',
+    origenNombre: '',
+    destino: entidad?.nombre || 'CENTRO ',
+    entidadDestino: "1" // Default Yape
   });
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData({
-      ...formData,
-      [name]: value,
-    });
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
 
- 
-  const handleSubmit = () => {
-    alert(formData.entidadDestino )   
-      let fecha3 =  new Date(JSON.stringify(formData.fecha))
-      let fechaEnviar = FormatDate.format_yyyymmdd(fecha3)
-      PagoVirtualService.setPagoVirtualCrear(
-         formData.idCitaSeparada
-         ,fechaEnviar
-         ,formData.nroOperacion
-         ,formData.correo
-         ,formData.celular
-         ,formData.precioUnitario
-         ,formData.idTipoOperacion
-         ,formData.origenNombre
-         ,formData.destino
-        ,formData.entidadDestino
-      ).then((response) => {
-            console.log("DATA RETORNO pago virtual :  "+JSON.stringify(response.data.citaSeparadaPagoVirtual))
-            modalClose(true)
-            setLoading(false);
-        },(error) => {
-                      alert("Comuniquese con personal de soporte tecnico: No se pudo crear el pago", error.response);
-                      AuthService.logout();
-                      navigate("/login");
-                  //    window.location.reload();
-      if (error.response && error.response.status === 403) {
-                    alert("Comuniquese con personal de soporte tecnico: No se pudo crear el pago", error.response);
-                    AuthService.logout();
-                    navigate("/login");
-              //      window.location.reload();
-          }
-        });
-   }
+  const handleSubmit = async (e) => {
+    e.preventDefault();
     
+    if (!formData.nroOperacion || !formData.origenNombre) {
+      return Swal.fire("Campos incompletos", "Por favor llena todos los datos del voucher", "warning");
+    }
 
+
+    
+    setLoading(true);
+    try {
+      const fechaEnviar = FormatDate.format_yyyymmdd(new Date(formData.fecha));
+      await PagoVirtualService.setPagoVirtualCrear(
+        formData.idCitaSeparada,
+        fechaEnviar,
+        formData.nroOperacion,
+        formData.correo,
+        formData.celular,
+        formData.precioUnitario,
+        formData.idTipoOperacion,
+        formData.origenNombre,
+        formData.destino,
+        formData.entidadDestino
+      );
+
+      Swal.fire("¡Éxito!", "Pago registrado. En breve verificaremos su cita.", "success");
+      modalClose(true);
+    } catch (error) {
+      Swal.fire("Error", "No se pudo registrar el pago. Verifique su conexión.", "error");
+    } finally {
+      setLoading(false);
+    }
+  };
+*/
+/*
   return (
-    <div className="container mt-5">
-      <h2>Formulario de Pago</h2>
-      <form className="small" onSubmit={handleSubmit}>
-      <div className="mb-3">
-          <label htmlFor="precioUnitario" className="form-label">
-            Precio de servicio
-          </label>
-          <input
-            type="number"
-            className="form-control"
-            id="precioUnitario"
-            name="precioUnitario"
-            value={formData.precioUnitario}
-            disabled
-          />
-        </div>
-        <div className="mb-3">
-          <label htmlFor="destino" className="form-label">
-            Destino
-          </label>
-          <input
-            type="text"
-            className="form-control"
-            id="destino"
-            name="destino"
-            value={formData.destino}
-            disabled
-          />
-        </div>
-        <div className="mb-3">
-          <label htmlFor="entidadDestino" className="form-label">
-            Entidad de Destino
-          </label>
-          <select
-            className="form-select"
-            id="entidadDestino"
-            name="entidadDestino"
-            value={formData.entidadDestino}
-            onChange={handleChange}
-            required
-          >
-            <option value="1">Yape</option>
-            <option value="2">Plim</option>
-          </select>
-        </div>
+    <Form onSubmit={handleSubmit} className="p-2">
+      <Card className="border-0 bg-light mb-3">
+        <Card.Body className="py-2 px-3">
+          <div className="d-flex justify-content-between align-items-center text-muted small">
+            <span>Pagar a: <strong>{formData.destino}</strong></span>
+            <span className="fs-5 text-primary fw-bold">S/ {precioUnitario}</span>
+          </div>
+        </Card.Body>
+      </Card>
 
+      <Row className="g-3">
+        <Col md={6}>
+          <Form.Group>
+            <Form.Label className="small fw-bold"><FaUniversity /> Método de Pago</Form.Label>
+            <Form.Select name="entidadDestino" value={formData.entidadDestino} onChange={handleChange} className="rounded-3">
+              <option value="1">Yape</option>
+              <option value="2">Plin</option>
+              <option value="3">Transferencia Bancaria</option>
+            </Form.Select>
+          </Form.Group>
+        </Col>
 
-        <div className="mb-3">
-          <label htmlFor="fecha" className="form-label">
-            Fecha de Operacion de pago segun voucher
-          </label>
-          <input 
-            type="date"
-            className="form-control"
-            id="fecha"
-            name="fecha"
-            value={formData.fecha}
-            onChange={handleChange}
-            required
-          />
-        </div>
-        <div className="mb-3">
-          <label htmlFor="nroOperacion" className="form-label">
-            Número de Operación de pago segun voucher
-          </label>
-          <input
-            type="text"
-            className="form-control"
-            id="nroOperacion"
-            name="nroOperacion"
-            value={formData.nroOperacion}
-            onChange={handleChange}
-            required
-          />
-        </div>
-        <div className="mb-3">
-          <label htmlFor="correo" className="form-label">
-            Correo Origen
-          </label>
-          <input
-            disabled
-            type="email"
-            className="form-control"
-            id="correo"
-            name="correo"
-            value={formData.correo}
-            onChange={handleChange}
-            required
-          />
-        </div>
-        <div className="mb-3">
-          <label htmlFor="celular" className="form-label">
-            Celular Origen
-          </label>
-          <input
-            type="text"
-            className="form-control"
-            id="celular"
-            name="celular"
-            value={formData.celular}
-            onChange={handleChange}
-            required
-          />
-        </div>
-        <div className="mb-3">
-          <label htmlFor="origenNombre" className="form-label">
-            Nombre de Origen
-          </label>
-          <input
-            type="text"
-            className="form-control"
-            id="origenNombre"
-            name="origenNombre"
-            value={formData.origenNombre}
-            onChange={handleChange}
-            required
-          />
-        </div>
-        <button type="button" className="btn btn-primary"
-            onClick = {() => handleSubmit( )}          
-            >
-          Enviar Pago
-        </button>
-      </form>
-    </div>
+        <Col md={6}>
+          <Form.Group>
+            <Form.Label className="small fw-bold"><FaHashtag /> Nro. de Operación</Form.Label>
+            <Form.Control 
+              name="nroOperacion" 
+              placeholder="Ej: 982371" 
+              value={formData.nroOperacion} 
+              onChange={handleChange} 
+              required 
+            />
+          </Form.Group>
+        </Col>
+
+        <Col md={6}>
+          <Form.Group>
+            <Form.Label className="small fw-bold"><FaCalendarAlt /> Fecha del Voucher</Form.Label>
+            <Form.Control type="date" name="fecha" value={formData.fecha} onChange={handleChange} required />
+          </Form.Group>
+        </Col>
+
+        <Col md={6}>
+          <Form.Group>
+            <Form.Label className="small fw-bold"><FaUser /> Nombre Titular de Pago</Form.Label>
+            <Form.Control 
+              name="origenNombre" 
+              placeholder="Nombre según voucher" 
+              value={formData.origenNombre} 
+              onChange={handleChange} 
+              required 
+            />
+          </Form.Group>
+        </Col>
+
+        <Col md={6}>
+          <Form.Group>
+            <Form.Label className="small fw-bold"><FaPhone /> Celular de Origen</Form.Label>
+            <Form.Control name="celular" value={formData.celular} onChange={handleChange} required />
+          </Form.Group>
+        </Col>
+
+        <Col md={6}>
+          <Form.Group>
+            <Form.Label className="small fw-bold"><FaEnvelope /> Correo Confirmación</Form.Label>
+            <Form.Control name="correo" value={formData.correo} readOnly disabled className="bg-white" />
+          </Form.Group>
+        </Col>
+      </Row>
+
+      <div className="d-grid mt-4">
+        <Button 
+          variant="primary" 
+          type="submit" 
+          size="lg" 
+          disabled={loading}
+          className="rounded-pill fw-bold shadow-sm"
+        >
+          {loading ? "Procesando..." : "REGISTRAR PAGO AHORA"}
+        </Button>
+      </div>
+    </Form>
   );
 }
 
-export default PagoVirtual ;
+export default PagoVirtual;
+*/
