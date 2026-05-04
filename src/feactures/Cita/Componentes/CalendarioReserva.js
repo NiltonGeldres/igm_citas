@@ -12,54 +12,67 @@ const CalendarioReserva = ({
 }) => {
   const { mes, anio, dia: diaSeleccionado } = fechaObjeto;
 
+
   // Lógica de construcción de cuadrícula (similar a tu código de Gestión)
   const celdas = useMemo(() => {
-    const diasEnMes = new Date(anio, mes + 1, 0).getDate();
-    const primerDiaMes = new Date(anio, mes, 1).getDay(); 
-    const offset = (primerDiaMes === 0 ? 6 : primerDiaMes - 1);
-    const nombreMes = new Intl.DateTimeFormat('es-ES', { month: 'long' })
-      .format(new Date(anio, mes));
-    const listaCeldas = [];
+      const hoy = new Date();
+      hoy.setHours(0, 0, 0, 0);
 
-    // Celdas vacías (Offset)
-    for (let i = 0; i < offset; i++) {
-      listaCeldas.push(<div key={`vacia-${i}`} className="p-2 border-0 opacity-25" />);
-    }
-    // Días del mes
-    for (let d = 1; d <= diasEnMes; d++) {
-      // Tu lógica de negocio: ¿Hay programación este día?
-    const tieneProgramacion = programacionMensual.some(p => 
-    parseInt(p.fechadia) === d && p.idProgramacion !== 0
-    );     
-    //const tieneProgramacion = programacionMensual.some(p => parseInt(p.fechadia) === d );
-    const esSeleccionado = diaSeleccionado === d;
+      const diasEnMes = new Date(anio, mes + 1, 0).getDate();
+      const primerDiaMes = new Date(anio, mes, 1).getDay(); 
+      const offset = (primerDiaMes === 0 ? 6 : primerDiaMes - 1);
 
-      listaCeldas.push(
-        <div key={d} className="p-1">
-          <button
-            disabled={!tieneProgramacion || cargando}
-            onClick={() => seleccionarDia(d)}
-            className={`
-              btn w-100 position-relative d-flex flex-column align-items-center justify-content-center
-              border transition-all rounded-3
-              ${esSeleccionado ? 'btn-primary shadow-sm border-primary' : 'bg-white'}
-              ${!tieneProgramacion ? 'opacity-25 border-transparent' : 'border-light-subtle hover-shadow'}
-            `}
-            style={{ aspectRatio: '1/1', fontSize: '0.9rem' }}
-          >
-            <span className={`fw-bold ${esSeleccionado ? 'text-white' : 'text-dark'}`}>{d}</span>
-            
-            {tieneProgramacion && (
-              <div className="mt-1 d-flex gap-1 justify-content-center">
-                {/* Icono de reloj pequeño similar a tu CeldaCalendario */}
-                <Clock size={10} className={esSeleccionado ? 'text-white' : 'text-success'} />
-              </div>
-            )}
-          </button>
-        </div>
-      );
-    }
-    return { listaCeldas, nombreMes };
+      const nombreMes = new Intl.DateTimeFormat('es-ES', { month: 'long' })
+        .format(new Date(anio, mes));
+      const listaCeldas = [];
+
+      // Celdas vacías (Offset)
+      for (let i = 0; i < offset; i++) {
+        listaCeldas.push(<div key={`vacia-${i}`} className="p-2 border-0 opacity-25" />);
+      }
+      // Días del mes
+      for (let d = 1; d <= diasEnMes; d++) {
+     // 2. Crear fecha para el día actual del bucle
+      const fechaCelda = new Date(anio, mes, d);
+       // 3. Verificar si el día es anterior a hoy
+      const esPasado = fechaCelda < hoy;
+
+        // Tu lógica de negocio: ¿Hay programación este día?
+      const tieneProgramacion = programacionMensual.some(p => 
+      parseInt(p.fechadia) === d && p.idProgramacion !== 0
+      );     
+      //const tieneProgramacion = programacionMensual.some(p => parseInt(p.fechadia) === d );
+      const esSeleccionado = diaSeleccionado === d;
+
+    // 4. Lógica de habilitación: Debe tener programación Y NO ser pasado
+      const diaHabilitado = tieneProgramacion && !esPasado;
+
+        listaCeldas.push(
+          <div key={d} className="p-1">
+            <button
+              disabled={!diaHabilitado || cargando}
+              onClick={() => seleccionarDia(d)}
+              className={`
+                btn w-100 position-relative d-flex flex-column align-items-center justify-content-center
+                border transition-all rounded-3
+                ${esSeleccionado ? 'btn-primary shadow-sm border-primary' : 'bg-white'}
+                ${!tieneProgramacion ? 'opacity-25 border-transparent' : 'border-light-subtle hover-shadow'}
+              `}
+              style={{ aspectRatio: '1/1', fontSize: '0.9rem' }}
+            >
+              <span className={`fw-bold ${esSeleccionado ? 'text-white' : 'text-dark'}`}>{d}</span>
+              
+              {tieneProgramacion && (
+                <div className="mt-1 d-flex gap-1 justify-content-center">
+                  {/* Icono de reloj pequeño similar a tu CeldaCalendario */}
+                  <Clock size={10} className={esSeleccionado ? 'text-white' : 'text-success'} />
+                </div>
+              )}
+            </button>
+          </div>
+        );
+      }
+      return { listaCeldas, nombreMes };
   }, [anio, mes, programacionMensual, diaSeleccionado, cargando,seleccionarDia]);
 
   

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Clock, AlertCircle, Loader2, CalendarCheck } from "lucide-react";
 import CitaService from "../CitaService";
+import FormatDate  from "../../../shared/utils/FormatDate"
 
 const ProgramacionHoras = ({ 
   idMedico, 
@@ -12,6 +13,7 @@ const ProgramacionHoras = ({
   const [horas, setHoras] = useState([]);
   const [loading, setLoading] = useState(false);
 
+  const fechaSeleccionada =   FormatDate.format_fecha(fechaCalendar);
   useEffect(() => {
     const cargarHoras = async () => {
       if (!idMedico || !idEspecialidad || !fechaCalendar) {
@@ -86,8 +88,8 @@ const ProgramacionHoras = ({
           <Clock size={20} className="me-2 text-primary" />
           Horarios Disponibles
         </h6>
-        <span className="badge bg-primary-subtle text-primary border border-primary-subtle px-3">
-          {fechaCalendar}
+        <span className="btn badge bg-primary-subtle text-primary border border-primary-subtle px-3">
+          {fechaSeleccionada}
         </span>
       </div>
       
