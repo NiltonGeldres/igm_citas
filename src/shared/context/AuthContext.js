@@ -1,11 +1,8 @@
-import { createContext, useState, useContext, useEffect } from 'react';
+import React, { createContext, useState, useContext, useEffect } from 'react';
 import AuthService from '../../master-data/services/auth.service';
 import EntidadService from '../../master-data/services/EntidadService';
 
-// 1. Creamos el almacén de datos (Contexto)
 const AuthContext = createContext();
-
-// 2. Creamos el "Proveedor" que envolverá a la App
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [entidad, setEntidad] = useState(null);
@@ -13,7 +10,6 @@ export const AuthProvider = ({ children }) => {
 
   const actualizarDatosGlobales = async () => {
     const perfil = AuthService.leerPerfil();
-    console.log("PERFIL   "+JSON.stringify(perfil))
     if (perfil) {
       setUser(perfil);
       try {
@@ -39,18 +35,14 @@ export const AuthProvider = ({ children }) => {
     isLoggedIn: !!user,
     loading
   };
-
+  
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
-
 export const useAuth = () => {
   const context = useContext(AuthContext);
-  
-  // Seguridad: Si alguien intenta usar useAuth fuera del Provider, dará un error claro
   if (!context) {
     throw new Error("useAuth debe usarse dentro de un AuthProvider");
   }
-  
   return context;
 };

@@ -69,10 +69,10 @@ const login = (user, password) => {
             const perfil = {
                 username: decoded.sub,
                 rol: decoded.rol.authority,
-                idMedico: decoded.idMedico, // <-- Asegúrate que el backend lo envíe
-                idEntidad: decoded.idEntidad,     // <-- Asegúrate que el backend lo 
+                idMedico: decoded.idMedico,
+                idEntidad: decoded.idEntidad,     
                 idPaciente: decoded.idPaciente,
-                usuarioNombres: decoded.usuarioNombres // Opcional para la UI
+                usuarioNombres: decoded.usuarioNombres 
             };
             sessionStorage.setItem('username',  u) ;    
             sessionStorage.setItem('authority',  a) ;    
@@ -91,8 +91,6 @@ const logout = () => {
     sessionStorage.removeItem('authority'); // Autoridad/rol guardado aparte
     sessionStorage.removeItem('user'); // Objeto de usuario con el token
     sessionStorage.removeItem('user_profile'); // Objeto de perfil completo
-
-
 
 }
 

@@ -10,14 +10,16 @@ import CitaSeparadaService from '../../../master-data/services/CitaSeparadaServi
 import EspecialidadService from '../../../master-data/services/EspecialidadService';
 import ProgramacionHorarioIndividualService from '../../../feactures/ProgramacionHorario/ProgramacionHorarioService';
 import AuthService from '../../../master-data/services/auth.service';
-//import citaService from '../services/citaServices';
+
 import CitaSeparada from '../../../feactures/CitaSeparada/CitaSeparada';
 import CitaService from '../../../feactures/Cita/CitaService';
 import citaService from "../../paciente-app/services/citaServices"
 import { transformarEspecialidades } from '../mapper/CitaEspecialidad';
 import { transformarMedicos } from '../mapper/CitaMedicoUI';
 import { transformarProgramacion } from '../mapper/CitaProgramacionMedicaUI';
-import { useAuth } from '../../../components/context/AuthContext';
+
+//import { useAuth } from '../../../components/context/AuthContext';
+import { useAuth } from "../../../shared/context/AuthContext"
 import { BaseHeader } from '../../../shared/components/layout/BaseHeader';
 import { obtenerFechaActualYYYYMMDD } from '../../../shared/utils/ObtenerFechaActualYYYYMMDD';
 
@@ -90,7 +92,6 @@ export default function PacientePage({  direccionClinica = "Sede Central" , onLo
   const [mostrarExito, setMostrarExito] = useState(false);
   const [programacionMensual, setProgramacionMensual] = useState([]);
   const [medicosActuales, setMedicosActuales] = useState([]);
-  //const [fechaFiltro, setFechaFiltro] = useState(obtenerFechaActualYYYYMMDD());
   const fechaFiltro = obtenerFechaActualYYYYMMDD();
   // --- ESTADO DE CACHÉ Y DATOS ---
   const [cache, setCache] = useState({

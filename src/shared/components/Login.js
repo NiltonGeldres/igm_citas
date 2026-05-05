@@ -1,12 +1,15 @@
 
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import AuthService from "./services/auth.service";
+//import AuthService from "./services/auth.service";
+import AuthService from "../../master-data/services/auth.service";
 // import { jwtDecode } from "jwt-decode"; // No se usa directamente aquí
+//import Styles from '../../Styles'; // Importa tus estilos globales
 import Styles from '../../Styles'; // Importa tus estilos globales
-import MessageModal from '../AtencionMedica/common/MessageModal'; // Importa el nuevo componente MessageModal
-import { useAuth } from "../context/AuthContext";
-
+//import MessageModal from '../AtencionMedica/common/MessageModal'; // Importa el nuevo componente MessageModal
+import MessageModal from '../utils/MessageModal'; // Importa el nuevo componente MessageModal
+//import { useAuth } from "../context/AuthContext";
+import {useAuth } from "../context/AuthContext"
 const Login = () => {
   const navigate = useNavigate();
   
