@@ -9,7 +9,6 @@ const Login = () => {
   const navigate = useNavigate();
   
   const { actualizarDatosGlobales } = useAuth();    
-
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false); // Estado para el indicador de carga
@@ -21,16 +20,18 @@ const Login = () => {
     setLoading(true);
     try {
        const response =  await AuthService.login(email, password);
+     //   console.log("response.jwtToken  "+response.jwtToken)
        if (response.jwtToken) {
+           console.log("response.jwtToken  "+response.jwtToken)
               await actualizarDatosGlobales(); // <--- ESTO LLENA EL HEADER AL INSTANTE
               navigate("/");
        }        
-         //navigate("/private");
-         window.location.reload();
+       // window.location.reload();
     } catch (err) {
         // 1. Obtenemos el código de error del backend (ej: 401, 403, 500)
         const statusCode = err.response?.status;
 //        const serverMessage = err.response?.data?.message; // Si tu API devuelve un mensaje
+        console.log("Error Login   "+err.response)
 
         let mensajeParaUsuario = "";
 

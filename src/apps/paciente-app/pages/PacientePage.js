@@ -123,14 +123,15 @@ export default function PacientePage({  direccionClinica = "Sede Central" , onLo
 const obtenerCitas = useCallback(async (idPaciente, fecha) => {  
     setCargando(true);
     try {
-      const data = await citaService.getCitaPacienteListarPendientes(user.idPaciente, fechaFiltro);
+      const data = await citaService.getCitaPacienteListarPendientes(user.idReferencia, fechaFiltro);
       setMisCitas(data);
     } catch (error) {
       console.error("Error al traer citas:", error);
     } finally {
       setCargando(false);
     }
-}, [user?.idPaciente,fechaFiltro]);
+}, [user?.idReferencia,fechaFiltro]);
+//}, [user?.idPaciente,fechaFiltro]);
 
   const obtenerMedicosEntidad = async (idEntidad) => {
     setCargando(true);
@@ -432,7 +433,7 @@ useEffect(() => {
 
       <BaseHeader 
         user={user} 
-        entidad={entidad}
+//        entidad={entidad}
         bgColor="linear-gradient(135deg, #0078f5 0%, #0056b3 100%)"
         onLogout={onLogout}
       >

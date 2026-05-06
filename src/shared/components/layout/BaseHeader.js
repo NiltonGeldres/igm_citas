@@ -1,11 +1,13 @@
 import { Stethoscope, User, Building2 } from "lucide-react";
 import { Link } from "react-router-dom";
 
-export const BaseHeader = ({ user, entidad, bgColor, onLogout, children }) => {
+//export const BaseHeader = ({ user, entidad, bgColor, onLogout, children }) => {
+export const BaseHeader = ({ user,  bgColor, onLogout, children }) => {
   // Lógica de formateo de nombre
   const getFullName = (profile) => {
     if (!profile) return 'Usuario';
-    return profile.usuarioNombres?.toLowerCase().trim() || profile.username || 'Usuario';
+//    return profile.usuarioNombres?.toLowerCase().trim() || profile.username || 'Usuario';
+    return profile.nombresUsuario?.toLowerCase().trim() || profile.username || 'Usuario';
   };
 
 
@@ -36,10 +38,10 @@ export const BaseHeader = ({ user, entidad, bgColor, onLogout, children }) => {
               </div>
               
               {/* Fila 2: Entidad */}
-              {entidad && (
+              {user && (
                 <div className="info-row" >                  
                   <Building2 size={12} />
-                    <span className="entity-name-text">{entidad.nombre} </span>
+                    <span className="entity-name-text">{user.nombreEntidad} </span>
                 </div>
               )}
             </div>

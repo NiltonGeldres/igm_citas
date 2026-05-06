@@ -105,18 +105,20 @@ const login = (user, password) => {
     return axios
     .post(API_URL+LOGIN,{ user, password })
     .then((response) => {
+//            console.log("response login "+JSON.stringify(response.data))
 
         if(response.data.jwtToken){
-            console.log(JSON.stringify(response.data.jwtToken))
-            console.log(JSON.stringify(response.data))
+            //console.log(JSON.stringify(response.data.jwtToken))
+            //console.log(JSON.stringify(response.data))
             const decoded = jwtDecode(response.data.jwtToken);
          //   let a = decoded.rol.authority
          //   let u = decoded.sub
-          //  console.log(JSON.stringify(decoded))
+            //console.log(JSON.stringify(decoded))
 
             // Guardamos el token para las cabeceras de Axios
             sessionStorage.setItem('token', response.data.jwtToken);
             // Creamos un objeto de perfil con lo que el JWT nos da
+
             const perfil = {
                 username: decoded.sub,
                 rol: decoded.rol.authority,
@@ -146,22 +148,11 @@ const login = (user, password) => {
     });
 };
 
-const datosGlobales = () => {
+const obtenerDatosGlobales = () => {
     return axios
-    .post(API_URL+DATOS_GLOBALES,{ })
+    .post(API_URL+DATOS_GLOBALES ,{},{ headers: header()})
     .then((response) => {
-
-        if(response.data){
-            const datos=response.data
-            console.log(JSON.stringify(datos))
-            const datosGlobales = {
-                usuarioNombres: datos.usuarioNombres,
-                entidad: datos.entidad, 
-                email: datos.email, 
-            };
-            sessionStorage.setItem('user',  JSON.stringify(datosGlobales)) ;
-
-            }
+        console.log("Datos Globales response "+response)
         return response.data;
     });
 };
@@ -243,7 +234,7 @@ const AuthService = {
     login,
     signup,
     logout,
-    datosGlobales,    
+    obtenerDatosGlobales,    
     getCurrentUser,
  //   getCurrentUsername,
 //    leerUsuario,

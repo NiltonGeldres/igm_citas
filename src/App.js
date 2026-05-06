@@ -8,9 +8,11 @@ import Login from "../src/shared/components/Login";
 import Signup from "./shared/components/Signup";
 import AuthService from "./master-data/services/auth.service";
 import PacientePage from "./apps/paciente-app/pages/PacientePage";
+
 function App() {
   const { user, loading } = useAuth();
 //  const Authority = user?.rol; 
+  console.log("user  "+JSON.stringify(user))
   const Authority = user?.idRol; 
   console.log("Authority  "+Authority)
   const navigate = useNavigate();
