@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { FaClock, FaCheckCircle } from 'react-icons/fa';
-import { X, RefreshCw } from "lucide-react"; // Usamos lucide para consistencia
+import {  RefreshCw } from "lucide-react"; // Usamos lucide para consistencia
 import { useCallback } from "react";
 import AuthService from "../../master-data/services/auth.service";
 import CitaSeparadaService from "../CitaSeparada/CitaSeparadaService";

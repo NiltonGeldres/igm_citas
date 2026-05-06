@@ -1,4 +1,5 @@
-import header from "../../components/Security/Header";
+//import header from "../../components/Security/Header";
+import header from "../../shared/utils/Header";
 import axios from "axios";
 import { jwtDecode } from "jwt-decode";
 import { mapearUsuarioRequest } from "../mappers/UsuarioMapper";
@@ -10,8 +11,9 @@ const API_URL = process.env.REACT_APP_URL_API;
 const LOGIN = "/auth";
 const SIGNUP = "/signin";
 const USUARIO_CREAR = "/signin";
-const GETUSUARIO = "/getUsuarioUsername";
+//const GETUSUARIO = "/getUsuarioUsername";
 const UPDATEUSUARIO = "/updateUsuario";
+const DATOS_GLOBALES = "/usuarioDatosGlobales";
 
 
 
@@ -108,9 +110,9 @@ const login = (user, password) => {
             console.log(JSON.stringify(response.data.jwtToken))
             console.log(JSON.stringify(response.data))
             const decoded = jwtDecode(response.data.jwtToken);
-            let a = decoded.rol.authority
-            let u = decoded.sub
-            console.log(JSON.stringify(decoded))
+         //   let a = decoded.rol.authority
+         //   let u = decoded.sub
+          //  console.log(JSON.stringify(decoded))
 
             // Guardamos el token para las cabeceras de Axios
             sessionStorage.setItem('token', response.data.jwtToken);
@@ -118,15 +120,46 @@ const login = (user, password) => {
             const perfil = {
                 username: decoded.sub,
                 rol: decoded.rol.authority,
+                idUsuario: decoded.idUsuario, 
+                idEntidad: decoded.idEntidad,     
+                idReferencia: decoded.idReferencia,     
+                idRol: decoded.idRol, 
+            };
+            
+/*            const perfil = {
+                username: decoded.sub,
+                rol: decoded.rol.authority,
                 idMedico: decoded.idMedico, // <-- Asegúrate que el backend lo envíe
                 idEntidad: decoded.idEntidad,     // <-- Asegúrate que el backend lo envíe
                 idPaciente: decoded.idPaciente,     // <-- Asegúrate que el backend lo envíe
                 usuarioNombres: decoded.usuarioNombres // Opcional para la UI
             };
-            sessionStorage.setItem('username',  u) ;    
-            sessionStorage.setItem('authority',  a) ;    
-            sessionStorage.setItem('user',  JSON.stringify(response.data)) ;
+            */
+       //     sessionStorage.setItem('username',  u) ;    
+       //     sessionStorage.setItem('authority',  a) ;    
             sessionStorage.setItem('user_profile', JSON.stringify(perfil));
+
+       //     sessionStorage.setItem('user',  JSON.stringify(response.data)) ;
+
+            }
+        return response.data;
+    });
+};
+
+const datosGlobales = () => {
+    return axios
+    .post(API_URL+DATOS_GLOBALES,{ })
+    .then((response) => {
+
+        if(response.data){
+            const datos=response.data
+            console.log(JSON.stringify(datos))
+            const datosGlobales = {
+                usuarioNombres: datos.usuarioNombres,
+                entidad: datos.entidad, 
+                email: datos.email, 
+            };
+            sessionStorage.setItem('user',  JSON.stringify(datosGlobales)) ;
 
             }
         return response.data;
@@ -156,7 +189,7 @@ export const getContextoActual = () => {
 const getCurrentUser = () => {
    return  JSON.parse(sessionStorage.getItem('user'));
 }
-
+/*
 const getCurrentUsername = () => {
     return  sessionStorage.getItem('username');
  }
@@ -164,38 +197,29 @@ const getCurrentUsername = () => {
  const getCurrentAuthority= () => {
     return  sessionStorage.getItem('authority');
  }
- 
+ */
 /* --------------------*/ 
-
+/*
 const leerUsuario = (username) => {
-    return axios.post(API_URL+GETUSUARIO,{username: username}
+    return axios.post(API_URL+GETUSUARIO,
+                 {username: username}
                 ,{ headers: header()}
          )
         
 };
-
+*/
+/*
 const leerUsuarioUsername = () => {
     const username = getCurrentUsername();
-    
     // Validación preventiva
-    if (!username) {
-        return Promise.reject("No se encontró un nombre de usuario");
-    }
-
-    return axios.post(
-        API_URL + GETUSUARIO, 
+    if (!username) {return Promise.reject("No se encontró un nombre de usuario"); }
+    return axios.post( API_URL + GETUSUARIO, 
         { username: username }, 
         { headers: header() }
     );
 }
 
-/*
-const leerUsuarioUsername = () => {
-    let username= getCurrentUsername()
-   return axios.post(API_URL+GETUSUARIO,{username: username}
-                ,{ headers: header()}
-         )
-};*/
+*/
 
 
 const actualizaUsuario = (usuarioData) => {
@@ -219,12 +243,13 @@ const AuthService = {
     login,
     signup,
     logout,
+    datosGlobales,    
     getCurrentUser,
-    getCurrentUsername,
-    leerUsuario,
+ //   getCurrentUsername,
+//    leerUsuario,
     actualizaUsuario   , 
-    leerUsuarioUsername,
-    getCurrentAuthority,
+ //   leerUsuarioUsername,
+//    getCurrentAuthority,
     getContextoActual,
     leerPerfil,
     usuarioCrear

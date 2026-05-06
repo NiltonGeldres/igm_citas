@@ -1,14 +1,9 @@
 
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-//import AuthService from "./services/auth.service";
 import AuthService from "../../master-data/services/auth.service";
-// import { jwtDecode } from "jwt-decode"; // No se usa directamente aquí
-//import Styles from '../../Styles'; // Importa tus estilos globales
 import Styles from '../../Styles'; // Importa tus estilos globales
-//import MessageModal from '../AtencionMedica/common/MessageModal'; // Importa el nuevo componente MessageModal
 import MessageModal from '../utils/MessageModal'; // Importa el nuevo componente MessageModal
-//import { useAuth } from "../context/AuthContext";
 import {useAuth } from "../context/AuthContext"
 const Login = () => {
   const navigate = useNavigate();
@@ -20,24 +15,6 @@ const Login = () => {
   const [loading, setLoading] = useState(false); // Estado para el indicador de carga
   const [showErrorModal, setShowErrorModal] = useState(false); // Estado para el modal de error
   const [errorMessage, setErrorMessage] = useState(""); // Mensaje de error
-/*  const [usuarioData, setUsuarioData] = useState({
-        id_usuario          : 0,
-        username            :"",        
-        password            :"",
-        email               :"",
-        estado              :"" ,
-        apellido_paterno    :"",
-        apellido_materno    :"",
-        primer_nombre       :"",
-        segundo_nombre      :"r",
-        numero_celular      :"",
-        id_sexo             :"",
-        id_tipo_documento   :"",
-        numero_documento    :"",
-        fecha_alta          :"",
-        fecha_baja          :"",
-        fecha_modificacion  :""
-      });    */
 
   const handleLogin = async (e) => {
     e.preventDefault();

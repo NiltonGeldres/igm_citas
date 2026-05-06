@@ -1,5 +1,6 @@
 //src/components/ProgramacionHorarioIndividual/ProgramacionHorarioIndividualService.js
-import header from "../../components/Security/Header";
+//import header from "../../components/Security/Header";
+import header from "../../shared/utils/Header";
 import axios from "axios";
 
 const usuario = sessionStorage.getItem('username');
