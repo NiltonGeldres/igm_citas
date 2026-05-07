@@ -62,14 +62,14 @@ const LoaderCargando = () => (
   </div>
 );
 
-const ExitoReserva = ({ entidad, onReiniciar, onIrAPagos }) => (
+const ExitoReserva = ({ nombreEntidad, onReiniciar, onIrAPagos }) => (
   <div className="text-center py-5 fade-in">
     <div className="bg-success bg-opacity-10 text-success p-4 rounded-circle d-inline-block mb-4">
       <CheckCircle2 size={50} />
     </div>
     <h3 className="fw-bold">¡Todo listo!</h3>
     <p className="text-secondary mb-4 px-4">
-      Tu cita ha sido agendada en <strong>{entidad?.nombre}</strong> correctamente.
+      Tu cita ha sido agendada en <strong>{nombreEntidad}</strong> correctamente.
     </p>
     <div className="d-flex flex-column gap-2 px-3">
       <button onClick={onReiniciar} className="btn btn-primary w-100 p-3 rounded-4 fw-bold">
@@ -83,7 +83,9 @@ const ExitoReserva = ({ entidad, onReiniciar, onIrAPagos }) => (
 );
 
 export default function PacientePage({  direccionClinica = "Sede Central" , onLogout }) {
-  const { user, entidad } = useAuth();
+//  const { user, entidad } = useAuth();
+  const { user } = useAuth();
+  console.log("PacientePage USer "+JSON.stringify(user))
   const perfil = AuthService.leerPerfil();
   const [pestanaActual, setPestanaActual] = useState('inicio');
   const [modoReserva, setModoReserva] = useState(false);
@@ -449,7 +451,7 @@ useEffect(() => {
         {pestanaActual === 'inicio' && (
           <InicioDashboard 
             perfil={perfil}
-            entidad={entidad}
+            nombreEntidad={user.nombreEntidad}
             misCitas={misCitas}
             misMedicosEntidad={misMedicosEntidad}
             direccionClinica={direccionClinica}
@@ -473,7 +475,7 @@ useEffect(() => {
               <div className="flujo-reserva">
                 {mostrarExito ? (
                   <ExitoReserva 
-                    entidad={entidad} 
+                    nombreEntidad={user.nombreEntidad} 
                     onReiniciar={reiniciarFlujo} 
                     onIrAPagos={() => { setMostrarExito(false); setModoReserva(false); setPestanaActual('pagos'); }} 
                   />

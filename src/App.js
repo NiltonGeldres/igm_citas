@@ -12,9 +12,7 @@ import PacientePage from "./apps/paciente-app/pages/PacientePage";
 function App() {
   const { user, loading } = useAuth();
 //  const Authority = user?.rol; 
-  console.log("user  "+JSON.stringify(user))
   const Authority = user?.idRol; 
-  console.log("Authority  "+Authority)
   const navigate = useNavigate();
 
   if (loading) return <div className="loading-screen">Cargando MediFlow...</div>;

@@ -20,17 +20,16 @@ const Login = () => {
     setLoading(true);
     try {
        const response =  await AuthService.login(email, password);
-     //   console.log("response.jwtToken  "+response.jwtToken)
        if (response.jwtToken) {
            console.log("response.jwtToken  "+response.jwtToken)
               await actualizarDatosGlobales(); // <--- ESTO LLENA EL HEADER AL INSTANTE
               navigate("/");
        }        
-       // window.location.reload();
+        window.location.reload();
+
     } catch (err) {
-        // 1. Obtenemos el código de error del backend (ej: 401, 403, 500)
         const statusCode = err.response?.status;
-//        const serverMessage = err.response?.data?.message; // Si tu API devuelve un mensaje
+        const serverMessage = err.response?.data?.message; // Si tu API devuelve un mensaje
         console.log("Error Login   "+err.response)
 
         let mensajeParaUsuario = "";
@@ -46,8 +45,6 @@ const Login = () => {
         } else {
             mensajeParaUsuario = "No se pudo conectar con el servidor. Revisa tu conexión a internet.";
         }
-
-        // Mostramos el error en tu modal especializado
         setErrorMessage(mensajeParaUsuario);
         setShowErrorModal(true);
         

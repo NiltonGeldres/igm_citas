@@ -105,19 +105,9 @@ const login = (user, password) => {
     return axios
     .post(API_URL+LOGIN,{ user, password })
     .then((response) => {
-//            console.log("response login "+JSON.stringify(response.data))
-
         if(response.data.jwtToken){
-            //console.log(JSON.stringify(response.data.jwtToken))
-            //console.log(JSON.stringify(response.data))
             const decoded = jwtDecode(response.data.jwtToken);
-         //   let a = decoded.rol.authority
-         //   let u = decoded.sub
-            //console.log(JSON.stringify(decoded))
-
-            // Guardamos el token para las cabeceras de Axios
             sessionStorage.setItem('token', response.data.jwtToken);
-            // Creamos un objeto de perfil con lo que el JWT nos da
 
             const perfil = {
                 username: decoded.sub,
@@ -127,34 +117,44 @@ const login = (user, password) => {
                 idReferencia: decoded.idReferencia,     
                 idRol: decoded.idRol, 
             };
-            
-/*            const perfil = {
-                username: decoded.sub,
-                rol: decoded.rol.authority,
-                idMedico: decoded.idMedico, // <-- Asegúrate que el backend lo envíe
-                idEntidad: decoded.idEntidad,     // <-- Asegúrate que el backend lo envíe
-                idPaciente: decoded.idPaciente,     // <-- Asegúrate que el backend lo envíe
-                usuarioNombres: decoded.usuarioNombres // Opcional para la UI
-            };
-            */
-       //     sessionStorage.setItem('username',  u) ;    
-       //     sessionStorage.setItem('authority',  a) ;    
             sessionStorage.setItem('user_profile', JSON.stringify(perfil));
-
-       //     sessionStorage.setItem('user',  JSON.stringify(response.data)) ;
-
-            }
+        }
         return response.data;
     });
 };
-
-const obtenerDatosGlobales = () => {
+/*
+const obtenerDatosGlobales = (token) => {
     return axios
     .post(API_URL+DATOS_GLOBALES ,{},{ headers: header()})
     .then((response) => {
         console.log("Datos Globales response "+response)
         return response.data;
     });
+};
+*/
+const obtenerDatosGlobales = (token) => {
+    if (!token) {
+        return Promise.reject("No hay un token válido para obtener datos globales.");
+    }
+
+    const config = {
+        headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+        }
+    };
+//return {"Authorization":'Bearer '+user.jwtToken};
+
+    return axios
+        .post(API_URL + DATOS_GLOBALES, {}, config)
+        .then((response) => {
+            console.log("Datos Globales cargados con éxito:", response.data);
+            return response.data;
+        })
+        .catch((error) => {
+            console.error("Error en obtenerDatosGlobales:", error.response || error);
+            throw error; // Re-lanzamos el error para que el Contexto lo maneje
+        });
 };
 
 const logout = () => {
@@ -164,7 +164,7 @@ const logout = () => {
     sessionStorage.removeItem('user'); // Objeto de usuario con el token
     sessionStorage.removeItem('user_profile'); // Objeto de perfil completo
 }
-
+/*
 export const getContextoActual = () => {
     const profile = JSON.parse(sessionStorage.getItem('user_profile'));
     if (!profile) return null;
@@ -175,11 +175,50 @@ export const getContextoActual = () => {
         nombreCompleto: profile.nombreCompleto || "", // Valor por defecto si no viene
     };
 };
-
-
+*/
+/*
 const getCurrentUser = () => {
    return  JSON.parse(sessionStorage.getItem('user'));
 }
+*/
+
+
+const actualizaUsuario = (usuarioData) => {
+ //  alert("DATA A ENVIAR "+JSON.stringify(usuarioData))    
+   return axios
+   .post(API_URL+UPDATEUSUARIO,  usuarioData 
+    ,{ headers: header()}
+    ).catch(function (error) {
+        console.log( error.toJSON());
+  });
+ 
+};
+
+const leerPerfil = () => {
+   return  JSON.parse(sessionStorage.getItem('user_profile'));
+};
+
+
+
+const AuthService = {
+    login,
+    signup,
+    logout,
+    obtenerDatosGlobales,    
+  //  getCurrentUser,
+ //   getCurrentUsername,
+//    leerUsuario,
+    actualizaUsuario   , 
+ //   leerUsuarioUsername,
+//    getCurrentAuthority,
+  //  getContextoActual,
+    leerPerfil,
+    usuarioCrear
+};
+
+export default AuthService;
+
+
 /*
 const getCurrentUsername = () => {
     return  sessionStorage.getItem('username');
@@ -212,39 +251,51 @@ const leerUsuarioUsername = () => {
 
 */
 
+/*
+const login = (user, password) => {
+    return axios
+    .post(API_URL+LOGIN,{ user, password })
+    .then((response) => {
+//            console.log("response login "+JSON.stringify(response.data))
 
-const actualizaUsuario = (usuarioData) => {
- //  alert("DATA A ENVIAR "+JSON.stringify(usuarioData))    
-   return axios
-   .post(API_URL+UPDATEUSUARIO,  usuarioData 
-    ,{ headers: header()}
-    ).catch(function (error) {
-        console.log( error.toJSON());
-  });
+        if(response.data.jwtToken){
+            //console.log(JSON.stringify(response.data.jwtToken))
+            //console.log(JSON.stringify(response.data))
+            const decoded = jwtDecode(response.data.jwtToken);
+         //   let a = decoded.rol.authority
+         //   let u = decoded.sub
+            //console.log(JSON.stringify(decoded))
+
+            // Guardamos el token para las cabeceras de Axios
+            sessionStorage.setItem('token', response.data.jwtToken);
+            // Creamos un objeto de perfil con lo que el JWT nos da
+
+            const perfil = {
+                username: decoded.sub,
+                rol: decoded.rol.authority,
+                idUsuario: decoded.idUsuario, 
+                idEntidad: decoded.idEntidad,     
+                idReferencia: decoded.idReferencia,     
+                idRol: decoded.idRol, 
+            };
+            
+//            const perfil = {
+//                username: decoded.sub,
+//                rol: decoded.rol.authority,
+//                idMedico: decoded.idMedico, // <-- Asegúrate que el backend lo envíe
+//                idEntidad: decoded.idEntidad,     // <-- Asegúrate que el backend lo envíe
+//                idPaciente: decoded.idPaciente,     // <-- Asegúrate que el backend lo envíe
+//                usuarioNombres: decoded.usuarioNombres // Opcional para la UI
+//            };
  
+       //     sessionStorage.setItem('username',  u) ;    
+       //     sessionStorage.setItem('authority',  a) ;    
+            sessionStorage.setItem('user_profile', JSON.stringify(perfil));
+
+       //     sessionStorage.setItem('user',  JSON.stringify(response.data)) ;
+
+            }
+        return response.data;
+    });
 };
-
-const leerPerfil = () => {
-   return  JSON.parse(sessionStorage.getItem('user_profile'));
-};
-
-
-
-const AuthService = {
-    login,
-    signup,
-    logout,
-    obtenerDatosGlobales,    
-    getCurrentUser,
- //   getCurrentUsername,
-//    leerUsuario,
-    actualizaUsuario   , 
- //   leerUsuarioUsername,
-//    getCurrentAuthority,
-    getContextoActual,
-    leerPerfil,
-    usuarioCrear
-};
-
-export default AuthService;
-
+*/
