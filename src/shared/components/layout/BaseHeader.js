@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 
 //export const BaseHeader = ({ user, entidad, bgColor, onLogout, children }) => {
 export const BaseHeader = ({ user,  bgColor, onLogout, children }) => {
+//console.log("User in  BaseHeader"+JSON.stringify(user))
   // Lógica de formateo de nombre
   const getFullName = (profile) => {
     if (!profile) return 'Usuario';

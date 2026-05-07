@@ -15,22 +15,19 @@ const Login = () => {
   const [showErrorModal, setShowErrorModal] = useState(false); // Estado para el modal de error
   const [errorMessage, setErrorMessage] = useState(""); // Mensaje de error
 
+
   const handleLogin = async (e) => {
     e.preventDefault();
     setLoading(true);
     try {
        const response =  await AuthService.login(email, password);
        if (response.jwtToken) {
-           console.log("response.jwtToken  "+response.jwtToken)
               await actualizarDatosGlobales(); // <--- ESTO LLENA EL HEADER AL INSTANTE
               navigate("/");
        }        
-        window.location.reload();
-
+         window.location.reload();
     } catch (err) {
         const statusCode = err.response?.status;
-        const serverMessage = err.response?.data?.message; // Si tu API devuelve un mensaje
-        console.log("Error Login   "+err.response)
 
         let mensajeParaUsuario = "";
 
@@ -45,6 +42,7 @@ const Login = () => {
         } else {
             mensajeParaUsuario = "No se pudo conectar con el servidor. Revisa tu conexión a internet.";
         }
+
         setErrorMessage(mensajeParaUsuario);
         setShowErrorModal(true);
         
@@ -53,6 +51,7 @@ const Login = () => {
         setLoading(false);
     }
 };
+
   return (
     <div style={Styles.loginContainer}>
       <form onSubmit={handleLogin} style={Styles.loginForm}>
@@ -101,4 +100,44 @@ const Login = () => {
 export default Login;
 
 
+  /*
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+       const response =  await AuthService.login(email, password);
+       if (response.jwtToken) {
+           console.log("response.jwtToken  "+response.jwtToken)
+              await actualizarDatosGlobales(); // <--- ESTO LLENA EL HEADER AL INSTANTE
+              navigate("/");
+       }        
+        window.location.reload();
+
+    } catch (err) {
+        const statusCode = err.response?.status;
+        const serverMessage = err.response?.data?.message; // Si tu API devuelve un mensaje
+        console.log("Error Login   "+err.response)
+
+        let mensajeParaUsuario = "";
+
+        if (statusCode === 401) {
+            mensajeParaUsuario = "La contraseña o el correo son incorrectos. Por favor, verifica tus datos.";
+        } else if (statusCode === 403) {
+            mensajeParaUsuario = "Tu cuenta está desactivada o no tienes permisos para acceder. Contacta al administrador.";
+        } else if (statusCode === 404) {
+            mensajeParaUsuario = "El usuario ingresado no existe.";
+        } else if (statusCode >= 500) {
+            mensajeParaUsuario = "Tenemos problemas con nuestro servidor. Inténtalo más tarde.";
+        } else {
+            mensajeParaUsuario = "No se pudo conectar con el servidor. Revisa tu conexión a internet.";
+        }
+        setErrorMessage(mensajeParaUsuario);
+        setShowErrorModal(true);
+        
+        AuthService.logout(); // Limpiamos por seguridad
+    } finally {
+        setLoading(false);
+    }
+};
+*/
 

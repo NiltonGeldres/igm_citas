@@ -11,8 +11,7 @@ import PacientePage from "./apps/paciente-app/pages/PacientePage";
 
 function App() {
   const { user, loading } = useAuth();
-//  const Authority = user?.rol; 
-  const Authority = user?.idRol; 
+  const Authority = user?.rol; 
   const navigate = useNavigate();
 
   if (loading) return <div className="loading-screen">Cargando MediFlow...</div>;
@@ -42,20 +41,20 @@ function App() {
         {/* 2. REDIRECCIÓN INICIAL: El "Semáforo" de roles */}
         <Route path="/" element={
           !user ? <Navigate to="/login" replace /> : 
-//          (Authority === 'Medicos' ? <Navigate to="/med/agenda" replace /> : <Navigate to="/paciente/citas" replace />)
-          (Authority === 4 ? <Navigate to="/med/agenda" replace /> : <Navigate to="/paciente/citas" replace />)
+          (Authority === 'Medicos' ? <Navigate to="/med/agenda" replace /> : <Navigate to="/paciente/citas" replace />)
+//          (Authority === 4 ? <Navigate to="/med/agenda" replace /> : <Navigate to="/paciente/citas" replace />)
         } />
 
         {/* 3. MUNDO MÉDICO: El MedicoRouter ya incluye el Layout con el BaseHeader completo */}
         <Route path="/med/*" element={
-//          user?.rol === 'Medicos' ? <MedicoRouter onLogout={logOut}/> : <Navigate to="/login" replace />
-          user?.idRol === 4 ? <MedicoRouter onLogout={logOut}/> : <Navigate to="/login" replace />
+          user?.rol === 'Medicos' ? <MedicoRouter onLogout={logOut}/> : <Navigate to="/login" replace />
+//          user?.idRol === 4 ? <MedicoRouter onLogout={logOut}/> : <Navigate to="/login" replace />
         } />
 
          {/* 4. MUNDO PACIENTE */}
         <Route path="/paciente/*" element={
-//          user?.rol === 'Usuarios' ? <PacientePage onLogout={logOut}/> : <Navigate to="/login" replace />
-          user?.idRol === 2 ? <PacientePage onLogout={logOut}/> : <Navigate to="/login" replace />
+          user?.rol === 'Usuarios' ? <PacientePage onLogout={logOut}/> : <Navigate to="/login" replace />
+//          user?.idRol === 2 ? <PacientePage onLogout={logOut}/> : <Navigate to="/login" replace />
         } />
 
         {/* 5. COMODÍN: Cualquier otra ruta vuelve al inicio */}

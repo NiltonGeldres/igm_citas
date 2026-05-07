@@ -23,9 +23,10 @@ const CitaSeparada = ({datosReserva}) => {
     const cargarDatos = useCallback(async () => {
     setLoading(true);
       try {
-        const user = await AuthService.leerUsuarioUsername();
+        /*const user = await AuthService.leerUsuarioUsername();
         setUsuarioData(user.data);
-
+        console.log("user.data   "+JSON.stringify(user.data))
+        */
         const resPendientes = await CitaSeparadaService.getCitasSeparadaLeer();
         setCitasPendientes(resPendientes.data.citaSeparada || []);
 
@@ -54,8 +55,10 @@ const CitaSeparada = ({datosReserva}) => {
       idCitaSeparada: cita.idCitaSeparada,
       precioUnitario: cita.precioUnitario,
       nombreDestino: cita.destino_cuenta,
-      email: usuarioData?.email,
-      celular: usuarioData?.numero_celular
+      email: datosReserva.email,
+      celular: ''
+//      email: usuarioData?.email,
+//      celular: usuarioData?.numero_celular
     });
     setShowModal(true);
   };

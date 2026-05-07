@@ -2,7 +2,7 @@ import React from 'react';
 import { Calendar, CreditCard, Star, User } from 'lucide-react';
 
 export const InicioDashboard = ({ 
-  perfil, 
+  nombresUsuario, 
   nombreEntidad, 
   misCitas, 
   misMedicosEntidad,
@@ -14,7 +14,7 @@ export const InicioDashboard = ({
     <div className="fade-in px-3 pt-4">
       {/* CARD DE BIENVENIDA */}
       <div className="card border-0 bg-primary text-white p-4 shadow-lg mb-4" style={{ borderRadius: '28px' }}>
-        <h5 className="fw-bold mb-1">¡Hola, {perfil?.usuarioNombres}</h5>
+        <h5 className="fw-bold mb-1">¡Hola, {nombresUsuario}</h5>
         <p className="opacity-75 small mb-4">Bienvenido a {nombreEntidad}. Tu salud es prioridad.</p>
         
         <div className="row g-2">

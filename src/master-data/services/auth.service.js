@@ -11,17 +11,14 @@ const API_URL = process.env.REACT_APP_URL_API;
 const LOGIN = "/auth";
 const SIGNUP = "/signin";
 const USUARIO_CREAR = "/signin";
-//const GETUSUARIO = "/getUsuarioUsername";
+const GETUSUARIO = "/getUsuarioUsername";
 const UPDATEUSUARIO = "/updateUsuario";
 const DATOS_GLOBALES = "/usuarioDatosGlobales";
 
 
 
 const ejecutarAPI = async (endpoint, params = {}) => {
-//    console.log("Ingreso"+endpoint+JSON.stringify(params))
     try {
-
-
        const response = await axios.post(API_URL + endpoint, params, { 
              // Aquí van los tokens/auth
             // Si necesitas enviar query params (URL?id=1), usa: params: { ... }
@@ -52,7 +49,6 @@ const ejecutarAPI = async (endpoint, params = {}) => {
 
 
 const usuarioCrear = async (usuario) => {
-  //  console.log(JSON.stringify(usuario))
     const params = mapearUsuarioRequest(usuario);
     return await ejecutarAPI(USUARIO_CREAR, params);
 };
@@ -101,28 +97,39 @@ const signup = (
     
 };
 
+
 const login = (user, password) => {
     return axios
     .post(API_URL+LOGIN,{ user, password })
     .then((response) => {
+
         if(response.data.jwtToken){
             const decoded = jwtDecode(response.data.jwtToken);
-            sessionStorage.setItem('token', response.data.jwtToken);
-
             const perfil = {
                 username: decoded.sub,
                 rol: decoded.rol.authority,
+                idPaciente: decoded.idReferencia, 
+                idMedico: decoded.idReferencia, 
                 idUsuario: decoded.idUsuario, 
                 idEntidad: decoded.idEntidad,     
                 idReferencia: decoded.idReferencia,     
-                idRol: decoded.idRol, 
+                idRol: decoded.idRol 
+
+//                usuarioNombres: decoded.usuarioNombres // Opcional para la UI
             };
+
+            sessionStorage.setItem('username',  decoded.sub) ;  
+            sessionStorage.setItem('token_data',  JSON.stringify(response.data)) ;
             sessionStorage.setItem('user_profile', JSON.stringify(perfil));
-        }
+
+            }
         return response.data;
     });
 };
-/*
+
+
+
+
 const obtenerDatosGlobales = (token) => {
     return axios
     .post(API_URL+DATOS_GLOBALES ,{},{ headers: header()})
@@ -131,31 +138,7 @@ const obtenerDatosGlobales = (token) => {
         return response.data;
     });
 };
-*/
-const obtenerDatosGlobales = (token) => {
-    if (!token) {
-        return Promise.reject("No hay un token válido para obtener datos globales.");
-    }
 
-    const config = {
-        headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-        }
-    };
-//return {"Authorization":'Bearer '+user.jwtToken};
-
-    return axios
-        .post(API_URL + DATOS_GLOBALES, {}, config)
-        .then((response) => {
-            console.log("Datos Globales cargados con éxito:", response.data);
-            return response.data;
-        })
-        .catch((error) => {
-            console.error("Error en obtenerDatosGlobales:", error.response || error);
-            throw error; // Re-lanzamos el error para que el Contexto lo maneje
-        });
-};
 
 const logout = () => {
     sessionStorage.removeItem('user');
@@ -164,27 +147,8 @@ const logout = () => {
     sessionStorage.removeItem('user'); // Objeto de usuario con el token
     sessionStorage.removeItem('user_profile'); // Objeto de perfil completo
 }
-/*
-export const getContextoActual = () => {
-    const profile = JSON.parse(sessionStorage.getItem('user_profile'));
-    if (!profile) return null;
-
-    return {
-        idMedico: profile.idMedico,
-        idEntidad: profile.idEntidad,
-        nombreCompleto: profile.nombreCompleto || "", // Valor por defecto si no viene
-    };
-};
-*/
-/*
-const getCurrentUser = () => {
-   return  JSON.parse(sessionStorage.getItem('user'));
-}
-*/
-
 
 const actualizaUsuario = (usuarioData) => {
- //  alert("DATA A ENVIAR "+JSON.stringify(usuarioData))    
    return axios
    .post(API_URL+UPDATEUSUARIO,  usuarioData 
     ,{ headers: header()}
@@ -198,22 +162,34 @@ const leerPerfil = () => {
    return  JSON.parse(sessionStorage.getItem('user_profile'));
 };
 
+const leerUsuarioUsername = () => {
+    const username = getCurrentUsername();
+    // Validación preventiva
+    if (!username) {return Promise.reject("No se encontró un nombre de usuario"); }
+    return axios.post( API_URL + GETUSUARIO, 
+        { username: username }, 
+        { headers: header() }
+    );
+}
 
+const getCurrentUsername = () => {
+    return  sessionStorage.getItem('username');
+ }
 
 const AuthService = {
     login,
     signup,
     logout,
     obtenerDatosGlobales,    
+    actualizaUsuario   , 
+    leerPerfil,
+    usuarioCrear,
   //  getCurrentUser,
  //   getCurrentUsername,
 //    leerUsuario,
-    actualizaUsuario   , 
- //   leerUsuarioUsername,
+    leerUsuarioUsername,
 //    getCurrentAuthority,
   //  getContextoActual,
-    leerPerfil,
-    usuarioCrear
 };
 
 export default AuthService;
@@ -298,4 +274,63 @@ const login = (user, password) => {
         return response.data;
     });
 };
+*/
+
+/*
+const obtenerDatosGlobales = () => {
+    return axios
+        .post(API_URL + DATOS_GLOBALES, {}, config)
+        .then((response) => {
+            console.log("Datos Globales cargados con éxito:", response.data);
+            return response.data;
+        })
+        .catch((error) => {
+            console.error("Error en obtenerDatosGlobales:", error.response || error);
+            throw error; // Re-lanzamos el error para que el Contexto lo maneje
+        });
+};
+*/
+
+/*
+const login = (user, password) => {
+    return axios
+    .post(API_URL+LOGIN,{ user, password })
+    .then((response) => {
+        if(response.data.jwtToken){
+            const decoded = jwtDecode(response.data.jwtToken);
+            sessionStorage.setItem('token', response.data.jwtToken);
+
+            const perfil = {
+                username: decoded.sub,
+                rol: decoded.rol.authority,
+                idUsuario: decoded.idUsuario, 
+                idEntidad: decoded.idEntidad,     
+                idReferencia: decoded.idReferencia,     
+                idRol: decoded.idRol, 
+            };
+            sessionStorage.setItem('user_profile', JSON.stringify(perfil));
+        }
+        return response.data;
+    });
+};
+
+*/
+
+
+/*
+export const getContextoActual = () => {
+    const profile = JSON.parse(sessionStorage.getItem('user_profile'));
+    if (!profile) return null;
+
+    return {
+        idMedico: profile.idMedico,
+        idEntidad: profile.idEntidad,
+        nombreCompleto: profile.nombreCompleto || "", // Valor por defecto si no viene
+    };
+};
+*/
+/*
+const getCurrentUser = () => {
+   return  JSON.parse(sessionStorage.getItem('user'));
+}
 */

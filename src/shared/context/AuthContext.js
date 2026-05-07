@@ -1,47 +1,27 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import AuthService from '../../master-data/services/auth.service';
-import EntidadService from '../../master-data/services/EntidadService';
+//import EntidadService from '../../master-data/services/EntidadService';
 
 const AuthContext = createContext();
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const [entidad, setEntidad] = useState(null);
   const [loading, setLoading] = useState(true);
-
+  
   const actualizarDatosGlobales = async () => {
-    const perfil = AuthService.leerPerfil();
-    if (perfil) {
-      setUser(perfil);
-      try {
-        // Obtenemos la entidad desde tu servicio existente
-        const res = await AuthService.obtenerDatosGlobales(); 
-        //const res = await EntidadService.getEntidad();
-        setEntidad(res.data); 
-      } catch (error) {
-        console.error("Error al cargar entidad en Contexto", error);
-      }
-    }
-    setLoading(false);
-  };
-
- /* 
-const actualizarDatosGlobales = async (tokenDirecto = null) => {
-    const token = tokenDirecto || sessionStorage.getItem('token');
     const perfilToken = AuthService.leerPerfil();
-    if (token && perfilToken) {
+    if (perfilToken) {
       try {
-        const resData = await AuthService.obtenerDatosGlobales(token); 
+        const resData = await AuthService.obtenerDatosGlobales(); 
         console.log("Datos frescos desde API:", resData);
-        const datosGlobalesCompletos = {
+        const perfilConDatosGlobales = {
           ...perfilToken,     
-          nombreUsuario: resData.nombreUsuario,
+          nombresUsuario: resData.nombresUsuario,
           nombreEntidad: resData.nombreEntidad,
           email: resData.email         
         };        
         
-        console.log("Estado Global Hidratado:", datosGlobalesCompletos);
-        setDatos(resData); 
-        setUser(datosGlobalesCompletos);
+        console.log("Estado Global Hidratado:", perfilConDatosGlobales);
+        setUser(perfilConDatosGlobales);
 
       } catch (error) {
         console.error("Fallo la hidratación de datos globales:", error);
@@ -53,15 +33,14 @@ const actualizarDatosGlobales = async (tokenDirecto = null) => {
     
     setLoading(false);
 };
-*/
+
   useEffect(() => {
     actualizarDatosGlobales();
   }, []);
 
-  // Definimos qué funciones y datos exponemos a toda la App
   const value = {
     user,
-    entidad,
+//    entidad,
     actualizarDatosGlobales,
     isLoggedIn: !!user,
     loading
@@ -111,3 +90,40 @@ const actualizarDatosGlobales = async () => {
     setLoading(false);
 };
 */
+
+/*
+  const actualizarDatosGlobales = async () => {
+    const perfil = AuthService.leerPerfil();
+    console.log("PERFIL   "+JSON.stringify(perfil))
+    if (perfil) {
+      setUser(perfil);
+      try {
+        // Obtenemos la entidad desde tu servicio existente
+        const res = await EntidadService.getEntidad();
+        setEntidad(res.data); 
+      } catch (error) {
+        console.error("Error al cargar entidad en Contexto", error);
+      }
+    }
+    setLoading(false);
+  };
+
+  */
+  /*
+  const actualizarDatosGlobales = async () => {
+    const perfil = AuthService.leerPerfil();
+    if (perfil) {
+      setUser(perfil);
+      try {
+        // Obtenemos la entidad desde tu servicio existente
+        const res = await AuthService.obtenerDatosGlobales(); 
+        //const res = await EntidadService.getEntidad();
+        setEntidad(res.data); 
+      } catch (error) {
+        console.error("Error al cargar entidad en Contexto", error);
+      }
+    }
+    setLoading(false);
+  };
+*/
+  
