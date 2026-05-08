@@ -316,21 +316,3 @@ const login = (user, password) => {
 
 */
 
-
-/*
-export const getContextoActual = () => {
-    const profile = JSON.parse(sessionStorage.getItem('user_profile'));
-    if (!profile) return null;
-
-    return {
-        idMedico: profile.idMedico,
-        idEntidad: profile.idEntidad,
-        nombreCompleto: profile.nombreCompleto || "", // Valor por defecto si no viene
-    };
-};
-*/
-/*
-const getCurrentUser = () => {
-   return  JSON.parse(sessionStorage.getItem('user'));
-}
-*/
