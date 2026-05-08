@@ -291,7 +291,7 @@ export default function PacientePage({  direccionClinica = "Sede Central" , onLo
         try {
             // PASO 1: Bloqueo temporal en el Servidor
             const respBloqueo = await CitaService.getCitaBloquear(hora, datosReserva.fechaYYYYMMDD, datosReserva.doctor.id);
-            alert(respBloqueo)
+
             const idBloqueo = respBloqueo.data.idCitaBloqueada;
 
             // PASO 2: Confirmación con el Usuario
