@@ -93,6 +93,7 @@ export default function PacientePage({  direccionClinica = "Sede Central" , onLo
   const [programacionMensual, setProgramacionMensual] = useState([]);
   const [medicosActuales, setMedicosActuales] = useState([]);
   const fechaFiltro = obtenerFechaActualYYYYMMDD();
+  const [procesandoBloqueo, setProcesandoBloqueo] = useState(false);
   // --- ESTADO DE CACHÉ Y DATOS ---
   const [cache, setCache] = useState({
     especialidades: [],
@@ -286,8 +287,9 @@ export default function PacientePage({  direccionClinica = "Sede Central" , onLo
     };
 
     const handleHoraSeleccionada = async (hora, idProg, idServ) => {
-        let timerInterval;
-        
+       if (procesandoBloqueo) return;
+       let timerInterval;
+       setProcesandoBloqueo(true);
         try {
             // PASO 1: Bloqueo temporal en el Servidor
             const respBloqueo = await CitaService.getCitaBloquear(hora, datosReserva.fechaYYYYMMDD, datosReserva.doctor.id);
@@ -322,9 +324,11 @@ export default function PacientePage({  direccionClinica = "Sede Central" , onLo
 
         } catch (error) {
             Swal.fire('Error', 'El horario ya no está disponible o hubo un problema de conexión.', 'error');
+        } finally {
+            setProcesandoBloqueo(false); // Liberamos el semáforo siempre al finalizar
         }
     };
-
+    
     const finalizarReserva = async (hora, idProg, idServ, idBloqueo) => {
         try {
               // 1. Crear la cita separada en el Backend
