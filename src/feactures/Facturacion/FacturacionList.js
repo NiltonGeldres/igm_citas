@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from "react";
-//import { useNavigate } from "react-router-dom";
-
 import CitaSeparadaService from "../../master-data/services/CitaSeparadaService";
 import FacturacionRow from "./FacturacionRow";
-import { Search, FilterX, Loader2 } from "lucide-react";
+import { Search, FilterX, Loader2, RefreshCw  } from "lucide-react";
+import "../../apps/paciente-app/styles/paciente-app.css"
 
 const FacturacionList = () => {
   const [citasSeparadas, setCitasSeparadas] = useState([]);
@@ -11,6 +10,7 @@ const FacturacionList = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(false);
   //const navigate = useNavigate();
+  const [actualizar, setActualizar] = useState(true);  
 
   useEffect(() => {
     setLoading(true);
@@ -23,7 +23,7 @@ const FacturacionList = () => {
       .catch(() => {
         setLoading(false);
       });
-  }, []);
+  }, [actualizar]);
 
   useEffect(() => {
     const results = citasSeparadas.filter(cita =>
@@ -37,6 +37,16 @@ const FacturacionList = () => {
 
   return (
     <div className="facturacion-list-container">
+      <div className="d-flex justify-content-between align-items-center my-4">
+        <button 
+          className="btn btn-light shadow-sm rounded-circle p-2 border-0"
+          onClick={() => setActualizar(true)}
+          disabled={loading}
+        >
+          <RefreshCw className={loading ? 'animate-spin text-primary' : 'text-primary'} size={20} />
+        </button>
+      </div>
+
       {/* BUSCADOR */}
       <div className="search-box">
         <Search size={18} className="search-icon" />

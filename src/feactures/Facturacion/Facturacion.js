@@ -1,8 +1,10 @@
 import React from "react";
 import FacturacionList from "./FacturacionList";
 import { CreditCard } from "lucide-react";
+import { useEffect, useState } from "react";
 
 const Facturacion = () => {
+
   return (
     <div className="medico-main-content">
       <div className="header-seccion-pago">
