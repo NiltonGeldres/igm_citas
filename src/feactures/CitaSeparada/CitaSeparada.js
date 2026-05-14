@@ -111,7 +111,7 @@ const CitaSeparada = ({datosReserva}) => {
                         <td className="ps-3 py-3">
                           <div className="fw-bold text-primary">{cita.nombreEspecialidad}</div>
                           <div className="small text-dark fw-medium">
-                            {FormatDate.format_fecha(cita.fecha)} - {cita.horaInicio}
+                            {/*FormatDate.format_fecha(cita.fecha)*/ cita.fecha ? FormatDate.format_fecha(cita.fecha) : "Fecha pendiente"} - {cita.horaInicio}
                           </div>
                           <div className="small text-muted" style={{fontSize: '11px'}}>{cita.nombreMedico}</div>
                         </td>
