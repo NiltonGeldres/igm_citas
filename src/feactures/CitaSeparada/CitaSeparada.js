@@ -7,7 +7,7 @@ import AuthService from "../../master-data/services/auth.service";
 import CitaSeparadaService from "../CitaSeparada/CitaSeparadaService";
 import PagoVirtual from "../../apps/paciente-app/components/reserva/PagoVirtual";
 import FormatDate from "../../shared/utils/FormatDate";
-import "../../apps/paciente-app/styles/paciente-app.css"
+//import "../../apps/paciente-app/styles/paciente-app.css"
 
 const CitaSeparada = ({datosReserva}) => {
   const navigate = useNavigate();

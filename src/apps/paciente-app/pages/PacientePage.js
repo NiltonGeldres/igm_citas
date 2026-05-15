@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import Swal from "sweetalert2";
 import { Calendar, CreditCard, Home,  CheckCircle2, ChevronLeft,  Loader2 } from 'lucide-react';
-import   "../styles/ESTILOS_CSS";
+//import   "../styles/ESTILOS_CSS";
 import { ESTILOS_CSS } from '../styles/ESTILOS_CSS';
 import { useCallback } from 'react';
 

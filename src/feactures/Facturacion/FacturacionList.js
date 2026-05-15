@@ -2,16 +2,16 @@ import React, { useState, useEffect } from "react";
 import CitaSeparadaService from "../../master-data/services/CitaSeparadaService";
 import FacturacionRow from "./FacturacionRow";
 import { Search, FilterX, Loader2, RefreshCw  } from "lucide-react";
-import "../../apps/paciente-app/styles/paciente-app.css"
+//import "../../apps/paciente-app/styles/paciente-app.css"
+import { ESTILOS_CSS } from '../../apps/medicos-app/styles/ESTILOS_CSS'
 
-const FacturacionList = () => {
+const FacturacionList = (actualizar) => {
   const [citasSeparadas, setCitasSeparadas] = useState([]);
   const [filteredCitas, setFilteredCitas] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(false);
   //const navigate = useNavigate();
-  const [actualizar, setActualizar] = useState(true);  
-
+  
   useEffect(() => {
     setLoading(true);
     CitaSeparadaService.getCitasSeparadasConPagoVirtualXMedicoLeer()
@@ -20,9 +20,11 @@ const FacturacionList = () => {
         setFilteredCitas(response.data);
         setLoading(false);
       })
-      .catch(() => {
-        setLoading(false);
-      });
+      //.catch(() => {
+      .catch((error) => console.error(error))
+      .finally(() => setLoading(false)); // Siempre apagamos el loading        
+//        setLoading(false);
+ //     });
   }, [actualizar]);
 
   useEffect(() => {
@@ -37,15 +39,7 @@ const FacturacionList = () => {
 
   return (
     <div className="facturacion-list-container">
-      <div className="d-flex justify-content-between align-items-center my-4">
-        <button 
-          className="btn btn-light shadow-sm rounded-circle p-2 border-0"
-          onClick={() => setActualizar(true)}
-          disabled={loading}
-        >
-          <RefreshCw className={loading ? 'animate-spin text-primary' : 'text-primary'} size={20} />
-        </button>
-      </div>
+
 
       {/* BUSCADOR */}
       <div className="search-box">
