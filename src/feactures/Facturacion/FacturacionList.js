@@ -2,14 +2,12 @@ import React, { useState, useEffect } from "react";
 import CitaSeparadaService from "../../master-data/services/CitaSeparadaService";
 import FacturacionRow from "./FacturacionRow";
 import { Search, FilterX, Loader2 } from "lucide-react";
-//import "../../apps/paciente-app/styles/paciente-app.css"
-//import { ESTILOS_CSS } from '../../apps/medicos-app/styles/ESTILOS_CSS'
 
-const FacturacionList = (actualizar) => {
+const FacturacionList = (actualizar,setLoading,loading ) => {
   const [citasSeparadas, setCitasSeparadas] = useState([]);
   const [filteredCitas, setFilteredCitas] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [loading, setLoading] = useState(false);
+  //const [loading, setLoading] = useState(false);
   //const navigate = useNavigate();
   
   useEffect(() => {
@@ -18,14 +16,10 @@ const FacturacionList = (actualizar) => {
       .then((response) => {
         setCitasSeparadas(response.data);
         setFilteredCitas(response.data);
-        setLoading(false);
       })
-      //.catch(() => {
       .catch((error) => console.error(error))
-      .finally(() => setLoading(false)); // Siempre apagamos el loading        
-//        setLoading(false);
- //     });
-  }, [actualizar]);
+      .finally(() => setLoading(false)); 
+  }, [actualizar,setLoading]);
 
   useEffect(() => {
     const results = citasSeparadas.filter(cita =>
@@ -35,7 +29,6 @@ const FacturacionList = (actualizar) => {
     setFilteredCitas(results);
   }, [searchTerm, citasSeparadas]);
 
-  if (loading) return <div className="loading-state"><Loader2 className="spinner" /></div>;
 
   return (
     <div className="facturacion-list-container">
@@ -54,10 +47,16 @@ const FacturacionList = (actualizar) => {
 
       {/* LISTADO */}
       <div className="rows-container">
-        {filteredCitas.length > 0 ? (
-          filteredCitas.map((rows) => (
-            <FacturacionRow key={rows.idcitaseparada} rows={rows} />
-          ))
+
+      {loading ? (
+        <div className="loading-state" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '40px' }}>
+          <Loader2 className="spinner text-primary animate-spin" size={40} />
+          <p className="mt-2 text-muted">Cargando registros...</p>
+        </div>
+      ) : filteredCitas.length > 0 ? (
+        filteredCitas.map((rows) => (
+          <FacturacionRow key={rows.idcitaseparada} rows={rows} />
+        ))          
         ) : (
           <div className="empty-state">
             <FilterX size={48} />
@@ -70,3 +69,12 @@ const FacturacionList = (actualizar) => {
 };
 
 export default FacturacionList;
+
+/**
+ * 
+ *         {filteredCitas.length > 0 ? (
+          filteredCitas.map((rows) => (
+            <FacturacionRow key={rows.idcitaseparada} rows={rows} />
+          ))
+
+ */

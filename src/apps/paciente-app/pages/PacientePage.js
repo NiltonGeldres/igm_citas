@@ -9,7 +9,7 @@ import MedicoService from '../../../master-data/services/MedicoService';
 import CitaSeparadaService from '../../../master-data/services/CitaSeparadaService';
 import EspecialidadService from '../../../master-data/services/EspecialidadService';
 import ProgramacionHorarioIndividualService from '../../../feactures/ProgramacionHorario/ProgramacionHorarioService';
-import AuthService from '../../../master-data/services/auth.service';
+//import AuthService from '../../../master-data/services/auth.service';
 
 import CitaSeparada from '../../../feactures/CitaSeparada/CitaSeparada';
 import CitaService from '../../../feactures/Cita/CitaService';
