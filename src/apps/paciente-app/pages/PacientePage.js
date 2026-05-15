@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import Swal from "sweetalert2";
 import { Calendar, CreditCard, Home,  CheckCircle2, ChevronLeft,  Loader2 } from 'lucide-react';
-import   "../styles/ESTILOS_CSS";
+//import   "../styles/ESTILOS_CSS";
 import { ESTILOS_CSS } from '../styles/ESTILOS_CSS';
 import { useCallback } from 'react';
 
@@ -10,14 +10,15 @@ import CitaSeparadaService from '../../../master-data/services/CitaSeparadaServi
 import EspecialidadService from '../../../master-data/services/EspecialidadService';
 import ProgramacionHorarioIndividualService from '../../../feactures/ProgramacionHorario/ProgramacionHorarioService';
 import AuthService from '../../../master-data/services/auth.service';
-//import citaService from '../services/citaServices';
+
 import CitaSeparada from '../../../feactures/CitaSeparada/CitaSeparada';
 import CitaService from '../../../feactures/Cita/CitaService';
 import citaService from "../../paciente-app/services/citaServices"
 import { transformarEspecialidades } from '../mapper/CitaEspecialidad';
 import { transformarMedicos } from '../mapper/CitaMedicoUI';
 import { transformarProgramacion } from '../mapper/CitaProgramacionMedicaUI';
-import { useAuth } from '../../../components/context/AuthContext';
+
+import { useAuth } from "../../../shared/context/AuthContext"
 import { BaseHeader } from '../../../shared/components/layout/BaseHeader';
 import { obtenerFechaActualYYYYMMDD } from '../../../shared/utils/ObtenerFechaActualYYYYMMDD';
 
@@ -28,12 +29,6 @@ import { Paso3Horario } from '../components/reserva/Paso3Horario';
 import { ListaMisCitas } from '../components/reserva/ListaMisCitas';
 import { Paso4Confirmacion } from '../components/reserva/Paso4Confirmacion';
 import { mapperCitaSeparadaApiToReserva } from '../mapper/CitaSeparadaMapper';
-
-//import "../../paciente-app/styles/paciente-app.css"
-//import "../styles/paciente-app.css"; 
-
-
-
 
 
 const HeaderPasos = ({ pasoActual, onAtras }) => (
@@ -66,14 +61,14 @@ const LoaderCargando = () => (
   </div>
 );
 
-const ExitoReserva = ({ entidad, onReiniciar, onIrAPagos }) => (
+const ExitoReserva = ({ nombreEntidad, onReiniciar, onIrAPagos }) => (
   <div className="text-center py-5 fade-in">
     <div className="bg-success bg-opacity-10 text-success p-4 rounded-circle d-inline-block mb-4">
       <CheckCircle2 size={50} />
     </div>
     <h3 className="fw-bold">¡Todo listo!</h3>
     <p className="text-secondary mb-4 px-4">
-      Tu cita ha sido agendada en <strong>{entidad?.nombre}</strong> correctamente.
+      Tu cita ha sido agendada en <strong>{nombreEntidad}</strong> correctamente.
     </p>
     <div className="d-flex flex-column gap-2 px-3">
       <button onClick={onReiniciar} className="btn btn-primary w-100 p-3 rounded-4 fw-bold">
@@ -87,7 +82,8 @@ const ExitoReserva = ({ entidad, onReiniciar, onIrAPagos }) => (
 );
 
 export default function PacientePage({  direccionClinica = "Sede Central" , onLogout }) {
-  const { user, entidad } = useAuth();
+//  const { user, entidad } = useAuth();
+  const { user } = useAuth();
   const perfil = AuthService.leerPerfil();
   const [pestanaActual, setPestanaActual] = useState('inicio');
   const [modoReserva, setModoReserva] = useState(false);
@@ -96,8 +92,8 @@ export default function PacientePage({  direccionClinica = "Sede Central" , onLo
   const [mostrarExito, setMostrarExito] = useState(false);
   const [programacionMensual, setProgramacionMensual] = useState([]);
   const [medicosActuales, setMedicosActuales] = useState([]);
-  //const [fechaFiltro, setFechaFiltro] = useState(obtenerFechaActualYYYYMMDD());
   const fechaFiltro = obtenerFechaActualYYYYMMDD();
+  const [procesandoBloqueo, setProcesandoBloqueo] = useState(false);
   // --- ESTADO DE CACHÉ Y DATOS ---
   const [cache, setCache] = useState({
     especialidades: [],
@@ -116,7 +112,7 @@ export default function PacientePage({  direccionClinica = "Sede Central" , onLo
     idCitaBloqueada:0,
     precioUnitario: 0,
     nombreDestino: '',
-    email: '',
+    email: user.email,
 
   });
 
@@ -124,24 +120,23 @@ export default function PacientePage({  direccionClinica = "Sede Central" , onLo
   //const [misPagos, setMisPagos] = useState([]);
   const [misMedicosEntidad, setMisMedicosEntidad] = useState([]);
   
-
-const obtenerCitas = useCallback(async (idPaciente, fecha) => {  
-    setCargando(true);
-    try {
-      const data = await citaService.getCitaPacienteListarPendientes(user.idPaciente, fechaFiltro);
-      setMisCitas(data);
-    } catch (error) {
-      console.error("Error al traer citas:", error);
-    } finally {
-      setCargando(false);
-    }
-}, [user?.idPaciente,fechaFiltro]);
+  const obtenerCitas = useCallback(async (idPaciente, fecha) => {  
+      setCargando(true);
+      try {
+        const data = await citaService.getCitaPacienteListarPendientes(user.idReferencia, fechaFiltro);
+        setMisCitas(data);
+      } catch (error) {
+        console.error("Error al traer citas:", error);
+      } finally {
+        setCargando(false);
+      }
+  }, [user?.idReferencia,fechaFiltro]);
+  //}, [user?.idPaciente,fechaFiltro]);
 
   const obtenerMedicosEntidad = async (idEntidad) => {
     setCargando(true);
     try {
       const data1 = await MedicoService.getListarMedicosEntidad(idEntidad);
-      console.log("DATA MEDICOS :", data1.data);
       
      setMisMedicosEntidad(data1.data.medicos || []);      
     } catch (error) {
@@ -151,21 +146,16 @@ const obtenerCitas = useCallback(async (idPaciente, fecha) => {
     }
   };
 
-
   // 1. CARGAR ESPECIALIDADES (Al entrar a Citas)
   useEffect(() => {
     const cargar = async () => {
-      // 1. Verificamos si ya existen especialidades en el caché
       if (cache.especialidades.length > 0) {
         console.log("Cargando especialidades desde el caché...");
         return; 
       }
       try {
-      //  console.log("Iniciando petición a la API...");
         const data = await EspecialidadService.getXEntidad();
-        // 2. Transformamos la data
         const dataListaParaUI = transformarEspecialidades(data);
-        // 3. Guardamos en el estado de caché
         setCache(prev => ({
           ...prev,
           especialidades: dataListaParaUI
@@ -178,33 +168,18 @@ const obtenerCitas = useCallback(async (idPaciente, fecha) => {
     cargar();
   }, [cache.especialidades.length]);
 
+  useEffect(() => {
+      if (user?.id) {
+          obtenerCitas(user.id, fechaFiltro);
+      }
+  }, [user?.id, fechaFiltro, obtenerCitas]);
 
-useEffect(() => {
-    if (user?.id) {
-        obtenerCitas(user.id, fechaFiltro);
-    }
-}, [user?.id, fechaFiltro, obtenerCitas]);
 
-
-useEffect(() => {
-    if (user?.idEntidad) {
-        obtenerMedicosEntidad(user.idEntidad);
-    }
-}, [user?.idEntidad]);
-
-/*  
-   useEffect(() => {
-      obtenerMedicosEntidad(user.idEntidad);
-  }, []); // Solo se ejecuta al cargar el componente
- */
-
-/*
-  const manejarClickMisCitas = () => {
-    setPestanaActual('citas');
-    setModoReserva(false);
-    obtenerCitas(user.id, fechaFiltro); // <--- Refresca la variable
-  };*/
-
+  useEffect(() => {
+      if (user?.idEntidad) {
+          obtenerMedicosEntidad(user.idEntidad);
+      }
+  }, [user?.idEntidad]);
 
   const  seleccionarEspecialidad = async (espec) => {
         setDatosReserva(prev => ({ ...prev, especialidad: espec, doctor: null }));
@@ -248,9 +223,6 @@ useEffect(() => {
             const data = await ProgramacionHorarioIndividualService.obtenerProgramacionMesUsuario(mes, anio, idEspecialidad,idMedico,0);
             const dataProgramacionUI = transformarProgramacion(data.data.programacionMedicaDiaResponse);
             setProgramacionMensual(dataProgramacionUI);
-            console.log("obtenerProgramacionMedicaMes dataProgramacionUI   "+JSON.stringify(dataProgramacionUI))
-            console.log("obtenerProgramacionMedicaMes DATA  PROGRAMACION "+JSON.stringify(data.data.programacionMedicaDiaResponse))
-            console.log("obtenerProgramacionMedicaMes DATA   "+JSON.stringify(data))
 
           } catch (error) {
             console.error("Error al cargar programación:", error);
@@ -314,14 +286,14 @@ useEffect(() => {
       }
     };
 
-
-
     const handleHoraSeleccionada = async (hora, idProg, idServ) => {
-        let timerInterval;
-        
+       if (procesandoBloqueo) return;
+       let timerInterval;
+       setProcesandoBloqueo(true);
         try {
             // PASO 1: Bloqueo temporal en el Servidor
             const respBloqueo = await CitaService.getCitaBloquear(hora, datosReserva.fechaYYYYMMDD, datosReserva.doctor.id);
+
             const idBloqueo = respBloqueo.data.idCitaBloqueada;
 
             // PASO 2: Confirmación con el Usuario
@@ -352,9 +324,11 @@ useEffect(() => {
 
         } catch (error) {
             Swal.fire('Error', 'El horario ya no está disponible o hubo un problema de conexión.', 'error');
+        } finally {
+            setProcesandoBloqueo(false); // Liberamos el semáforo siempre al finalizar
         }
     };
-
+    
     const finalizarReserva = async (hora, idProg, idServ, idBloqueo) => {
         try {
               // 1. Crear la cita separada en el Backend
@@ -370,15 +344,11 @@ useEffect(() => {
                   0,
                   datosReserva.doctor?.monto
               );
-          console.log("DATA API CS "+JSON.stringify(res.data))  
           if (res.data?.idCitaSeparada) {
-              
               // 1. Mapeamos (la limpieza de campos ocurre aquí dentro)
               const reservaFinal = mapperCitaSeparadaApiToReserva(res.data, datosReserva);
-              
               // 2. Guardamos en estado
               setDatosReserva(reservaFinal);
-              
               // 3. Solo si hubo éxito, avanzamos de fase
               setPasoActual(4);
 
@@ -386,52 +356,6 @@ useEffect(() => {
               // Si entró aquí, es porque la API respondió pero sin el ID esperado
               Swal.fire("Atención", "No pudimos confirmar tu reserva. Por favor, intenta nuevamente.", "warning");
           }
-
-           /* const {
-              idCitaSeparada = 0,
-              especialidad = null,
-              servicio = null,
-              doctor = null,
-              fecha = '',
-              fechaObjeto = { mes: new Date().getMonth(), anio: new Date().getFullYear(), dia: null },
-              fechaYYYYMMDD = '',
-              hora = '',
-              idCitaBloqueada = 0,
-              precioUnitario = 0,
-              nombreDestino = 'ENTIDAD MÉDICA', // Valor por defecto amigable
-              email = ''
-          } = r.data || {}; // El '|| {}' evita errores si 'data' es null
-
-          // 2. Validación de Seguridad: Si no hay ID, no procedemos al pago
-          if (!idCitaSeparada || idCitaSeparada === 0) {
-              return Swal.fire("Error de Registro", "La cita no se pudo crear en el servidor.", "error");
-          }
-
-          // 3. Actualizamos el estado con datos limpios
-          setDatosReserva(prev => ({
-              ...prev,
-              idCitaSeparada,
-              especialidad,
-              servicio,
-              doctor,
-              fecha,
-              fechaObjeto,
-              fechaYYYYMMDD,
-              hora,
-              idCitaBloqueada,
-              precioUnitario,
-              nombreDestino,
-              email
-          }));
-          
-              // 2. Actualizar estado global de la reserva
-              setDatosReserva(prev => ({
-                  ...prev,
-                  hora: hora,
-                  idProgramacion: idProg,
-                  idCitaBloqueada: idBloqueo
-              }));
-*/
               // 3. Limpiar el bloqueo (ya que ahora es una reserva real)
               await CitaService.getEliminarCitaBloqueada(idBloqueo);
 
@@ -458,7 +382,7 @@ useEffect(() => {
 
       <BaseHeader 
         user={user} 
-        entidad={entidad}
+//        entidad={entidad}
         bgColor="linear-gradient(135deg, #0078f5 0%, #0056b3 100%)"
         onLogout={onLogout}
       >
@@ -473,8 +397,8 @@ useEffect(() => {
         {/* --- VISTA INICIO --- */}
         {pestanaActual === 'inicio' && (
           <InicioDashboard 
-            perfil={perfil}
-            entidad={entidad}
+            nombresUsuario={user.nombresUsuario}
+            nombreEntidad={user.nombreEntidad}
             misCitas={misCitas}
             misMedicosEntidad={misMedicosEntidad}
             direccionClinica={direccionClinica}
@@ -498,7 +422,7 @@ useEffect(() => {
               <div className="flujo-reserva">
                 {mostrarExito ? (
                   <ExitoReserva 
-                    entidad={entidad} 
+                    nombreEntidad={user.nombreEntidad} 
                     onReiniciar={reiniciarFlujo} 
                     onIrAPagos={() => { setMostrarExito(false); setModoReserva(false); setPestanaActual('pagos'); }} 
                   />
@@ -590,3 +514,50 @@ useEffect(() => {
     </div>
   );
 }
+
+
+           /* const {
+              idCitaSeparada = 0,
+              especialidad = null,
+              servicio = null,
+              doctor = null,
+              fecha = '',
+              fechaObjeto = { mes: new Date().getMonth(), anio: new Date().getFullYear(), dia: null },
+              fechaYYYYMMDD = '',
+              hora = '',
+              idCitaBloqueada = 0,
+              precioUnitario = 0,
+              nombreDestino = 'ENTIDAD MÉDICA', // Valor por defecto amigable
+              email = ''
+          } = r.data || {}; // El '|| {}' evita errores si 'data' es null
+
+          // 2. Validación de Seguridad: Si no hay ID, no procedemos al pago
+          if (!idCitaSeparada || idCitaSeparada === 0) {
+              return Swal.fire("Error de Registro", "La cita no se pudo crear en el servidor.", "error");
+          }
+
+          // 3. Actualizamos el estado con datos limpios
+          setDatosReserva(prev => ({
+              ...prev,
+              idCitaSeparada,
+              especialidad,
+              servicio,
+              doctor,
+              fecha,
+              fechaObjeto,
+              fechaYYYYMMDD,
+              hora,
+              idCitaBloqueada,
+              precioUnitario,
+              nombreDestino,
+              email
+          }));
+          
+              // 2. Actualizar estado global de la reserva
+              setDatosReserva(prev => ({
+                  ...prev,
+                  hora: hora,
+                  idProgramacion: idProg,
+                  idCitaBloqueada: idBloqueo
+              }));
+*/

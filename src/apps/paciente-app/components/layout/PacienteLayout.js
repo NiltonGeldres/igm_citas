@@ -1,5 +1,6 @@
 import { BaseHeader } from "../../../../shared/components/layout/BaseHeader";
-import { useAuth } from "../../../../components/context/AuthContext"; // Importante para los datos
+//import { useAuth } from "../../../../components/context/AuthContext"; // Importante para los datos
+import { useAuth } from "../../../../shared/context/AuthContext"; // Importante para los datos
 
 export const PacienteLayout = ({ children , onLogout}) => {
   // Extraemos los datos reales del contexto

@@ -62,7 +62,7 @@ const CalendarioReserva = ({
             >
               <span className={`fw-bold ${esSeleccionado ? 'text-white' : 'text-dark'}`}>{d}</span>
               
-              {tieneProgramacion && (
+              {diaHabilitado && (
                 <div className="mt-1 d-flex gap-1 justify-content-center">
                   {/* Icono de reloj pequeño similar a tu CeldaCalendario */}
                   <Clock size={10} className={esSeleccionado ? 'text-white' : 'text-success'} />

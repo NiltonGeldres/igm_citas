@@ -12,9 +12,7 @@ const usuario = sessionStorage.getItem('username');
 
 const getCitasSeparadaLeer = () => {
     return axios.post(API_URL+API_LEER_CITA_SEPARADA_XUSUARIO
-    ,{ 
-      usuario    : usuario
-      }
+    ,{ usuario    : usuario}
     ,{ headers: header()}
      )
 /*     .catch(function (error) {

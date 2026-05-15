@@ -1,11 +1,14 @@
+/*
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import AuthService from '../Login/services/auth.service';
-import EntidadService from '../Entidad/EntidadService';
+//import EntidadService from '../Entidad/EntidadService';
+import EntidadService from "../../master-data/services/EntidadService"
 
-// 1. Creamos el almacén de datos (Contexto)
+
+// Creamos el almacén de datos (Contexto)
 const AuthContext = createContext();
 
-// 2. Creamos el "Proveedor" que envolverá a la App
+// Creamos el "Proveedor" que envolverá a la App
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [entidad, setEntidad] = useState(null);
@@ -16,7 +19,6 @@ export const AuthProvider = ({ children }) => {
     if (perfil) {
       setUser(perfil);
       try {
-        // Obtenemos la entidad desde tu servicio existente
         const res = await EntidadService.getEntidad();
         setEntidad(res.data); 
       } catch (error) {
@@ -53,3 +55,5 @@ export const useAuth = () => {
   
   return context;
 };
+
+*/

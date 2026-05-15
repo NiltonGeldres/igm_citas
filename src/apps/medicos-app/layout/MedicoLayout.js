@@ -1,6 +1,7 @@
 import { MedicoFooter } from './MedicoFooter';
 import { BaseHeader } from '../../../shared/components/layout/BaseHeader';
-import { useAuth } from '../../../components/context/AuthContext';
+import { useAuth } from '../../../shared/context/AuthContext';
+//import { useAuth } from '../../../components/context/AuthContext';
 export const MedicoLayout = ({ children , onLogout}) => {
   // Extraemos los datos reales del contexto
   const { user, entidad } = useAuth();

@@ -7,7 +7,7 @@ const SERVICE = "/entidades";
 const SERVICE_ENTIDAD = "/entidad";
 const SERVICE_ENTIDAD_POR_NOMBRE = "/entidad_por_nombre";
 const usuario = sessionStorage.getItem('username');
-
+const DATOS_GLOBALES = "/usuarioDatosGlobales";
 
 
 
@@ -74,10 +74,20 @@ const getEntidad = () => {
       });
 };
 
+const obtenerDatosGlobales = () => {
+  return axios.post(API_URL+DATOS_GLOBALES
+       ,{}
+        ,{ headers: header()}
+      ).catch(function (error) {
+        console.log(error.toJSON());
+      });
+};
+
 const EntidadService = {
     getTodos,
     getEntidad,
     getXUsuario,
     obtenerEntidadesPorNombre,
+    obtenerDatosGlobales,
 };
 export default EntidadService;

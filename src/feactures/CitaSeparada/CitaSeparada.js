@@ -1,14 +1,13 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { FaClock, FaCheckCircle } from 'react-icons/fa';
-import { X, RefreshCw } from "lucide-react"; // Usamos lucide para consistencia
+import {  RefreshCw } from "lucide-react"; // Usamos lucide para consistencia
 import { useCallback } from "react";
 import AuthService from "../../master-data/services/auth.service";
 import CitaSeparadaService from "../CitaSeparada/CitaSeparadaService";
-
-//import PagoVirtual from "../PagoVirtual/PagoVirtual";
 import PagoVirtual from "../../apps/paciente-app/components/reserva/PagoVirtual";
 import FormatDate from "../../shared/utils/FormatDate";
+//import "../../apps/paciente-app/styles/paciente-app.css"
 
 const CitaSeparada = ({datosReserva}) => {
   const navigate = useNavigate();
@@ -22,24 +21,23 @@ const CitaSeparada = ({datosReserva}) => {
   const [usuarioData, setUsuarioData] = useState(null);
 
     const cargarDatos = useCallback(async () => {
-//  const cargarDatos = async () => {
     setLoading(true);
-    try {
-      const user = await AuthService.leerUsuarioUsername();
-      setUsuarioData(user.data);
+      try {
+        /*const user = await AuthService.leerUsuarioUsername();
+        setUsuarioData(user.data);
+        console.log("user.data   "+JSON.stringify(user.data))
+        */
+        const resPendientes = await CitaSeparadaService.getCitasSeparadaLeer();
+        setCitasPendientes(resPendientes.data.citaSeparada || []);
 
-      const resPendientes = await CitaSeparadaService.getCitasSeparadaLeer();
-      setCitasPendientes(resPendientes.data.citaSeparada || []);
-
-      const resVerificacion = await CitaSeparadaService.getCitasSeparadaConPagoVirtualLeer();
-      setCitasEnVerificacion(resVerificacion.data.citaSeparada || []);
-    } catch (error) {
-      if (error.response?.status === 403) navigate("/login");
-    } finally {
-      setLoading(false);
-    }
-//  };
-}, [navigate]);
+        const resVerificacion = await CitaSeparadaService.getCitasSeparadaConPagoVirtualLeer();
+        setCitasEnVerificacion(resVerificacion.data.citaSeparada || []);
+      } catch (error) {
+        if (error.response?.status === 403) navigate("/login");
+      } finally {
+        setLoading(false);
+      }
+    }, [navigate]);
 
 
   useEffect(() => {
@@ -57,8 +55,10 @@ const CitaSeparada = ({datosReserva}) => {
       idCitaSeparada: cita.idCitaSeparada,
       precioUnitario: cita.precioUnitario,
       nombreDestino: cita.destino_cuenta,
-      email: usuarioData?.email,
-      celular: usuarioData?.numero_celular
+      email: datosReserva.email,
+      celular: ''
+//      email: usuarioData?.email,
+//      celular: usuarioData?.numero_celular
     });
     setShowModal(true);
   };
@@ -111,7 +111,7 @@ const CitaSeparada = ({datosReserva}) => {
                         <td className="ps-3 py-3">
                           <div className="fw-bold text-primary">{cita.nombreEspecialidad}</div>
                           <div className="small text-dark fw-medium">
-                            {FormatDate.format_fecha(cita.fecha)} - {cita.horaInicio}
+                            {/*FormatDate.format_fecha(cita.fecha)*/ cita.fecha ? FormatDate.format_fecha(cita.fecha) : "Fecha pendiente"} - {cita.horaInicio}
                           </div>
                           <div className="small text-muted" style={{fontSize: '11px'}}>{cita.nombreMedico}</div>
                         </td>
@@ -173,37 +173,33 @@ const CitaSeparada = ({datosReserva}) => {
         </div>
       </div>
 
-      {/* Modal de Pago (Custom Overlay) */}
-      {showModal && (
-        <div className="custom-modal-overlay">
-          <div className="custom-modal-content slide-up">
-            <div className="custom-modal-header d-flex justify-content-between align-items-center">
-              <h5 className="fw-bold m-0 text-dark">Completar Pago</h5>
-              <button onClick={() => setShowModal(false)} className="btn-close-custom border-0 bg-transparent">
-                <X size={24} className="text-muted" />
-              </button>
-            </div>
-            <div className="custom-modal-body">
-              {pagoSeleccionado && (
-                <PagoVirtual 
-                  {...pagoSeleccionado} 
-                  modalClose={(success) => {
-                    if(success) {
-                      setShowModal(false);
-                      setActualizar(true);
-                    }
-                  }} 
-                />
-              )}
-            </div>     
-          </div>
-        </div>
-      )}
+{showModal && (
+  <div className="custom-modal-overlay">
+    <div className="custom-modal-content slide-up">
+      <div className="custom-modal-header d-flex justify-content-between p-3 border-bottom">
+        <h5 className="fw-bold m-0">Completar Pago</h5>
+        <button onClick={() => setShowModal(false)} className="btn-close"></button>
+      </div>
+      <div className="custom-modal-body p-4">
+        <PagoVirtual 
+          {...pagoSeleccionado} 
+          modalClose={(success) => {
+            if(success) {
+              setShowModal(false);
+              setActualizar(true);
+            }
+          }} 
+        />
+      </div>
+    </div>
+  </div>
+)}
 
-      {/* Estilos locales para el Modal Custom si no están en el global.css */}
+      {/* Estilos locales para el efecto hover del cierre */}
       <style>{`
-        .animate-spin { animation: spin 1s linear infinite; }
-        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        .btn-close-custom:hover { color: #dc3545 !important; transform: rotate(90deg); transition: all 0.3s; }
+        .slide-up { animation: slideUp 0.4s ease-out; }
+        @keyframes slideUp { from { transform: translateY(20%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
       `}</style>
     </div>
   );

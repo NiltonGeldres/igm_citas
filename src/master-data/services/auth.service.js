@@ -1,4 +1,5 @@
-import header from "../../components/Security/Header";
+//import header from "../../components/Security/Header";
+import header from "../../shared/utils/Header";
 import axios from "axios";
 import { jwtDecode } from "jwt-decode";
 import { mapearUsuarioRequest } from "../mappers/UsuarioMapper";
@@ -12,14 +13,12 @@ const SIGNUP = "/signin";
 const USUARIO_CREAR = "/signin";
 const GETUSUARIO = "/getUsuarioUsername";
 const UPDATEUSUARIO = "/updateUsuario";
+const DATOS_GLOBALES = "/usuarioDatosGlobales";
 
 
 
 const ejecutarAPI = async (endpoint, params = {}) => {
-//    console.log("Ingreso"+endpoint+JSON.stringify(params))
     try {
-
-
        const response = await axios.post(API_URL + endpoint, params, { 
              // Aquí van los tokens/auth
             // Si necesitas enviar query params (URL?id=1), usa: params: { ... }
@@ -50,7 +49,6 @@ const ejecutarAPI = async (endpoint, params = {}) => {
 
 
 const usuarioCrear = async (usuario) => {
-  //  console.log(JSON.stringify(usuario))
     const params = mapearUsuarioRequest(usuario);
     return await ejecutarAPI(USUARIO_CREAR, params);
 };
@@ -99,39 +97,48 @@ const signup = (
     
 };
 
+
 const login = (user, password) => {
     return axios
     .post(API_URL+LOGIN,{ user, password })
     .then((response) => {
 
         if(response.data.jwtToken){
-            console.log(JSON.stringify(response.data.jwtToken))
-            console.log(JSON.stringify(response.data))
             const decoded = jwtDecode(response.data.jwtToken);
-            let a = decoded.rol.authority
-            let u = decoded.sub
-            console.log(JSON.stringify(decoded))
-
-            // Guardamos el token para las cabeceras de Axios
-            sessionStorage.setItem('token', response.data.jwtToken);
-            // Creamos un objeto de perfil con lo que el JWT nos da
             const perfil = {
                 username: decoded.sub,
                 rol: decoded.rol.authority,
-                idMedico: decoded.idMedico, // <-- Asegúrate que el backend lo envíe
-                idEntidad: decoded.idEntidad,     // <-- Asegúrate que el backend lo envíe
-                idPaciente: decoded.idPaciente,     // <-- Asegúrate que el backend lo envíe
-                usuarioNombres: decoded.usuarioNombres // Opcional para la UI
+                idPaciente: decoded.idReferencia, 
+                idMedico: decoded.idReferencia, 
+                idUsuario: decoded.idUsuario, 
+                idEntidad: decoded.idEntidad,     
+                idReferencia: decoded.idReferencia,     
+                idRol: decoded.idRol 
+
+//                usuarioNombres: decoded.usuarioNombres // Opcional para la UI
             };
-            sessionStorage.setItem('username',  u) ;    
-            sessionStorage.setItem('authority',  a) ;    
-            sessionStorage.setItem('user',  JSON.stringify(response.data)) ;
+
+            sessionStorage.setItem('username',  decoded.sub) ;  
+            sessionStorage.setItem('token_data',  JSON.stringify(response.data)) ;
             sessionStorage.setItem('user_profile', JSON.stringify(perfil));
 
             }
         return response.data;
     });
 };
+
+
+
+
+const obtenerDatosGlobales = (token) => {
+    return axios
+    .post(API_URL+DATOS_GLOBALES ,{},{ headers: header()})
+    .then((response) => {
+        console.log("Datos Globales response "+response)
+        return response.data;
+    });
+};
+
 
 const logout = () => {
     sessionStorage.removeItem('user');
@@ -141,65 +148,7 @@ const logout = () => {
     sessionStorage.removeItem('user_profile'); // Objeto de perfil completo
 }
 
-export const getContextoActual = () => {
-    const profile = JSON.parse(sessionStorage.getItem('user_profile'));
-    if (!profile) return null;
-
-    return {
-        idMedico: profile.idMedico,
-        idEntidad: profile.idEntidad,
-        nombreCompleto: profile.nombreCompleto || "", // Valor por defecto si no viene
-    };
-};
-
-
-const getCurrentUser = () => {
-   return  JSON.parse(sessionStorage.getItem('user'));
-}
-
-const getCurrentUsername = () => {
-    return  sessionStorage.getItem('username');
- }
- 
- const getCurrentAuthority= () => {
-    return  sessionStorage.getItem('authority');
- }
- 
-/* --------------------*/ 
-
-const leerUsuario = (username) => {
-    return axios.post(API_URL+GETUSUARIO,{username: username}
-                ,{ headers: header()}
-         )
-        
-};
-
-const leerUsuarioUsername = () => {
-    const username = getCurrentUsername();
-    
-    // Validación preventiva
-    if (!username) {
-        return Promise.reject("No se encontró un nombre de usuario");
-    }
-
-    return axios.post(
-        API_URL + GETUSUARIO, 
-        { username: username }, 
-        { headers: header() }
-    );
-}
-
-/*
-const leerUsuarioUsername = () => {
-    let username= getCurrentUsername()
-   return axios.post(API_URL+GETUSUARIO,{username: username}
-                ,{ headers: header()}
-         )
-};*/
-
-
 const actualizaUsuario = (usuarioData) => {
- //  alert("DATA A ENVIAR "+JSON.stringify(usuarioData))    
    return axios
    .post(API_URL+UPDATEUSUARIO,  usuarioData 
     ,{ headers: header()}
@@ -213,21 +162,34 @@ const leerPerfil = () => {
    return  JSON.parse(sessionStorage.getItem('user_profile'));
 };
 
+const leerUsuarioUsername = () => {
+    const username = getCurrentUsername();
+    // Validación preventiva
+    if (!username) {return Promise.reject("No se encontró un nombre de usuario"); }
+    return axios.post( API_URL + GETUSUARIO, 
+        { username: username }, 
+        { headers: header() }
+    );
+}
 
+const getCurrentUsername = () => {
+    return  sessionStorage.getItem('username');
+ }
 
 const AuthService = {
     login,
     signup,
     logout,
-    getCurrentUser,
-    getCurrentUsername,
-    leerUsuario,
+    obtenerDatosGlobales,    
     actualizaUsuario   , 
-    leerUsuarioUsername,
-    getCurrentAuthority,
-    getContextoActual,
     leerPerfil,
-    usuarioCrear
+    usuarioCrear,
+  //  getCurrentUser,
+ //   getCurrentUsername,
+//    leerUsuario,
+    leerUsuarioUsername,
+//    getCurrentAuthority,
+  //  getContextoActual,
 };
 
 export default AuthService;

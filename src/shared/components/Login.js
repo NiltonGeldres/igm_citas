@@ -1,39 +1,20 @@
 
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import AuthService from "./services/auth.service";
-// import { jwtDecode } from "jwt-decode"; // No se usa directamente aquí
+import AuthService from "../../master-data/services/auth.service";
 import Styles from '../../Styles'; // Importa tus estilos globales
-import MessageModal from '../AtencionMedica/common/MessageModal'; // Importa el nuevo componente MessageModal
-import { useAuth } from "../context/AuthContext";
-
+import MessageModal from '../utils/MessageModal'; // Importa el nuevo componente MessageModal
+import {useAuth } from "../context/AuthContext"
 const Login = () => {
   const navigate = useNavigate();
+  
   const { actualizarDatosGlobales } = useAuth();    
-
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false); // Estado para el indicador de carga
   const [showErrorModal, setShowErrorModal] = useState(false); // Estado para el modal de error
   const [errorMessage, setErrorMessage] = useState(""); // Mensaje de error
-/*  const [usuarioData, setUsuarioData] = useState({
-        id_usuario          : 0,
-        username            :"",        
-        password            :"",
-        email               :"",
-        estado              :"" ,
-        apellido_paterno    :"",
-        apellido_materno    :"",
-        primer_nombre       :"",
-        segundo_nombre      :"r",
-        numero_celular      :"",
-        id_sexo             :"",
-        id_tipo_documento   :"",
-        numero_documento    :"",
-        fecha_alta          :"",
-        fecha_baja          :"",
-        fecha_modificacion  :""
-      });    */
+
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -44,12 +25,9 @@ const Login = () => {
               await actualizarDatosGlobales(); // <--- ESTO LLENA EL HEADER AL INSTANTE
               navigate("/");
        }        
-         //navigate("/private");
          window.location.reload();
     } catch (err) {
-        // 1. Obtenemos el código de error del backend (ej: 401, 403, 500)
         const statusCode = err.response?.status;
-//        const serverMessage = err.response?.data?.message; // Si tu API devuelve un mensaje
 
         let mensajeParaUsuario = "";
 
@@ -65,7 +43,6 @@ const Login = () => {
             mensajeParaUsuario = "No se pudo conectar con el servidor. Revisa tu conexión a internet.";
         }
 
-        // Mostramos el error en tu modal especializado
         setErrorMessage(mensajeParaUsuario);
         setShowErrorModal(true);
         
@@ -74,6 +51,7 @@ const Login = () => {
         setLoading(false);
     }
 };
+
   return (
     <div style={Styles.loginContainer}>
       <form onSubmit={handleLogin} style={Styles.loginForm}>
@@ -122,4 +100,44 @@ const Login = () => {
 export default Login;
 
 
+  /*
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+       const response =  await AuthService.login(email, password);
+       if (response.jwtToken) {
+           console.log("response.jwtToken  "+response.jwtToken)
+              await actualizarDatosGlobales(); // <--- ESTO LLENA EL HEADER AL INSTANTE
+              navigate("/");
+       }        
+        window.location.reload();
+
+    } catch (err) {
+        const statusCode = err.response?.status;
+        const serverMessage = err.response?.data?.message; // Si tu API devuelve un mensaje
+        console.log("Error Login   "+err.response)
+
+        let mensajeParaUsuario = "";
+
+        if (statusCode === 401) {
+            mensajeParaUsuario = "La contraseña o el correo son incorrectos. Por favor, verifica tus datos.";
+        } else if (statusCode === 403) {
+            mensajeParaUsuario = "Tu cuenta está desactivada o no tienes permisos para acceder. Contacta al administrador.";
+        } else if (statusCode === 404) {
+            mensajeParaUsuario = "El usuario ingresado no existe.";
+        } else if (statusCode >= 500) {
+            mensajeParaUsuario = "Tenemos problemas con nuestro servidor. Inténtalo más tarde.";
+        } else {
+            mensajeParaUsuario = "No se pudo conectar con el servidor. Revisa tu conexión a internet.";
+        }
+        setErrorMessage(mensajeParaUsuario);
+        setShowErrorModal(true);
+        
+        AuthService.logout(); // Limpiamos por seguridad
+    } finally {
+        setLoading(false);
+    }
+};
+*/
 

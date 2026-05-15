@@ -1,32 +1,24 @@
 import { Routes, Route, Navigate,  useNavigate} from "react-router-dom";
-import { useAuth } from "./components/context/AuthContext";
+import {useAuth} from "../src/shared//context/AuthContext"
+//import { useAuth } from "./components/context/AuthContext";
 import { BaseHeader } from "./shared/components/layout/BaseHeader";
 import { MedicoRouter } from "./apps/medicos-app/routes/MedicoRouter";
-import Login from "./components/Login/Login";
-//import Signup from "./components/Login/Signup";
+//import Login from "./components/Login/Login";
+import Login from "../src/shared/components/Login";
 import Signup from "./shared/components/Signup";
-
-
-//import CitaV2 from "./components/Cita/CitaV2";
 import AuthService from "./master-data/services/auth.service";
-//import { useState } from "react";
 import PacientePage from "./apps/paciente-app/pages/PacientePage";
+
 function App() {
-  // Extraemos todo del contexto (ya no necesitamos estados locales ni useEffects aquí)
   const { user, loading } = useAuth();
-  const Authority = user?.rol; // Usamos el rol que viene del perfil decodificado
+  const Authority = user?.rol; 
   const navigate = useNavigate();
-  //const [userName, setUserName] = useState(undefined);
-  //const [userProfileData, setUserProfileData] = useState(null); 
 
   if (loading) return <div className="loading-screen">Cargando MediFlow...</div>;
-
-  const logOut = () => {
-  AuthService.logout(); // Limpia sessionStorage
-
-  //setUserProfileData(null);    
-  navigate("/login");
-};
+    const logOut = () => {
+    AuthService.logout(); // Limpia sessionStorage
+    navigate("/login");
+  };
 
   return (
     <div className="App" style={{ minHeight: '100vh', backgroundColor: "#f8f9fa" }}>
@@ -50,16 +42,19 @@ function App() {
         <Route path="/" element={
           !user ? <Navigate to="/login" replace /> : 
           (Authority === 'Medicos' ? <Navigate to="/med/agenda" replace /> : <Navigate to="/paciente/citas" replace />)
+//          (Authority === 4 ? <Navigate to="/med/agenda" replace /> : <Navigate to="/paciente/citas" replace />)
         } />
 
         {/* 3. MUNDO MÉDICO: El MedicoRouter ya incluye el Layout con el BaseHeader completo */}
         <Route path="/med/*" element={
           user?.rol === 'Medicos' ? <MedicoRouter onLogout={logOut}/> : <Navigate to="/login" replace />
+//          user?.idRol === 4 ? <MedicoRouter onLogout={logOut}/> : <Navigate to="/login" replace />
         } />
 
          {/* 4. MUNDO PACIENTE */}
         <Route path="/paciente/*" element={
           user?.rol === 'Usuarios' ? <PacientePage onLogout={logOut}/> : <Navigate to="/login" replace />
+//          user?.idRol === 2 ? <PacientePage onLogout={logOut}/> : <Navigate to="/login" replace />
         } />
 
         {/* 5. COMODÍN: Cualquier otra ruta vuelve al inicio */}

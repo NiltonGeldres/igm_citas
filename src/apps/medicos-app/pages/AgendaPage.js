@@ -3,7 +3,8 @@ import { DateSelector } from "../components/DateSelector";
 import { PacienteCard } from "../components/PacienteCard";
 import { AgendaStats } from "../components/agendaStats";
 import { useAgenda } from "../hooks/useAgenda";
-import { useAuth } from "../../../components/context/AuthContext";
+//import { useAuth } from "../../../components/context/AuthContext";
+import { useAuth } from "../../../shared/context/AuthContext";
 import "../../medicos-app/styles/medico-app.css"
 
 
