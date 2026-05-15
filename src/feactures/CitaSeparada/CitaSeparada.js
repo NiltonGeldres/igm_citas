@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { FaClock, FaCheckCircle } from 'react-icons/fa';
 import {  RefreshCw } from "lucide-react"; // Usamos lucide para consistencia
 import { useCallback } from "react";
-import AuthService from "../../master-data/services/auth.service";
+//import AuthService from "../../master-data/services/auth.service";
 import CitaSeparadaService from "../CitaSeparada/CitaSeparadaService";
 import PagoVirtual from "../../apps/paciente-app/components/reserva/PagoVirtual";
 import FormatDate from "../../shared/utils/FormatDate";
@@ -18,7 +18,7 @@ const CitaSeparada = ({datosReserva}) => {
 
   const [showModal, setShowModal] = useState(false);
   const [pagoSeleccionado, setPagoSeleccionado] = useState(null);
-  const [usuarioData, setUsuarioData] = useState(null);
+  //const [usuarioData, setUsuarioData] = useState(null);
 
     const cargarDatos = useCallback(async () => {
     setLoading(true);

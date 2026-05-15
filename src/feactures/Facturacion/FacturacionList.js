@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
 import CitaSeparadaService from "../../master-data/services/CitaSeparadaService";
 import FacturacionRow from "./FacturacionRow";
-import { Search, FilterX, Loader2, RefreshCw  } from "lucide-react";
+import { Search, FilterX, Loader2 } from "lucide-react";
 //import "../../apps/paciente-app/styles/paciente-app.css"
-import { ESTILOS_CSS } from '../../apps/medicos-app/styles/ESTILOS_CSS'
+//import { ESTILOS_CSS } from '../../apps/medicos-app/styles/ESTILOS_CSS'
 
 const FacturacionList = (actualizar) => {
   const [citasSeparadas, setCitasSeparadas] = useState([]);

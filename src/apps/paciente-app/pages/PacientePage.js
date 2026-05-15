@@ -84,7 +84,7 @@ const ExitoReserva = ({ nombreEntidad, onReiniciar, onIrAPagos }) => (
 export default function PacientePage({  direccionClinica = "Sede Central" , onLogout }) {
 //  const { user, entidad } = useAuth();
   const { user } = useAuth();
-  const perfil = AuthService.leerPerfil();
+//  const perfil = AuthService.leerPerfil();
   const [pestanaActual, setPestanaActual] = useState('inicio');
   const [modoReserva, setModoReserva] = useState(false);
   const [pasoActual, setPasoActual] = useState(1);

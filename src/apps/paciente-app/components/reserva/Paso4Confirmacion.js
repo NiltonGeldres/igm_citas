@@ -3,11 +3,11 @@ import { CheckCircle, Clock, AlertTriangle, CreditCard, ArrowRight, X } from "lu
 //import PagoVirtual from './PagoVirtual';
 //import PagoVirtual from '../../../../feactures/PagoVirtual/PagoVirtual';
 import PagoVirtual from './PagoVirtual';
-import AuthService from '../../../../master-data/services/auth.service';
+//import AuthService from '../../../../master-data/services/auth.service';
 
 export const Paso4Confirmacion = ({ datosReserva, onFinalizar, onPagarTarde }) => {
   const [showPagoModal, setShowPagoModal] = useState(false);
-  const [usuarioData, setUsuarioData] = useState(null);
+//  const [usuarioData, setUsuarioData] = useState(null);
   //const user = await AuthService.leerUsuarioUsername();
   //setUsuarioData(user.data);
 
