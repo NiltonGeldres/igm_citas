@@ -24,7 +24,7 @@ export const BaseHeader = ({ user,  bgColor, onLogout, children }) => {
             <div className="brand-icon-box">
               <Stethoscope size={22} />
             </div>
-            <span  className="brand-text"  >MediFlow</span>
+            <span  className="brand-text"  >MiClinica</span>
           </div>
 
           {/* Separador y Datos del Usuario */}
