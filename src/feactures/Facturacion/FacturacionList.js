@@ -3,7 +3,7 @@ import CitaSeparadaService from "../../master-data/services/CitaSeparadaService"
 import FacturacionRow from "./FacturacionRow";
 import { Search, FilterX, Loader2 } from "lucide-react";
 
-const FacturacionList = (actualizar,setLoading,loading ) => {
+const FacturacionList = ({actualizar,setLoading,loading }) => {
   const [citasSeparadas, setCitasSeparadas] = useState([]);
   const [filteredCitas, setFilteredCitas] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
