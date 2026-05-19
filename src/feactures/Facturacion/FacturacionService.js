@@ -6,7 +6,6 @@ const API_URL = process.env.REACT_APP_URL_API;
 const SERVICE = "/citasSeparadasPagadas";
 const SERVICE_CONFIRMAR_CITA = "/confimarCitaSeparada";
 
-const usuario = sessionStorage.getItem('username');
 
 const getCitasSeparadasPagadas = () => {
     return axios.post(API_URL+SERVICE
@@ -17,12 +16,11 @@ const getCitasSeparadasPagadas = () => {
         });
 };
 
-const setCitasPagadas = (
-  row
-) => {
+const setCitasPagadas = (  row) => {
+const usuarioActual = sessionStorage.getItem('username');
   return axios.post(API_URL+SERVICE_CONFIRMAR_CITA
        ,{
-        usuario : usuario,
+        usuario : usuarioActual,
         idCitaSeparada      : row.idcitaseparada
       }
         ,{ headers: header()}

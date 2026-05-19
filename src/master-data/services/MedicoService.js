@@ -11,7 +11,6 @@ const API_URL = process.env.REACT_APP_URL_API;
 const SERVICE = "/medicosEspecialidad";
 const SERVICE_MEDICO_ESPECIALIDAD = "/medicoEspecialidad";
 const SERVICE_MEDICO_ENTIDAD = "/medicosEntidad";
-const usuario = sessionStorage.getItem('username');
 
 
 // Función genérica interna para centralizar peticiones
@@ -52,9 +51,9 @@ const getTodos = (idEspecialidad) => {
 
 
 const getMedicoEspecialidad = (idEspecialidad) => {
-  console.log(idEspecialidad)
+  const usuarioActual = sessionStorage.getItem('username');
   return axios.post(API_URL+SERVICE_MEDICO_ESPECIALIDAD 
-       ,{idEspecialidad:idEspecialidad, usuario:usuario}
+       ,{idEspecialidad:idEspecialidad, usuario:usuarioActual}
         ,{ headers: header()}
       ).catch(function (error) {
         console.log(error.toJSON());
@@ -62,7 +61,6 @@ const getMedicoEspecialidad = (idEspecialidad) => {
 };
 
 const getListarMedicosEntidad = (idEntidad) => {
-  console.log("ENTIDAD "+idEntidad)
   return axios.post(API_URL+SERVICE_MEDICO_ENTIDAD 
        ,{idEntidad:idEntidad}
         ,{ headers: header()}

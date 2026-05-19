@@ -11,9 +11,7 @@ export const Paso4Confirmacion = ({ datosReserva, onFinalizar, onPagarTarde }) =
 //  const [usuarioData, setUsuarioData] = useState(null);
   //const user = await AuthService.leerUsuarioUsername();
   //setUsuarioData(user.data);
-      console.log("USERNAME Paso4Confirmacion "+sessionStorage.getItem('username'));  
 
-  console.log("datosReserva  Paso4Confirmacion "+JSON.stringify(datosReserva))
 
   const { 
     doctor, 

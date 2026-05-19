@@ -3,7 +3,6 @@
 import header from "../../shared/utils/Header";
 import axios from "axios";
 
-const usuario = sessionStorage.getItem('username');
 const API_URL = process.env.REACT_APP_URL_API;
 const SERVICE_BLANCO = "/programacionMedicoMesBlanco";
 const SERVICE = "/programacionMedicoMes";
@@ -11,6 +10,7 @@ const SERVICE_CREAR = "/programacionMedicaCrear";
 
 const obtenerProgramacionMesBlanco = (mes, anio, idEspecialidad, idMedico) => {
   console.log("obtenerProgramacionMesBLANCO parametros "+mes+"---"+anio+"----"+idEspecialidad+"----"+idMedico+"----")
+  const usuario = sessionStorage.getItem('username');
   return axios.post(API_URL + SERVICE_BLANCO
       , { mes,  anio,  usuario,   idEspecialidad, idMedico  }
       , { headers: header() }
