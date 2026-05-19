@@ -1,7 +1,5 @@
 import header from "../../shared/utils/Header";
 import axios from "axios";
-//(http://localhost:8081/api_salud_v2/webresources/especialidadService
-//const API_URL = "http://192.168.0.200:8080";
 const API_URL = process.env.REACT_APP_URL_API;
 const API_LEER_CITA_SEPARADA_XUSUARIO = "/citaSeparadaLeer";
 const API_LEER_CITA_SEPARADA_CONPAGOVIRTUAL_XUSUARIO = "/citaSeparadaConPagoVirtualLeer";
@@ -10,29 +8,27 @@ const API_CREAR_CITA_SEPARADA= "/citaSeparadaCrear";
 const API_LEER_CITA_SEPARADA_CONPAGOVIRTUAL_XMEDICO= "/citaSeparadaConPagoVirtualXMedicoLeer";
 
 
-const usuario = sessionStorage.getItem('username');
 
 const getCitasSeparadaLeer = () => {
+    const usuarioActual = sessionStorage.getItem('username');
     return axios.post(API_URL+API_LEER_CITA_SEPARADA_XUSUARIO
-        ,{ usuario    : usuario }
+        ,{ usuario    : usuarioActual }
         ,{ headers: header()}
      );
 };
 
 const getCitasSeparadaConPagoVirtualLeer = () => {
+    const usuarioActual = sessionStorage.getItem('username');
     return axios.post(API_URL+API_LEER_CITA_SEPARADA_CONPAGOVIRTUAL_XUSUARIO
-    ,{ 
-      usuario    : usuario
-      }
-    ,{ headers: header()}
-     )
-
-      ;
+      ,{usuario: usuarioActual}
+      ,{ headers: header()}
+     );
 };
 
 const getCitasSeparadaConComprobanteLeer = () => {
+    const usuarioActual = sessionStorage.getItem('username');
     return axios.post(API_URL+API_LEER_CITA_SEPARADA_CONCOMPROBANTE_XUSUARIO
-      ,{ usuario    : usuario }
+      ,{ usuario    : usuarioActual }
       ,{ headers: header()}
      );
 };
@@ -48,6 +44,7 @@ const getCitaSeparadaCrear = (
               ,idProgramacion
               ,idProducto
               ,precioUnitario) => {
+    const usuario = sessionStorage.getItem('username');
        
    return axios.post(API_URL+API_CREAR_CITA_SEPARADA
     ,{ 

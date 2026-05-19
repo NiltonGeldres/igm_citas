@@ -498,7 +498,7 @@ export default function PacientePage({  direccionClinica = "Sede Central" , onLo
                   setPestanaActual(item.id);
                   setModoReserva(false);
                   if (item.id === 'citas') {
-                    console.log(user.id+ ""+ fechaFiltro)
+                   // console.log(user.id+ ""+ fechaFiltro)
                     obtenerCitas(user.id, fechaFiltro);
                   }                  
               }}

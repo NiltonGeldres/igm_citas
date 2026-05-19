@@ -4,6 +4,7 @@ import { CheckCircle, Clock, AlertTriangle, CreditCard, ArrowRight, X } from "lu
 //import PagoVirtual from '../../../../feactures/PagoVirtual/PagoVirtual';
 import PagoVirtual from './PagoVirtual';
 //import AuthService from '../../../../master-data/services/auth.service';
+import "../../styles/paciente-app.css"
 
 export const Paso4Confirmacion = ({ datosReserva, onFinalizar, onPagarTarde }) => {
   const [showPagoModal, setShowPagoModal] = useState(false);

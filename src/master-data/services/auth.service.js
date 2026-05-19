@@ -54,6 +54,8 @@ const usuarioCrear = async (usuario) => {
 };
 
 
+
+
 const signup = (
      username ,
      password,
@@ -97,13 +99,11 @@ const signup = (
     
 };
 
+const login = async (user, password) => {
+    try {
+        const response = await axios.post(API_URL + LOGIN, { user, password });
 
-const login = (user, password) => {
-    return axios
-    .post(API_URL+LOGIN,{ user, password })
-    .then((response) => {
-
-        if(response.data.jwtToken){
+        if (response.data && response.data.jwtToken) {
             const decoded = jwtDecode(response.data.jwtToken);
             const perfil = {
                 username: decoded.sub,
@@ -114,21 +114,20 @@ const login = (user, password) => {
                 idEntidad: decoded.idEntidad,     
                 idReferencia: decoded.idReferencia,     
                 idRol: decoded.idRol 
-
-//                usuarioNombres: decoded.usuarioNombres // Opcional para la UI
             };
 
-            sessionStorage.setItem('username',  decoded.sub) ;  
-            sessionStorage.setItem('token_data',  JSON.stringify(response.data)) ;
+            // Aseguramos la escritura antes de que termine la función asíncrona
+            sessionStorage.setItem('username', decoded.sub);  
+            sessionStorage.setItem('token_data', JSON.stringify(response.data));
             sessionStorage.setItem('user_profile', JSON.stringify(perfil));
-
-            }
+        }
+        
         return response.data;
-    });
+    } catch (error) {
+        console.error("Error en el servicio de login:", error);
+        throw error;
+    }
 };
-
-
-
 
 const obtenerDatosGlobales = (token) => {
     return axios
@@ -141,11 +140,16 @@ const obtenerDatosGlobales = (token) => {
 
 
 const logout = () => {
-    sessionStorage.removeItem('user');
+    console.log("Inngreso logout USERNAAME"+sessionStorage.getItem('username'))
+    sessionStorage.clear();
     sessionStorage.removeItem('username'); // Username guardado aparte
     sessionStorage.removeItem('authority'); // Autoridad/rol guardado aparte
-    sessionStorage.removeItem('user'); // Objeto de usuario con el token
     sessionStorage.removeItem('user_profile'); // Objeto de perfil completo
+    sessionStorage.removeItem('user');
+    localStorage.removeItem('username');
+    console.log("Inngreso logout USERNAAME borrado"+sessionStorage.getItem('username'))
+    
+
 }
 
 const actualizaUsuario = (usuarioData) => {
@@ -194,3 +198,39 @@ const AuthService = {
 
 export default AuthService;
 
+
+
+/**
+ * 
+ * 
+ * 
+const login = (user, password) => {
+
+    return axios
+    .post(API_URL+LOGIN,{ user, password })
+    .then((response) => {
+
+        if(response.data.jwtToken){
+            const decoded = jwtDecode(response.data.jwtToken);
+            const perfil = {
+                username: decoded.sub,
+                rol: decoded.rol.authority,
+                idPaciente: decoded.idReferencia, 
+                idMedico: decoded.idReferencia, 
+                idUsuario: decoded.idUsuario, 
+                idEntidad: decoded.idEntidad,     
+                idReferencia: decoded.idReferencia,     
+                idRol: decoded.idRol 
+
+            };
+            alert(decoded.sub)
+            sessionStorage.setItem('username',  decoded.sub) ;  
+            sessionStorage.setItem('token_data',  JSON.stringify(response.data)) ;
+            sessionStorage.setItem('user_profile', JSON.stringify(perfil));
+
+            }
+        return response.data;
+    });
+};
+
+ */

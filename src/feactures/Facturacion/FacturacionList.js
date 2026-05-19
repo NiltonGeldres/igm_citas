@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
-import CitaSeparadaService from "../../master-data/services/CitaSeparadaService";
+//import CitaSeparadaService from "../../master-data/services/CitaSeparadaService";
+import CitaSeparadaService from "../CitaSeparada/CitaSeparadaService";
 import FacturacionRow from "./FacturacionRow";
 import { Search, FilterX, Loader2 } from "lucide-react";
 

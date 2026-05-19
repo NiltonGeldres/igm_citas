@@ -25,10 +25,10 @@ const Login = () => {
               await actualizarDatosGlobales(); // <--- ESTO LLENA EL HEADER AL INSTANTE
               navigate("/");
        }        
-         window.location.reload();
+       //  window.location.reload();
     } catch (err) {
         const statusCode = err.response?.status;
-
+        
         let mensajeParaUsuario = "";
 
         if (statusCode === 401) {
@@ -58,12 +58,11 @@ const Login = () => {
         <h3 style={Styles.loginTitle}>Iniciar Sesión</h3>
 
         <input
-         // type="email" // Usar type="email" para mejor validación nativa
-          placeholder="Correo electrónico"
+          placeholder="Nombre de Usuario"
           value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          onChange={(e) => setEmail(e.target.value.trim())}
           style={Styles.loginInput}
-          required // Campo requerido
+          required 
         />
         <input
           type="password"

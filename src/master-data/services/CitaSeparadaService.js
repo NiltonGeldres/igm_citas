@@ -1,4 +1,5 @@
 //import header from "../Security/Header";
+/*
 import header from "../../shared/utils/Header";
 import axios from "axios";
 const API_URL = process.env.REACT_APP_URL_API;
@@ -15,9 +16,6 @@ const getCitasSeparadaLeer = () => {
     ,{ usuario    : usuario}
     ,{ headers: header()}
      )
-/*     .catch(function (error) {
-        console.log(error.toJSON());
-      })*/
       ;
 };
 
@@ -72,9 +70,6 @@ const getCitaSeparadaCrear = (
     ,{ headers: header()}
       )
       
-      /*.catch(function (error) {
-        console.log(error.toJSON());
-  })*/
   ;
 };
 
@@ -95,3 +90,4 @@ const CitaSeparadaService = {
     getCitasSeparadasConPagoVirtualXMedicoLeer
 };
 export default CitaSeparadaService;
+*/

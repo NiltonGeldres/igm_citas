@@ -22,12 +22,11 @@ const CitaSeparada = ({datosReserva}) => {
 
     const cargarDatos = useCallback(async () => {
     setLoading(true);
+
       try {
-        /*const user = await AuthService.leerUsuarioUsername();
-        setUsuarioData(user.data);
-        console.log("user.data   "+JSON.stringify(user.data))
-        */
+      console.log("CitaSeparadsa en  try")
         const resPendientes = await CitaSeparadaService.getCitasSeparadaLeer();
+      console.log("CitaSeparadsa en  try"+JSON.stringify(resPendientes))
         setCitasPendientes(resPendientes.data.citaSeparada || []);
 
         const resVerificacion = await CitaSeparadaService.getCitasSeparadaConPagoVirtualLeer();
