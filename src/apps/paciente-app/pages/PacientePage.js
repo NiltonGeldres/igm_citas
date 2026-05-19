@@ -287,6 +287,8 @@ export default function PacientePage({  direccionClinica = "Sede Central" , onLo
     };
 
     const handleHoraSeleccionada = async (hora, idProg, idServ) => {
+      console.log("USERNAME Paso4Confirmacion "+sessionStorage.getItem('username'));  
+
        if (procesandoBloqueo) return;
        let timerInterval;
        setProcesandoBloqueo(true);

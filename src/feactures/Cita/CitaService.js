@@ -7,10 +7,8 @@ const SERVICE_MEDICO_CITAS = "/citaDisponible";
 const SERVICE_BLOQUEAR_CITA = "/citaBloquear";
 const SERVICE_ELIMINAR_CITA_BLOQUEADA = "/eliminarCitaBloqueada";
 const SERVICE_ELIMINAR_CITA_BLOQUEADA_XUSUARIO = "/eliminarCitaBloqueadaXUsuario";
-const usuario = sessionStorage.getItem('username');
 
 const getCitaDisponible = (idMedico,idEspecialidad,fecha) => {
-    console.log("DATOS ENVIADOS   "+idMedico+ '--' +idEspecialidad+ ' --'+fecha);  
     return axios.post(API_URL+SERVICE_MEDICO_CITAS
          ,{ idMedico:idMedico,
             idEspecialidad:idEspecialidad,
@@ -23,10 +21,10 @@ const getCitaDisponible = (idMedico,idEspecialidad,fecha) => {
 };
 
 const getCitaBloquear = (horaInicio,fecha,idMedico) => {
-  console.log("DATOS ENVIO "+horaInicio+"-"+ fecha+"-"+idMedico+"-"+usuario)
+const usuarioActual = sessionStorage.getItem('username');
   return axios.post(API_URL+SERVICE_BLOQUEAR_CITA
     ,{ 
-        usuario     : usuario,
+        usuario     : usuarioActual,
         fecha       : fecha,
         horaInicio  : horaInicio,
         idMedico    : idMedico,
@@ -39,7 +37,6 @@ const getCitaBloquear = (horaInicio,fecha,idMedico) => {
 
 
 const getEliminarCitaBloqueada = (idCitaBloqueada) => {
-  console.log("Enviando   "+idCitaBloqueada)
   return axios.post(API_URL+SERVICE_ELIMINAR_CITA_BLOQUEADA
     ,{ 
       idCitaBloqueada    : idCitaBloqueada,
@@ -52,11 +49,9 @@ const getEliminarCitaBloqueada = (idCitaBloqueada) => {
 };
 
 const getEliminarCitaBloqueadaXUsuario = () => {
-  console.log("getEliminarCitaBloqueadaXUsuario Enviando Usuario  "+usuario)
+const usuarioActual = sessionStorage.getItem('username');
   return axios.post(API_URL+SERVICE_ELIMINAR_CITA_BLOQUEADA_XUSUARIO
-    ,{ 
-      usuario    : usuario,
-      }
+    ,{ usuario    : usuarioActual,}
     ,{ headers: header()}
      ).catch(function (error) {
         console.log(error.toJSON());
