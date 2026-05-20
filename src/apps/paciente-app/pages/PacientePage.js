@@ -6,7 +6,8 @@ import { ESTILOS_CSS } from '../styles/ESTILOS_CSS';
 import { useCallback } from 'react';
 
 import MedicoService from '../../../master-data/services/MedicoService';
-import CitaSeparadaService from '../../../master-data/services/CitaSeparadaService';
+//import CitaSeparadaService from '../../../master-data/services/CitaSeparadaService';
+import CitaSeparadaService from '../../../feactures/CitaSeparada/CitaSeparadaService';
 import EspecialidadService from '../../../master-data/services/EspecialidadService';
 import ProgramacionHorarioIndividualService from '../../../feactures/ProgramacionHorario/ProgramacionHorarioService';
 //import AuthService from '../../../master-data/services/auth.service';
