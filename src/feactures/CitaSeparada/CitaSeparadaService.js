@@ -8,6 +8,13 @@ const API_CREAR_CITA_SEPARADA= "/citaSeparadaCrear";
 const API_LEER_CITA_SEPARADA_CONPAGOVIRTUAL_XMEDICO= "/citaSeparadaConPagoVirtualXMedicoLeer";
 
 
+const getCitasSeparadaMedLeer = () => {
+    const usuarioActual = sessionStorage.getItem('username');
+    return axios.post(API_URL+API_LEER_CITA_SEPARADA_XUSUARIO
+        ,{ usuario    : usuarioActual }
+        ,{ headers: header()}
+     );
+};
 
 const getCitasSeparadaLeer = () => {
     const usuarioActual = sessionStorage.getItem('username');
@@ -82,7 +89,7 @@ const getCitasSeparadasConPagoVirtualXMedicoLeer = () => {
 
 
 const CitaSeparadaService = {
-  
+    getCitasSeparadaMedLeer,
     getCitasSeparadaLeer,
     getCitasSeparadaConPagoVirtualLeer,
     getCitasSeparadaConComprobanteLeer,

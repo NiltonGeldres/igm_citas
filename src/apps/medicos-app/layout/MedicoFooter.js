@@ -8,7 +8,6 @@ export const MedicoFooter = () => {
 const menuItems = [
   { id: 'prog', label: 'Programación', icon: CalendarDays, path: '/med/scheduling' },
   { id: 'fact', label: 'Facturación', icon: FileText, path: '/med/billing' },
-  { id: 'cs', label: 'CitaSeparada', icon: CreditCard, path: '/med/citaSeparada' },
   { id: 'agenda', label: 'Agenda', icon: ClipboardList, path: '/med/agenda' },
 ];
 

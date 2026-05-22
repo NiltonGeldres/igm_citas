@@ -36,23 +36,3 @@ const FacturacionService = {
 };
 export default FacturacionService;
 
-/**
- * 
-         nombres             : row.nombres,
-        fechaSolicitud      : row.fechasolicitud,
-        fechaCita           : row.fechacita,
-        horaInicio          : row.horainicio,
-        precioUnitario      : row.preciounitario,
-        idCitaSeparadaPago  : row.idcitaseparadapago,
-        idComprobantePago   : row.idcomprobantepago,
-        fechaPago           : row.fechapago,
-        nroOperacion        : row.nrooperacion,
-        correo              : row.correo,
-        celular             : row.celular,
-        idTipoOperacion     : row.idtipooperacion,
-        origen              : row.origen,
-        destino             : row.destino,
-        entidadDestino      : row.entidaddestino,
-        idUsuario           : row.idusuario
-
- */

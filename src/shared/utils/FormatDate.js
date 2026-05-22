@@ -38,7 +38,9 @@ const format_dd_mm_yyyy = (d) => {
 };
 
 /** convertir texto a fecha */
+/*
 const format_fecha = (d) => {
+    console.log("Fecha   en conversion "+d)
     let fecha;
     if(d!=='' && d!=='null' && d!=='undefined' && d!==null ){
         let dia =  d.substring(6,8) ;
@@ -48,6 +50,22 @@ const format_fecha = (d) => {
         fecha = dia.toString()+"/"+mes.toString()+"/"+anio.toString();
     }
     return fecha
+};*/
+
+const format_fecha = (d) => {
+    console.log("Fecha   en conversion "+d)
+    let fecha = "---"; 
+    
+    // 💡 Validamos que 'd' exista, no sea un string de nulos, y sea estrictamente de tipo string
+    if (d && d !== '' && d !== 'null' && d !== 'undefined' && typeof d === 'string') {
+        let dia = d.substring(6, 8);
+        let mes = d.substring(4, 6);
+        let anio = d.substring(0, 4);
+        
+        fecha = dia.toString() + "/" + mes.toString() + "/" + anio.toString();
+    }
+    
+    return fecha;
 };
 
 const FormatDate = {

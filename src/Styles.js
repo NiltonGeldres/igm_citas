@@ -1,6 +1,7 @@
 // src/styles.js
 
 const Styles = {
+  
   container: {
     fontFamily: 'Inter, Arial, sans-serif',
     backgroundColor: '#ebeff2',
@@ -847,14 +848,14 @@ const Styles = {
     boxSizing: 'border-box',
   },
 
-  /* --- ESCRITORIO --- */
+  // --- ESCRITORIO --- 
   '@media (min-width: 769px)': {
     container: {
       maxWidth: '700px',
     },
   },
 
-  /* --- TABLET / MÓVIL GENERAL (768px) --- */
+  //* --- TABLET / MÓVIL GENERAL (768px) --- 
   '@media (max-width: 768px)': {
     container: {
       paddingLeft: '15px',
@@ -1012,7 +1013,7 @@ const Styles = {
     },
   },
 
-  /* --- MÓVIL PEQUEÑO (480px) --- */
+  // --- MÓVIL PEQUEÑO (480px) --- 
   '@media (max-width: 480px)': {
     container: {
       paddingLeft: '10px',
@@ -1125,286 +1126,6 @@ const Styles = {
     },
   },
 
-/*
-
-  '@media (min-width: 769px)': {
-    container: {
-      maxWidth: '700px',
-    },
-  },
-
-  '@media (max-width: 768px)': {
-    container: {
-      paddingLeft: '15px',
-      paddingRight: '15px',
-      paddingBottom: '80px',
-    },
-    pageHeader: {
-      padding: '6px 15px',
-    },
-    pageHeaderBackButton: {
-      left: '15px',
-      fontSize: '24px',
-    },
-    pageHeaderTitle: {
-      fontSize: '20px',
-    },
-    patientSummaryCard: {
-      padding: '6px 15px',
-      marginBottom: '15px',
-    },
-    patientSummaryName: {
-      fontSize: '18px',
-    },
-    patientSummaryDetails: {
-      fontSize: '13px',
-    },
-    medicalSection: {
-      padding: '20px',
-      marginBottom: '25px',
-    },
-    textArea: {
-      fontSize: '15px',
-      minHeight: '70px',
-    },
-    micButton: {
-      width: '50px',
-      height: '50px',
-      fontSize: '26px',
-    },
-    micButtonActive: {
-      width: '55px',
-      height: '55px',
-      fontSize: '28px',
-    },
-    saveButton: {
-      padding: '15px 30px',
-      fontSize: '18px',
-    },
-    fixedBottomBar: {
-      height: '65px',
-      padding: '8px 0',
-    },
-    fixedBottomBarButton: {
-      fontSize: '11px',
-      gap: '3px',
-    },
-    fixedBottomBarButtonIcon: {
-      fontSize: '22px',
-    },
-    patientWhatsAppListItem: {
-      padding: '6px 12px',
-      minHeight: '55px',
-    },
-    patientWhatsAppAvatar: {
-      width: '35px',
-      height: '35px',
-      fontSize: '16px',
-    },
-    patientWhatsAppName: {
-      fontSize: '15px',
-    },
-    patientWhatsAppTime: {
-      fontSize: '11px',
-    },
-    patientWhatsAppDetails: {
-      fontSize: '11px',
-    },
-    bubbleListItemNoAvatar: {
-      padding: '6px 12px',
-      minHeight: '55px',
-    },
-    bubbleName: {
-      fontSize: '15px',
-    },
-    bubbleTime: {
-      fontSize: '11px',
-    },
-    bubbleDetails: {
-      fontSize: '11px',
-    },
-    bubbleActionButton: {
-      fontSize: '12px',
-      padding: '3px 6px',
-    },
-    bubbleActionButtonIcon: {
-      width: '16px',
-      height: '16px',
-    },
-    inputContainer: {
-      gap: '10px',
-      flexWrap: 'nowrap',
-    },
-    autocompleteInputWrapper: {
-      flexWrap: 'nowrap',
-    },
-    autocompleteInput: {
-      paddingRight: '35px',
-    },
-    clearInputButton: {
-      right: '60px',
-    },
-    iconNavigationGrid: {
-      gridTemplateColumns: 'repeat(auto-fit, minmax(100px, 1fr))',
-      gap: '15px',
-      marginBottom: '20px',
-    },
-    iconNavigationButton: {
-      padding: '15px 8px',
-      minHeight: '100px',
-    },
-    iconNavigationIconSize: '40px',
-    iconNavigationIcon: {
-      marginBottom: '8px',
-    },
-    iconNavigationText: {
-      fontSize: '14px',
-    },
-    menuTab2Content: {
-      padding: '20px',
-    },
-    // Ajustes para Login en móvil
-    loginForm: {
-      padding: '30px',
-      gap: '15px',
-    },
-    loginTitle: {
-      fontSize: '24px',
-    },
-    loginInput: {
-      padding: '10px 12px',
-      fontSize: '15px',
-    },
-    loginButton: {
-      padding: '10px 15px',
-      fontSize: '16px',
-    },
-    loginSignupText: {
-      fontSize: '14px',
-    },
-  },
-
-  '@media (max-width: 480px)': {
-    container: {
-      paddingLeft: '10px',
-      paddingRight: '10px',
-      paddingBottom: '75px',
-    },
-    pageHeader: {
-      padding: '5px 10px',
-    },
-    pageHeaderBackButton: {
-      left: '10px',
-      fontSize: '22px',
-    },
-    pageHeaderTitle: {
-      fontSize: '18px',
-    },
-    patientSummaryCard: {
-      padding: '5px 10px',
-      marginBottom: '10px',
-    },
-    patientSummaryName: {
-      fontSize: '16px',
-    },
-    patientSummaryDetails: {
-      fontSize: '12px',
-    },
-    medicalSection: {
-      padding: '15px',
-      marginBottom: '20px',
-    },
-    textArea: {
-      fontSize: '14px',
-      minHeight: '60px',
-    },
-    micButton: {
-      width: '45px',
-      height: '45px',
-      fontSize: '24px',
-    },
-    micButtonActive: {
-      width: '50px',
-      height: '50px',
-      fontSize: '26px',
-    },
-    saveButton: {
-      padding: '12px 25px',
-      fontSize: '16px',
-    },
-    fixedBottomBar: {
-      height: '60px',
-      padding: '5px 0',
-    },
-    fixedBottomBarButton: {
-      fontSize: '10px',
-      gap: '2px',
-    },
-    fixedBottomBarButtonIcon: {
-      fontSize: '20px',
-    },
-    inputContainer: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: '8px',
-    },
-    autocompleteInputWrapper: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: '8px',
-    },
-    autocompleteInput: {
-      width: '100%',
-    },
-    iconNavigationGrid: {
-      gridTemplateColumns: 'repeat(auto-fit, minmax(80px, 1fr))',
-      gap: '10px',
-      marginBottom: '15px',
-    },
-    iconNavigationButton: {
-      padding: '10px 5px',
-      minHeight: '80px',
-    },
-    iconNavigationIconSize: '32px',
-    iconNavigationIcon: {
-      marginBottom: '5px',
-    },
-    iconNavigationText: {
-      fontSize: '12px',
-    },
-    menuTab2Content: {
-      padding: '15px',
-    },
-    // Ajustes para Login en móvil muy pequeño
-    loginForm: {
-      padding: '25px',
-      gap: '10px',
-    },
-    loginTitle: {
-      fontSize: '22px',
-    },
-    loginInput: {
-      padding: '8px 10px',
-      fontSize: '14px',
-    },
-    loginButton: {
-      padding: '10px 15px',
-      fontSize: '15px',
-    },
-    loginSignupText: {
-      fontSize: '13px',
-    },
-  },
-
- '@media (max-width: 768px)': {
-    navbarNav: {
-      display: 'none',
-    },
-    hamburgerMenu: {
-      display: 'block',
-    },
-  },  
-  */
 
   // --- ESTILOS PARA EL COMPONENTE LOGIN ---
   loginContainer: {
@@ -1506,26 +1227,6 @@ loadingOverlay: {
     fontWeight: '500',
     color: '#007bff',
  },
-// FINALIZAR AGREGACIÓN DE ESTILOS
-/* loadingOverlay: {
- position: 'fixed',
- top: 0,
- left: 0,
- right: 0,
- bottom: 0,
- backgroundColor: 'rgba(255, 255, 255, 0.8)', // Fondo blanco semitransparente
- display: 'flex',
- justifyContent: 'center',
- alignItems: 'center',
- zIndex: 2000, // Asegura que esté por encima de todo
- flexDirection: 'column',
- gap: '15px',
-},
-loadingText: {
- fontSize: '18px',
- fontWeight: '500',
- color: '#007bff',
- },*/
 
 };
 

@@ -419,6 +419,53 @@
   padding-left: 4px;
 }
 
+/*Facturacion-*/
 
-/*---------------------------------*/
+.animate-spin {
+  animation: spinner-border .75s linear infinite;
+}
 
+.bg-danger-subtle {
+  background-color: #f8d7da !important;
+}
+
+.text-danger {
+  color: #842029 !important;
+}
+
+.border-danger-subtle {
+  border-color: #f5c2c7 !important;
+}
+
+/* Tipografía y contenedor principal */
+.facturacion-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  transition: all 0.2s ease-in-out;
+  margin-bottom: 12px;
+}
+
+.facturacion-card:hover {
+  border-color: #cbd5e1;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+
+/* Clases de apoyo Bootstrap que pueden requerir override */
+.bg-danger-subtle {
+  background-color: #fef2f2 !important;
+}
+.text-danger {
+  color: #ef4444 !important;
+}
+.border-danger-subtle {
+  border-color: #fee2e2 !important;
+}
+
+/* Espaciados específicos para PC */
+@media (min-width: 768px) {
+  .container-cronologia {
+    margin-left: -4px;
+  }
+}

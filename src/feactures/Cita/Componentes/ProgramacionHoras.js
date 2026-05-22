@@ -13,7 +13,8 @@ const ProgramacionHoras = ({
   const [horas, setHoras] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  const fechaSeleccionada =   FormatDate.format_fecha(fechaCalendar);
+  //const fechaSeleccionada =   FormatDate.format_fecha(fechaCalendar);
+  const fechaSeleccionada = fechaCalendar ? FormatDate.format_fecha(fechaCalendar) : "---";  
   useEffect(() => {
     const cargarHoras = async () => {
       if (!idMedico || !idEspecialidad || !fechaCalendar) {

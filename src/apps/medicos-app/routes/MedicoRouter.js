@@ -3,7 +3,8 @@ import { MedicoLayout } from '../layout/MedicoLayout';
 import ProgramacionHorario from '../../../feactures/ProgramacionHorario/ProgramacionHorario';
 import { AgendaPage } from '../pages/AgendaPage';
 import Facturacion from  '../../../feactures/Facturacion/Facturacion';
-import CitaSeparada from '../../../feactures/CitaSeparada/CitaSeparada';
+//import CitaSeparada from '../../../feactures/CitaSeparada/CitaSeparada';
+
 
 export const MedicoRouter = ({ onLogout }) => {
   return (
@@ -17,7 +18,6 @@ export const MedicoRouter = ({ onLogout }) => {
         
         <Route path="billing" element={<Facturacion/>} />
 
-        <Route path="citaSeparada" element={<CitaSeparada/>} />
 
         {/*  */}
         <Route path="/" element={<Navigate to="agenda" />} />

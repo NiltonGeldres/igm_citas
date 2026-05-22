@@ -15,7 +15,7 @@ export const Paso3Horario = ({
   onSiguiente,
   onAtras
 }) => {
-  console.log("datosReserva  Paso3hORARIO "+JSON.stringify(datosReserva))
+//  console.log("datosReserva  Paso3hORARIO "+JSON.stringify(datosReserva))
 
   return (
     <div className="fade-in">
