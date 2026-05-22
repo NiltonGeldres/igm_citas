@@ -1,4 +1,4 @@
-import { CalendarDays, FileText, ClipboardList,CreditCard  } from "lucide-react";
+import { CalendarDays, CreditCard, ClipboardList,  } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 
 export const MedicoFooter = () => {
@@ -7,7 +7,7 @@ export const MedicoFooter = () => {
 
 const menuItems = [
   { id: 'prog', label: 'Programación', icon: CalendarDays, path: '/med/scheduling' },
-  { id: 'fact', label: 'Facturación', icon: FileText, path: '/med/billing' },
+  { id: 'fact', label: 'Facturación', icon: CreditCard, path: '/med/billing' },
   { id: 'agenda', label: 'Agenda', icon: ClipboardList, path: '/med/agenda' },
 ];
 
