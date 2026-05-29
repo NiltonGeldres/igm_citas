@@ -3,7 +3,7 @@ import axios from "axios";
 const API_URL = process.env.REACT_APP_URL_API;
 const API_PAGO_VIRTUAL= "/citaSeparadaPagoVirtualCrear";
 
-const usuario = sessionStorage.getItem('username');
+
 const setPagoVirtualCrear = (
     idCitaSeparada
     ,fecha
@@ -16,6 +16,7 @@ const setPagoVirtualCrear = (
     ,destino
    ,entidadDestino
 ) => {
+const usuario = sessionStorage.getItem('username');  
    return axios.post(API_URL+API_PAGO_VIRTUAL
     ,{ 
         idCitaSeparada: idCitaSeparada
@@ -32,9 +33,7 @@ const setPagoVirtualCrear = (
        }
     ,{ headers: header()}
       )
-      /*.catch(function (error) {
-        console.log(error.toJSON());
-  })*/
+
   ;
   
 };
