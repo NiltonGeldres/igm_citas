@@ -1,4 +1,4 @@
-
+/*
 // src/components/Cita/Cita.js
 import React, { useEffect, useReducer } from "react";
 import { useNavigate } from "react-router-dom";
@@ -343,7 +343,7 @@ const Cita = ({ modoCita = "paciente", medicoIdPreseleccionado, especialidadIdPr
           </Box>
         )}
 
-        {/* Sección de Especialidad (solo si es modo paciente) */}
+        {// Sección de Especialidad (solo si es modo paciente) }
         {modoCita === "paciente" && (
           <Box p={5} shadow="md" borderWidth="1px" borderRadius="lg" bg="white">
             <FormLabel fontSize="lg" fontWeight="semibold" mb={2}>1. Selecciona tu Especialidad</FormLabel>
@@ -354,7 +354,7 @@ const Cita = ({ modoCita = "paciente", medicoIdPreseleccionado, especialidadIdPr
           </Box>
         )}
 
-        {/* Sección de Médico (solo si es modo paciente) */}
+        {// Sección de Médico (solo si es modo paciente) }
         {modoCita === "paciente" && (
           <Box p={5} shadow="md" borderWidth="1px" borderRadius="lg" bg="white">
             <FormLabel fontSize="lg" fontWeight="semibold" mb={2}>2. Elige tu Médico</FormLabel>
@@ -372,13 +372,13 @@ const Cita = ({ modoCita = "paciente", medicoIdPreseleccionado, especialidadIdPr
           </Box>
         )}
 
-        {/* Separador si el modo es médico (para indicar que la especialidad/médico ya están seleccionados) */}
+        {// Separador si el modo es médico (para indicar que la especialidad/médico ya están seleccionados) }
         {modoCita === "medico" && (
           <Box p={5} shadow="md" borderWidth="1px" borderRadius="lg" bg="white">
           </Box>
         )}
 
-        {/* Sección de Calendario */}
+        {// Sección de Calendario }
         <Box flex="1" p={5} shadow="md" borderWidth="1px" borderRadius="lg" bg="white">
           <ProgramacionCalendar
             idMedico={idMedico}
@@ -389,7 +389,7 @@ const Cita = ({ modoCita = "paciente", medicoIdPreseleccionado, especialidadIdPr
 
 
 
-        {/* Sección de Horas Disponibles (Ahora debajo del calendario) */}
+        {// Sección de Horas Disponibles (Ahora debajo del calendario) }
         <Box flex="1" p={5} shadow="md" borderWidth="1px" borderRadius="lg" bg="white">
           <ProgramacionHoras
             idMedico={idMedico}
@@ -405,3 +405,4 @@ const Cita = ({ modoCita = "paciente", medicoIdPreseleccionado, especialidadIdPr
 };
 
 export default Cita;
+*/

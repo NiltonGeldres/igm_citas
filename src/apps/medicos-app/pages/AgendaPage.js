@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom"; 
 import { DateSelector } from "../components/DateSelector";
 import { PacienteCard } from "../components/PacienteCard";
 import { AgendaStats } from "../components/agendaStats";
@@ -14,16 +15,14 @@ const LoadingSpinner = () => (
 );
 
 export const AgendaPage = () => {
-  
+  const navigate = useNavigate();   
   const { user, loading: authLoading } = useAuth();
   const [fecha, setFecha] = useState(new Date().toISOString().split('T')[0]);
-  
   
   const { citados, loading: agendaLoading } = useAgenda(user?.idMedico, fecha);
 
   
   if (authLoading) return <LoadingSpinner />;
-
   
   if (!user) return <div style={{ padding: '2rem' }}>No has iniciado sesión.</div>;
 
@@ -41,7 +40,11 @@ export const AgendaPage = () => {
           <LoadingSpinner />
         ) : citados?.length > 0 ? (
           citados.map(p => (
-            <PacienteCard key={p.id} paciente={p}>
+            <PacienteCard 
+            key={p.id} 
+            paciente={p}
+            onAtender={() => navigate('/atencion-medica-form', { state: { paciente: p } })}            
+            >
                {/* Aquí puedes meter el botón de atender si el componente PacienteCard acepta children */}
             </PacienteCard>
           ))

@@ -3,7 +3,9 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Thermometer, Stethoscope, Lightbulb, Microscope, Pill, CheckCircle, PenTool } from 'lucide-react';
 import MessageModal from './common/MessageModal';
-import AtencionMedicaService from './AtencionMedicaService';
+import AtencionMedicaService from "./AtencionMedicaService"
+
+//import AtencionMedicaService from 'AtencionMedicaService';
 import AtencionMedicaMedicamentoPanel from './AtencionMedicaMedicamento/AtencionMedicaMedicamentoPanel';
 import AtencionMedicaAltaPanel from './AtencionMedicaAlta/AtencionMedicaAltaPanel'; // Usado para Alta y Alergias
 import AtencionMedicaAntecedentePanel from './AtencionMedicaAntecedente/AtencionMedicaAntecedentePanel';
@@ -15,30 +17,18 @@ import AtencionMedicaPacienteCitadoSeleccionar from '../AtencionMedica/AtencionM
 import AtencionMedicaTriaje from './AtencionMedicaTriaje/AtencionMedicaTriajePanel'; // NUEVO: Importa el componente de Triaje
 import Styles from '../../Styles';
 import { v4 as uuidv4 } from 'uuid';
+import FirmaPeruPanel from '../../shared/components/FirmaPeru/FirmaPeruPanel';
 
-
-// Asegúrate de que estas rutas sean correctas según tu estructura de carpetas
-import FirmaPeruPanel from '../FirmaPeru/FirmaPeruPanel'; // NUEVO: Importa el componente de Firma Perú
-
-/**
- * Componente principal del formulario de Registro de Atención Médica.
- * Contiene todos los paneles y la lógica para guardar la atención.
- */
 function AtencionMedicaForm() {
   const navigate = useNavigate();
-
-  // Estado para la pestaña activa en la barra inferior
   const [activeTab, setActiveTab] = useState('triaje');
-
-  // Estado para los datos del paciente
   const [patientData, setPatientData] = useState({
     name: 'Paciente No Seleccionado',
     sex: '',
     age: '',
     id: '',
   });
-
-  // Estado para cada sección de la atención médica
+  
   const [sectionsData, setSectionsData] = useState({
     PanelTriaje: [], // Ahora manejará una lista de objetos de triaje
     PanelAntecedentes: '',
@@ -52,13 +42,10 @@ function AtencionMedicaForm() {
     Impresion: '',
     PanelAlta: '',
   });
-
   // Estado para el modal de mensajes general
   const [modalMessage, setModalMessage] = useState('');
   // Estado para controlar la visibilidad del modal de selección de paciente
   const [mostrarSeleccionarPacienteModal, setMostrarSeleccionarPacienteModal] = useState(false);
-
-
   /**
    * Muestra un mensaje en el modal.
    * @param {string} message - El mensaje a mostrar.
@@ -102,9 +89,8 @@ function AtencionMedicaForm() {
     // setSectionsData({ ...valores iniciales... });
   };
 
-  /**
-   * Envía los datos completos de la atención médica a un web service.
-   */
+  
+  // *Envía los datos completos de la atención médica a un web service.
   const guardarAtencionMedica = async () => {
     // Validar que se haya seleccionado un paciente
     if (patientData.id === '') {
@@ -120,61 +106,32 @@ function AtencionMedicaForm() {
 
     console.log('Datos a enviar al web service:', fullMedicalRecord);
     showModalMessage('Guardando atención médica...');
-
-
-    
-
-
     try {
-
-
-// === Llama a la Capa de Servicios ===
- const response = await AtencionMedicaService.guardarRegistro(fullMedicalRecord);
- // Manejo de respuesta exitosa de Axios
- console.log('Atención médica guardada con éxito:', response.data);
- showModalMessage('¡Atención médica guardada con éxito!');
-
-
-      // Por ahora, seguimos usando jsonplaceholder.typicode.com
-/*       alert(JSON.stringify(fullMedicalRecord))
-      const response = await fetch('https://jsonplaceholder.typicode.com/posts', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(fullMedicalRecord),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(`Error HTTP: ${response.status} - ${response.statusText}. Detalles: ${JSON.stringify(errorData)}`);
-      }
-
-      const result = await response.json();
-      console.log('Atención médica guardada con éxito:', result);
-      showModalMessage('¡Atención médica guardada con éxito!');
-*/
-      // Limpiar los campos después de guardar exitosamente
-      setSectionsData({
-        PanelTriaje: [],
-        PanelAntecedentes: '',
-        PanelExamenFisico: '',
-        PanelSintomas: '',
-        PanelTratamientos: [],
-        PanelDiagnostico: [],
-        PanelPlanTrabajo: [],
-        PanelMedicacion: '',
-        PanelAlergias: '',
-        Impresion: '',
-        PanelAlta: '',
-      });
-      // Limpiar los datos del paciente para forzar una nueva selección
-      setPatientData({
-        name: 'Paciente No Seleccionado',
-        sex: '',
-        age: '',
-        id: '',
-      });
+        // === Llama a la Capa de Servicios ===
+        const response = await AtencionMedicaService.guardarRegistro(fullMedicalRecord);
+        // Manejo de respuesta exitosa de Axios
+        console.log('Atención médica guardada con éxito:', response.data);
+        showModalMessage('¡Atención médica guardada con éxito!');
+          setSectionsData({
+            PanelTriaje: [],
+            PanelAntecedentes: '',
+            PanelExamenFisico: '',
+            PanelSintomas: '',
+            PanelTratamientos: [],
+            PanelDiagnostico: [],
+            PanelPlanTrabajo: [],
+            PanelMedicacion: '',
+            PanelAlergias: '',
+            Impresion: '',
+            PanelAlta: '',
+          });
+          // Limpiar los datos del paciente para forzar una nueva selección
+          setPatientData({
+            name: 'Paciente No Seleccionado',
+            sex: '',
+            age: '',
+            id: '',
+          });
 
     } catch (error) {
       console.error('Error al guardar la atención médica:', error);
