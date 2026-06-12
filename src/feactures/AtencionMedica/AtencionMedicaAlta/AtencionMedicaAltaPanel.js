@@ -1,8 +1,8 @@
 // src/components/AtencionMedica/MedicalSection.js
 import React from 'react';
 import useVoiceRecognition from '../../../hooks/useVoiceRecognition'; // <-- Importa el hook extraído
-import styles from '../../../Styles'; // Importar los estilos globales
-import Cita from '../../Cita/Cita';
+//import Cita from '../../Cita/Cita';
+import styles from '../../../Styles'; // Importa los estilos globales
 
 /**
  * Componente para una sección individual de atención médica con dictado por voz.
@@ -22,7 +22,7 @@ const AtencionMedicaAltaPanel = ({ title, content, onContentChange, onModalMessa
     <div style={styles.medicalSection}>
       <h3 style={styles.sectionTitle}>{title}</h3>
       {error && <p style={styles.errorText}>{error}</p>}
-      <Cita modoCita='medico'  medicoIdPreseleccionado={1} especialidadIdPreseleccionada={0}></Cita>
+{/**       <Cita modoCita='medico'  medicoIdPreseleccionado={1} especialidadIdPreseleccionada={0}></Cita>*/}
       <div style={styles.inputContainer}>
         <textarea
           style={styles.textArea}

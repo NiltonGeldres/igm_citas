@@ -1,0 +1,645 @@
+/* ==========================================================================
+   ESTRUCTURA GENERAL Y MODO ENFOQUE (ELIMINACIÓN DE FOOTER GLOBAL)
+   ========================================================================== */
+
+/* 💡 Selector de alta prioridad para fulminar el menú basal de la app en este modo */
+body:has(.fullscreen-process-mode) .medico-footer-nav,
+body:has(.fullscreen-process-mode) footer,
+.main-layout-hce.fullscreen-process-mode ~ .medico-footer-nav,
+.main-layout-hce.fullscreen-process-mode ~ footer {
+  display: none !important;
+}
+
+.main-layout-hce {
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  top: 65px; 
+  left: 0;
+  width: 100%;
+  height: calc(100vh - 65px);
+  background-color: #f8f9fa;
+  font-family: "Inter", "Roboto", "Helvetica Neue", sans-serif;
+  z-index: 500;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+/* 💡 Corrección de flujo para el Modo Enfoque: Toma el control total de la pantalla */
+.main-layout-hce.fullscreen-process-mode {
+  position: fixed;
+  top: 65px;
+  left: 0;
+  width: 100vw;
+  height: calc(100vh - 65px); 
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+}
+
+.fixed-header-wrapper-hce {
+  position: relative; 
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 600; 
+  background-color: #f8f9fa;
+  flex-shrink: 0;
+}
+
+/* ==========================================================================
+   TARJETA DE RESUMEN DEL PACIENTE E INDICADOR CLOUD
+   ========================================================================== */
+
+.patient-summary-card-hce {
+  background-color: #ffffff;
+  margin: 12px 16px 6px 16px;
+  padding: 16px;
+  border-radius: 14px; 
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03); 
+  border: 1px solid #eef0f2;
+}
+
+.patient-title-row-hce {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.patient-avatar-inline-hce {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(0, 112, 218, 0.08);
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.patient-summary-name-hce {
+  font-size: 18px;
+  font-weight: 600;
+  color: #0070da !important;
+  margin: 0;
+  letter-spacing: -0.4px;
+  line-height: 1.2;
+}
+
+/* 💡 Sincronizador de estados en la nube (Sustituye al botón disquete de la cabecera) */
+.status-cloud-indicator {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+  background-color: #f1f5f9;
+  transition: all 0.3s ease;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+.status-cloud-indicator.sync-idle { color: #64748b; background-color: #f1f5f9; }
+.status-cloud-indicator.sync-saving { color: #0284c7; background-color: #e0f2fe; }
+.status-cloud-indicator.sync-saved { color: #16a34a; background-color: #dcfce7; }
+.status-cloud-indicator.sync-error { color: #dc2626; background-color: #fee2e2; }
+
+.spinner-sync {
+  animation: hceSpin 1.2s linear infinite;
+}
+
+@keyframes hceSpin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* --- BLOQUES DE MÉTRICAS --- */
+.patient-metrics-row-hce {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: #f8f9fa;
+  padding: 10px 14px;
+  border-radius: 10px;
+}
+
+.patient-metric-block-hce {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+  text-align: center;
+}
+
+.patient-metric-block-hce:not(:last-child) {
+  border-right: 1px solid #e9ecef;
+}
+
+.patient-metric-label-hce {
+  font-size: 11px;
+  font-weight: 500;
+  color: #8a929a;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 3px;
+}
+
+.patient-metric-value-hce {
+  font-size: 14px;
+  font-weight: 600;
+  color: #2D3748;
+}
+
+.patient-metric-value-hce.hc-highlight {
+  color: #0070da;
+  font-weight: 700;
+}
+
+/* ==========================================================================
+   MENÚ DE PESTAÑAS (SEGMENTED CONTROL)
+   ========================================================================== */
+
+.segmented-control-container-hce {
+  display: flex;
+  overflow-x: auto;
+  white-space: nowrap;
+  background-color: #f8f9fa;
+  padding: 6px 16px 12px 16px;
+  gap: 8px;
+  scrollbar-width: none; 
+}
+
+.segmented-control-container-hce::-webkit-scrollbar {
+  display: none;
+}
+
+.segmented-button-hce {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background-color: #ffffff;
+  border: 1px solid #e0e0e0;
+  padding: 8px 14px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 14px;
+  color: #333333;
+  font-weight: 400;
+  transition: all 0.15s ease;
+  font-family: inherit;
+}
+
+.segmented-button-hce.active {
+  background-color: #0070da; 
+  color: #ffffff;
+  border-color: #0070da;
+  font-weight: 500;
+  box-shadow: 0 4px 8px rgba(0, 112, 218, 0.2);
+}
+
+/* ==========================================================================
+   CONTENEDOR CENTRAL DE SCROLL INDEPENDIENTE
+   ========================================================================== */
+
+.scrollable-content-container-hce {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  min-height: 0;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 16px 16px 100px 16px;
+}
+
+/* ==========================================================================
+   BARRA DE ACCIÓN INFERIOR FIJA (CIERRE DE ATENCIÓN)
+   ========================================================================== */
+
+.fixed-bottom-action-bar-hce {
+  position: relative;
+  width: 100%;
+  background-color: #ffffff;
+  padding: 14px 16px 20px 16px; /* Margen extra inferior de seguridad en móviles */
+  border-top: 1px solid #e2e8f0;
+  box-shadow: 0 -6px 16px rgba(0, 0, 0, 0.05);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 600; 
+  flex-shrink: 0;
+  box-sizing: border-box;
+}
+
+.btn-submit-attention-enterprise {
+  background-color: #04417a; /* Azul institucional exacto */
+  color: #ffffff;
+  border: none;
+  width: 100%;
+  max-width: 450px;
+  padding: 14px;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(4, 65, 122, 0.3);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  font-family: inherit;
+}
+
+.btn-submit-attention-enterprise:hover {
+  background-color: #03325e;
+  box-shadow: 0 6px 18px rgba(4, 65, 122, 0.4);
+}
+
+.btn-submit-attention-enterprise:active {
+  transform: scale(0.97);
+}
+
+/* ==========================================================================
+   VENTANAS MODALES (DETALLES TRIAJE / ATENCIÓN)
+   ========================================================================== */
+
+.modal-overlay-hce {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(3px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2000;
+}
+
+.modal-content-hce {
+  background-color: #ffffff;
+  width: 90%;
+  max-width: 420px;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  box-sizing: border-box;
+  animation: modalSlideUp 0.2s ease-out;
+}
+
+.modal-title-hce {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1e293b;
+  margin: 0 0 20px 0;
+  letter-spacing: -0.3px;
+}
+
+.modal-form-group-hce {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.modal-label-hce {
+  font-size: 13px;
+  font-weight: 500;
+  color: #64748b;
+}
+
+.modal-input-hce, 
+.modal-select-hce {
+  width: 100%;
+  padding: 11px 14px;
+  font-size: 15px;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  background-color: #ffffff;
+  color: #334155;
+  outline: none;
+  font-family: inherit;
+  box-sizing: border-box;
+  transition: border-color 0.15s ease;
+}
+
+.modal-input-hce:focus,
+.modal-select-hce:focus {
+  border-color: #0070da;
+  box-shadow: 0 0 0 3px rgba(0, 112, 218, 0.1);
+}
+
+.modal-input-hce[readonly] {
+  background-color: #f1f5f9;
+  color: #64748b;
+  cursor: not-allowed;
+}
+
+.modal-actions-hce {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.modal-btn-cancel-hce {
+  background-color: #f1f5f9;
+  color: #64748b;
+  border: none;
+  padding: 11px 20px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.modal-btn-cancel-hce:hover {
+  background-color: #e2e8f0;
+}
+
+.modal-btn-save-hce {
+  background-color: #0070da;
+  color: #ffffff;
+  border: none;
+  padding: 11px 20px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(0, 112, 218, 0.15);
+  transition: background-color 0.15s ease;
+}
+
+.modal-btn-save-hce:hover {
+  background-color: #005cb3;
+}
+
+@keyframes modalSlideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* ==========================================================================
+   VENTANA DESPLEGABLE DE LA AGENDA (OFFCANVAS ENTERPRISE)
+   ========================================================================== */
+
+.agenda-offcanvas-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(2px);
+  z-index: 2500; /* Asegurado sobre el header azul global */
+  display: flex;
+  justify-content: flex-start; /* Se alinea a la izquierda como el modelo de referencia */
+}
+
+.agenda-offcanvas-content {
+  background-color: #ffffff;
+  width: 85%;
+  max-width: 380px;
+  height: 100%;
+  box-shadow: 4px 0 25px rgba(0, 0, 0, 0.15);
+  display: flex;
+  flex-direction: column;
+  animation: slideInLeft 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  box-sizing: border-box;
+}
+
+.agenda-offcanvas-header {
+  padding: 16px;
+  border-bottom: 1px solid #e2e8f0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #f8f9fa;
+}
+
+.agenda-offcanvas-header h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.close-offcanvas-btn {
+  background: none;
+  border: none;
+  font-size: 20px;
+  color: #64748b;
+  cursor: pointer;
+  padding: 4px;
+}
+
+/* Área interna con scroll independiente para la Agenda */
+.agenda-offcanvas-scroll-zone {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px;
+  box-sizing: border-box;
+}
+
+/* Botones selectores de control */
+.btn-change-patient-trigger {
+  background-color: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #334155;
+  cursor: pointer;
+  margin-left: auto;
+  transition: background-color 0.15s;
+}
+
+.btn-change-patient-trigger:hover {
+  background-color: #e2e8f0;
+}
+
+.btn-open-agenda-main {
+  background-color: #0070da;
+  color: #ffffff;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 10px;
+}
+
+.empty-selection-state {
+  text-align: center;
+  padding: 24px;
+}
+
+@keyframes slideInLeft {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(0); }
+}
+
+
+/* ==========================================================================
+   DISEÑO DE TABS CLÍNICOS UNIFICADOS
+   ========================================================================== */
+
+.hce-tabs-navigation-container {
+  background-color: #ffffff;
+  border-bottom: 1px solid #e2e8f0;
+  padding: 0 16px;
+  width: 100%;
+  box-sizing: border-box;
+  flex-shrink: 0;
+}
+
+.hce-tabs-track {
+  display: flex;
+  overflow-x: auto;
+  white-space: nowrap;
+  gap: 0px; /* Remueve espacios para simular barra médica unificada */
+  scrollbar-width: none; 
+}
+
+.hce-tabs-track::-webkit-scrollbar {
+  display: none;
+}
+
+.hce-tab-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: none;
+  border: none;
+  border-bottom: 3px solid transparent; /* Línea de activación */
+  padding: 14px 20px;
+  cursor: pointer;
+  font-size: 14px;
+  color: #64748b;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  font-family: inherit;
+  position: relative;
+}
+
+.hce-tab-item:hover {
+  color: #0070da;
+  background-color: #f8fafc;
+}
+
+.hce-tab-item.is-active {
+  color: #0070da;
+  border-bottom-color: #0070da; /* Resalta con la línea azul */
+  font-weight: 600;
+  background-color: rgba(0, 112, 218, 0.03);
+}
+
+.hce-tab-icon {
+  flex-shrink: 0;
+  transition: transform 0.2s ease;
+}
+
+.hce-tab-item.is-active .hce-tab-icon {
+  transform: scale(1.05);
+}
+
+/* ==========================================================================
+   CONTENEDOR CENTRAL DE SCROLL INDEPENDIENTE
+   ========================================================================== */
+
+.scrollable-content-container-hce {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  min-height: 0;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 16px 16px 85px 16px; /* Padding extra abajo para que el contenido no tape el FAB */
+}
+
+/* ==========================================================================
+   BOTÓN FLOTANTE DE GUARDADO FIJO (FAB)
+   ========================================================================== */
+
+.hce-floating-action-button {
+  position: fixed;
+  bottom: 90px; /* 💡 Elevado de 24px a 90px para superar la barra de navegación inferior */
+  right: 24px;
+  width: 60px;
+  height: 60px;
+  background-color: #04417a; /* Azul Institucional */
+  border-radius: 50%;
+  border: none;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  /* Sombra más profunda para que flote claramente sobre el fondo y los inputs */
+  box-shadow: 0 4px 20px rgba(4, 65, 122, 0.45), 0 2px 8px rgba(0, 0, 0, 0.15);
+  cursor: pointer;
+  z-index: 9999; /* Máxima prioridad sobre cualquier componente o menú */
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.hce-floating-action-button:hover {
+  background-color: #03325e;
+  transform: scale(1.08) translateY(-2px);
+  box-shadow: 0 6px 20px rgba(4, 65, 122, 0.5);
+}
+
+.hce-floating-action-button:active {
+transform: scale(0.94) translateY(0);
+}
+
+/* Tooltip opcional descriptivo al mantener el mouse encima */
+.fab-tooltip {
+  position: absolute;
+  right: 72px;
+  background-color: #1e293b;
+  color: #ffffff;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+
+.hce-floating-action-button:hover .fab-tooltip {
+  opacity: 1;
+}
+
+/* Sincronización visual refinada */
+.status-cloud-indicator {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  background-color: #f1f5f9;
+  margin-left: auto;
+}
+.status-cloud-indicator.sync-saved { color: #16a34a; background-color: #dcfce7; }
+.status-cloud-indicator.sync-saving { color: #0284c7; background-color: #e0f2fe; }
+
+.spinner-sync {
+  animation: hceSpin 1.2s linear infinite;
+}
+@keyframes hceSpin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+
+

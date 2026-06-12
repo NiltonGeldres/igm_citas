@@ -1,36 +1,51 @@
-
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Thermometer, Stethoscope, Lightbulb, Microscope, Pill, CheckCircle, PenTool } from 'lucide-react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { 
+  Thermometer, Stethoscope, Lightbulb, Microscope, Pill, 
+  CheckCircle, PenTool, User, Cloud, RefreshCw, Calendar, Save 
+} from 'lucide-react';
 import MessageModal from './common/MessageModal';
-import AtencionMedicaService from "./AtencionMedicaService"
+import AtencionMedicaService from "./AtencionMedicaService";
+import { useDebounceSave } from './useDebounceSave'; 
 
-//import AtencionMedicaService from 'AtencionMedicaService';
+import { AgendaPage } from '../../apps/medicos-app/pages/AgendaPage';
+
 import AtencionMedicaMedicamentoPanel from './AtencionMedicaMedicamento/AtencionMedicaMedicamentoPanel';
-import AtencionMedicaAltaPanel from './AtencionMedicaAlta/AtencionMedicaAltaPanel'; // Usado para Alta y Alergias
+import AtencionMedicaAltaPanel from './AtencionMedicaAlta/AtencionMedicaAltaPanel'; 
 import AtencionMedicaAntecedentePanel from './AtencionMedicaAntecedente/AtencionMedicaAntecedentePanel';
 import AtencionMedicaExamenFisicoPanel from './AtencionMedicaExamenFisico/AtencionMedicaExamenFisicoPanel';
 import AtencionMedicaSintomaPanel from './AtencionMedicaSintoma/AtencionMedicaSintomaPanel';
 import AtencionMedicaDiagnostico from './AtencionMedicaDiagnostico/AtencionMedicaDiagnostico';
 import AtencionMedicaExamen from './AtencionMedicaExamen/AtencionMedicaExamen';
-import AtencionMedicaPacienteCitadoSeleccionar from '../AtencionMedica/AtencionMedicaPacienteDatos/AtencionMedicaPacienteCitadoSeleccionar';
-import AtencionMedicaTriaje from './AtencionMedicaTriaje/AtencionMedicaTriajePanel'; // NUEVO: Importa el componente de Triaje
-import Styles from '../../Styles';
-import { v4 as uuidv4 } from 'uuid';
+import AtencionMedicaTriaje from './AtencionMedicaTriaje/AtencionMedicaTriajePanel'; 
 import FirmaPeruPanel from '../../shared/components/FirmaPeru/FirmaPeruPanel';
+
+import './styles/medico-app-hce.css';
+import { formatCapitalize } from './utils/textFormatter';
 
 function AtencionMedicaForm() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [activeTab, setActiveTab] = useState('triaje');
-  const [patientData, setPatientData] = useState({
-    name: 'Paciente No Seleccionado',
-    sex: '',
-    age: '',
-    id: '',
+  const [modalMessage, setModalMessage] = useState('');
+  const [isAgendaOpen, setIsAgendaOpen] = useState(false);
+
+  const [patientData, setPatientData] = useState(() => {
+    if (location.state?.paciente) {
+      const p = location.state.paciente;
+      return {
+        name: p.nombres,
+        sex: p.sexo,
+        age: p.edad ? `${p.edad} años` : 'Edad',
+        id: p.id,
+        hc: p.numHistoria || p.id,
+      };
+    }
+    return { name: '', sex: '', age: 'Edad', id: '', hc: '' };
   });
-  
+
   const [sectionsData, setSectionsData] = useState({
-    PanelTriaje: [], // Ahora manejará una lista de objetos de triaje
+    PanelTriaje: [], 
     PanelAntecedentes: '',
     PanelExamenFisico: '',
     PanelSintomas: '',
@@ -42,30 +57,46 @@ function AtencionMedicaForm() {
     Impresion: '',
     PanelAlta: '',
   });
-  // Estado para el modal de mensajes general
-  const [modalMessage, setModalMessage] = useState('');
-  // Estado para controlar la visibilidad del modal de selección de paciente
-  const [mostrarSeleccionarPacienteModal, setMostrarSeleccionarPacienteModal] = useState(false);
-  /**
-   * Muestra un mensaje en el modal.
-   * @param {string} message - El mensaje a mostrar.
-   */
+
+  const fullMedicalRecord = {
+    patient: patientData,
+    attentionDetails: sectionsData,
+    timestamp: new Date().toISOString(),
+  };
+
+  const ejecutarPersistenciaAutomatica = async (record) => {
+    if (patientData.id) {
+      await AtencionMedicaService.guardarRegistro(record);
+    }
+  };
+
+  const estadoGuardado = useDebounceSave(fullMedicalRecord, ejecutarPersistenciaAutomatica, 2000);
+
+  useEffect(() => {
+    if (!patientData.id) {
+      setIsAgendaOpen(true);
+    }
+  }, [patientData.id]);
+
+  const handleSelectPaciente = (pacienteLimpio) => {
+    setPatientData({
+      name: pacienteLimpio.nombres || `${pacienteLimpio.apellidoPaterno} ${pacienteLimpio.apellidoMaterno || ''}`,
+      sex: pacienteLimpio.sexo,
+      age: pacienteLimpio.edad ? `${pacienteLimpio.edad} años` : 'Edad',
+      id: pacienteLimpio.id,
+      hc: pacienteLimpio.numHistoria || pacienteLimpio.id,
+    });
+    setIsAgendaOpen(false);
+  };
+
   const showModalMessage = (message) => {
     setModalMessage(message);
   };
 
-  /**
-   * Cierra el modal de mensajes.
-   */
   const closeModal = () => {
     setModalMessage('');
   };
 
-  /**
-   * Actualiza el contenido de una sección médica específica.
-   * @param {string} sectionName - El nombre de la sección a actualizar.
-   * @param {string|Array<object>} newContent - El nuevo contenido para la sección (puede ser texto o una lista).
-   */
   const handleSectionContentChange = (sectionName, newContent) => {
     setSectionsData(prev => ({
       ...prev,
@@ -73,277 +104,258 @@ function AtencionMedicaForm() {
     }));
   };
 
-  /**
-   * Maneja la selección de un paciente desde el modal.
-   * @param {Object} selectedPatient - Los datos del paciente seleccionado.
-   */
-  const handleSelectPatient = (selectedPatient) => {
-    setPatientData({
-      name: selectedPatient.nombre,
-      sex: selectedPatient.sexo,
-      age: selectedPatient.edad,
-      id: selectedPatient.id,
-    });
-    showModalMessage(`Paciente "${selectedPatient.nombre}" seleccionado.`);
-    // Opcional: Limpiar secciones al seleccionar un nuevo paciente si es un nuevo registro
-    // setSectionsData({ ...valores iniciales... });
-  };
-
-  
-  // *Envía los datos completos de la atención médica a un web service.
-  const guardarAtencionMedica = async () => {
-    // Validar que se haya seleccionado un paciente
-    if (patientData.id === '') {
-      showModalMessage('Por favor, selecciona un paciente antes de guardar la atención médica.');
+  const finalizarAtencionMedicaTotal = async () => {
+    if (!patientData.id) {
+      showModalMessage('Por favor, selecciona un paciente antes de cerrar la atención.');
       return;
     }
 
-    const fullMedicalRecord = {
-      patient: patientData,
-      attentionDetails: sectionsData,
-      timestamp: new Date().toISOString(),
-    };
-
-    console.log('Datos a enviar al web service:', fullMedicalRecord);
-    showModalMessage('Guardando atención médica...');
+    showModalMessage('Procesando el alta y cierre clínico...');
     try {
-        // === Llama a la Capa de Servicios ===
-        const response = await AtencionMedicaService.guardarRegistro(fullMedicalRecord);
-        // Manejo de respuesta exitosa de Axios
-        console.log('Atención médica guardada con éxito:', response.data);
-        showModalMessage('¡Atención médica guardada con éxito!');
-          setSectionsData({
-            PanelTriaje: [],
-            PanelAntecedentes: '',
-            PanelExamenFisico: '',
-            PanelSintomas: '',
-            PanelTratamientos: [],
-            PanelDiagnostico: [],
-            PanelPlanTrabajo: [],
-            PanelMedicacion: '',
-            PanelAlergias: '',
-            Impresion: '',
-            PanelAlta: '',
-          });
-          // Limpiar los datos del paciente para forzar una nueva selección
-          setPatientData({
-            name: 'Paciente No Seleccionado',
-            sex: '',
-            age: '',
-            id: '',
-          });
-
+        await AtencionMedicaService.guardarRegistro(fullMedicalRecord);
+        showModalMessage('¡Atención médica finalizada con éxito!');
+        
+        setPatientData({ name: '', sex: '', age: 'Edad', id: '', hc: '' });
+        setSectionsData({
+          PanelTriaje: [], PanelAntecedentes: '', PanelExamenFisico: '', PanelSintomas: '',
+          PanelTratamientos: [], PanelDiagnostico: [], PanelPlanTrabajo: [], PanelMedicacion: '',
+          PanelAlergias: '', Impresion: '', PanelAlta: ''
+        });
+        
+        setIsAgendaOpen(true);
     } catch (error) {
-      console.error('Error al guardar la atención médica:', error);
-      showModalMessage(`Error al guardar la atención médica: ${error.message}. Por favor, inténtalo de nuevo.`);
+        console.error(error);
+        showModalMessage(`Error al cerrar ciclo: ${error.message}`);
     }
   };
 
-  // Prepara los datos completos del registro médico para el panel de firma
-  // Esto asegura que el panel de firma tenga acceso a toda la información.
-  const fullMedicalRecordForSignature = {
-    patient: patientData,
-    attentionDetails: sectionsData,
-  };
+  const menuItems = [
+    { id: 'triaje', label: 'Triaje', icon: Thermometer },
+    { id: 'diseaseAndExam', label: 'Enfermedad', icon: Stethoscope },
+    { id: 'diagnosis', label: 'Diagnóstico', icon: Lightbulb },
+    { id: 'exams', label: 'Exámenes', icon: Microscope },
+    { id: 'medication', label: 'Medicación', icon: Pill },
+    { id: 'discharge', label: 'Alta', icon: CheckCircle },
+    { id: 'signature', label: 'Firma', icon: PenTool },
+  ];
 
   return (
-    // El contenedor principal de la aplicación que permite el scroll interno
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', width: '100%' }}>
-      {/* CABECERA DE LA PÁGINA Y RESUMEN DEL PACIENTE - FIJOS */}
-      <div style={Styles.pageHeaderContainer}>
-        <div style={Styles.pageHeader}>
-          <button style={Styles.pageHeaderBackButton} onClick={() => navigate(-1)}>
-            &larr; {/* Flecha hacia atrás */}
-          </button>
-          <h1 style={Styles.pageHeaderTitle}>REGISTRO MÉDICO</h1>
-        </div>
-        {/* RESUMEN DEL PACIENTE */}
-        <div
-          style={Styles.patientSummaryCard}
-          onClick={() => setMostrarSeleccionarPacienteModal(true)} // Abre el modal al hacer clic en la tarjeta
-          title="Haz clic para seleccionar un paciente"
-        >
-          <h2 style={Styles.patientSummaryName}>{patientData.name}</h2>
-          {/* Renderizado condicional para los detalles del paciente */}
-          {patientData.id ? (
-            <p style={patientData.sex === 'Femenino' ? Styles.patientSummaryDetails : Styles.patientSummaryDetails}>
-              {patientData.sex}{patientData.age ? `, ${patientData.age} años` : ''} | ID: {patientData.id}
-            </p>
-          ) : (
-            // Usamos Styles.patientSummaryAlertColor para el mensaje, consistente con el diseño iOS-inspired
-            <p style={{ ...Styles.patientSummaryDetails, color: Styles.patientSummaryAlertColor, fontWeight: 'bold', marginTop: '5px' }}>
-              (Haz clic aquí para seleccionar un paciente)
-            </p>
-          )}
-        </div>
-      </div>
+    <div className="main-layout-hce fullscreen-process-mode">
+          
+          {/* 1. SECCIÓN FIJA SUPERIOR */}
+          <div className="fixed-header-wrapper-hce">
+              <div className="patient-summary-card-hce">
+                {patientData.id ? (
+                  <div className="patient-title-row-hce">
+                    <div className="patient-avatar-inline-hce">
+                      <User size={20} color="#0070da" strokeWidth={2.5} />
+                    </div>
+                    <h2 className="patient-summary-name-hce">
+                      {formatCapitalize(patientData.name)}
+                    </h2>
 
-      {/* CONTENIDO CENTRAL - CON SCROLL */}
-      <div style={Styles.container}>
-        <div style={Styles.sectionsContainer}>
+                    <button 
+                      type="button" 
+                      className="btn-change-patient-trigger"
+                      onClick={() => setIsAgendaOpen(true)}
+                    >
+                      <Calendar size={14} style={{ marginRight: '4px' }} />
+                      Cambiar
+                    </button>
 
-          {/* === SECCIÓN DE TRIAJE === */}
-          {activeTab === 'triaje' && (
-            <AtencionMedicaTriaje // Usando el nuevo componente de Triaje
-              content={sectionsData.PanelTriaje}
-              onContentChange={(newList) => handleSectionContentChange('PanelTriaje', newList)}
-              onModalMessage={showModalMessage}
-            />
-          )}
+                    <div className={`status-cloud-indicator sync-${estadoGuardado}`}>
+                      {estadoGuardado === 'saving' && <RefreshCw size={14} className="spinner-sync" />}
+                      {estadoGuardado === 'saved' && <Cloud size={14} className="cloud-success" />}
+                      {estadoGuardado === 'idle' && <Cloud size={14} className="cloud-idle" />}
+                      {estadoGuardado === 'error' && <Cloud size={14} className="cloud-error" />}
+                      <span className="sync-text-label">
+                        {estadoGuardado === 'saving' && 'Guardando...'}
+                        {estadoGuardado === 'saved' && 'Sincronizado'}
+                        {estadoGuardado === 'idle' && 'HCE Sincronizada'}
+                        {estadoGuardado === 'error' && 'Error de red'}
+                      </span>
+                    </div>                  
+                  </div>
+                ) : (
+                  <div className="patient-title-row-hce empty-patient-header-state">
+                    <h2 className="patient-summary-name-hce" style={{ color: '#64748b' }}>
+                      Ningún paciente seleccionado
+                    </h2>
+                    <button 
+                      type="button" 
+                      className="btn-open-agenda-main"
+                      onClick={() => setIsAgendaOpen(true)}
+                    >
+                      Cargar Lista de Citas
+                    </button>
+                  </div>
+                )}
+                
+                <div className="patient-metrics-row-hce">
+                  <div className="patient-metric-block-hce">
+                    <span className="patient-metric-label-hce">Sexo</span>
+                    <span className="patient-metric-value-hce">
+                      {patientData.sex ? formatCapitalize(patientData.sex) : 'N/A'}
+                    </span>
+                  </div>
+                  <div className="patient-metric-block-hce">
+                    <span className="patient-metric-label-hce">Edad</span>
+                    <span className="patient-metric-value-hce">
+                      {patientData.age ? patientData.age : 'Edad'}
+                    </span>
+                  </div>
+                  <div className="patient-metric-block-hce">
+                    <span className="patient-metric-label-hce">N° Historia</span>
+                    <span className="patient-metric-value-hce hc-highlight">
+                      {patientData.hc || '---'}
+                    </span>
+                  </div>
+                </div>
+              </div>
 
-          {/* === SECCIONES DE ENFERMEDAD Y EXAMEN FÍSICO === */}
-          {activeTab === 'diseaseAndExam' && (
-            <>
-              <AtencionMedicaAntecedentePanel
-                content={sectionsData.PanelAntecedentes}
-                onContentChange={(newContent) => handleSectionContentChange('PanelAntecedentes', newContent)}
-                onModalMessage={showModalMessage}
-              />
-              <AtencionMedicaExamenFisicoPanel
-                content={sectionsData.PanelExamenFisico}
-                onContentChange={(newContent) => handleSectionContentChange('PanelExamenFisico', newContent)}
-                onModalMessage={showModalMessage}
-              />
-              <AtencionMedicaSintomaPanel
-                content={sectionsData.PanelSintomas}
-                onContentChange={(newContent) => handleSectionContentChange('PanelSintomas', newContent)}
-                onModalMessage={showModalMessage}
-              />
-            </>
-          )}
+            {/* 💡 REDISEÑO: Contenedor con estructura estilo Tabs Médicos tradicionales */}
+            <div className="hce-tabs-navigation-container">
+              <div className="hce-tabs-track">
+                {menuItems.map((item) => {
+                  const IconComponent = item.icon;
+                  const isActive = activeTab === item.id;
+                  return (
+                    <button
+                      key={item.id}
+                      disabled={!patientData.id}
+                      onClick={() => setActiveTab(item.id)}
+                      className={`hce-tab-item ${isActive ? 'is-active' : ''}`}
+                      style={{ opacity: patientData.id ? 1 : 0.5 }}
+                    >
+                      <IconComponent size={16} className="hce-tab-icon" />
+                      <span className="hce-tab-text">{item.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+            
+          </div>
 
-          {/* === SECCIONES DE DIAGNÓSTICO === */}
-          {activeTab === 'diagnosis' && (
-            <AtencionMedicaDiagnostico
-              content={sectionsData.PanelDiagnostico}
-              onContentChange={(newList) => handleSectionContentChange('PanelDiagnostico', newList)}
-              onModalMessage={showModalMessage}
-            />
-          )}
+          {/* 2. ÁREA CENTRAL CON SCROLL INDEPENDIENTE */}
+          <div className="scrollable-content-container-hce">
+              {patientData.id ? (
+                <>
+                  {activeTab === 'triaje' && (
+                    <AtencionMedicaTriaje
+                      content={sectionsData.PanelTriaje}
+                      onContentChange={(newList) => handleSectionContentChange('PanelTriaje', newList)}
+                      onModalMessage={showModalMessage}
+                    />
+                  )}
 
-          {/* === SECCIONES DE EXÁMENES === */}
-          {activeTab === 'exams' && (
-            <AtencionMedicaExamen
-              content={sectionsData.PanelPlanTrabajo}
-              onContentChange={(newList) => handleSectionContentChange('PanelPlanTrabajo', newList)}
-              onModalMessage={showModalMessage}
-              diagnosticosDisponibles={sectionsData.PanelDiagnostico}
-            />
-          )}
+                  {activeTab === 'diseaseAndExam' && (
+                    <>
+                      <AtencionMedicaAntecedentePanel
+                        content={sectionsData.PanelAntecedentes}
+                        onContentChange={(newContent) => handleSectionContentChange('PanelAntecedentes', newContent)}
+                        onModalMessage={showModalMessage}
+                      />
+                      <AtencionMedicaExamenFisicoPanel
+                        content={sectionsData.PanelExamenFisico}
+                        onContentChange={(newContent) => handleSectionContentChange('PanelExamenFisico', newContent)}
+                        onModalMessage={showModalMessage}
+                      />
+                      <AtencionMedicaSintomaPanel
+                        content={sectionsData.PanelSintomas}
+                        onContentChange={(newContent) => handleSectionContentChange('PanelSintomas', newContent)}
+                        onModalMessage={showModalMessage}
+                      />
+                    </>
+                  )}
 
-          {/* === SECCIONES DE MEDICACIÓN === */}
-          {activeTab === 'medication' && (
-            <AtencionMedicaMedicamentoPanel
-              content={sectionsData.PanelTratamientos}
-              onContentChange={(newList) => handleSectionContentChange('PanelTratamientos', newList)}
-              onModalMessage={showModalMessage}
-            />
-          )}
+                  {activeTab === 'diagnosis' && (
+                    <AtencionMedicaDiagnostico
+                      content={sectionsData.PanelDiagnostico}
+                      onContentChange={(newList) => handleSectionContentChange('PanelDiagnostico', newList)}
+                      onModalMessage={showModalMessage}
+                    />
+                  )}
 
-          {/* Panel de Alergias (notas generales) */}
-          {sectionsData.PanelAlergias && (
-            <AtencionMedicaAltaPanel
-              title="Panel Alergias (Notas Generales)"
-              content={sectionsData.PanelAlergias}
-              onContentChange={(newContent) => handleSectionContentChange('PanelAlergias', newContent)}
-              onModalMessage={showModalMessage}
-            />
-          )}
+                  {activeTab === 'exams' && (
+                    <AtencionMedicaExamen
+                      content={sectionsData.PanelPlanTrabajo}
+                      onContentChange={(newList) => handleSectionContentChange('PanelPlanTrabajo', newList)}
+                      onModalMessage={showModalMessage}
+                      diagnosticosDisponibles={sectionsData.PanelDiagnostico}
+                    />
+                  )}
 
-          {/* === SECCIONES DE ALTA === */}
-          {activeTab === 'discharge' && (
-            <>
-              <AtencionMedicaAltaPanel
-                title="Panel Alta"
-                content={sectionsData.PanelAlta}
-                onContentChange={(newContent) => handleSectionContentChange('PanelAlta', newContent)}
-                onModalMessage={showModalMessage}
-              />
-            </>
-          )}
+                  {activeTab === 'medication' && (
+                    <AtencionMedicaMedicamentoPanel
+                      content={sectionsData.PanelTratamientos}
+                      onContentChange={(newList) => handleSectionContentChange('PanelTratamientos', newList)}
+                      onModalMessage={showModalMessage}
+                    />
+                  )}
 
-          {/* === SECCIÓN DE FIRMA DIGITAL CON FIRMA PERÚ === */}
-          {activeTab === 'signature' && (
-            <FirmaPeruPanel // Usamos el nuevo componente aquí para la firma con Firma Perú
-              medicalRecordData={fullMedicalRecordForSignature}
-              onModalMessage={showModalMessage}
-            />
-          )}
+                  {activeTab === 'discharge' && (
+                    <AtencionMedicaAltaPanel
+                      title="Panel Alta"
+                      content={sectionsData.PanelAlta}
+                      onContentChange={(newContent) => handleSectionContentChange('PanelAlta', newContent)}
+                      onModalMessage={showModalMessage}
+                    />
+                  )}
 
-          {/* Botón para guardar la atención médica (oculto en la pestaña de firma) */}
-          {activeTab !== 'signature' && (
-            <button
-              onClick={guardarAtencionMedica}
-              style={Styles.saveButton}
+                  {activeTab === 'signature' && (
+                    <FirmaPeruPanel
+                      medicalRecordData={{ patient: patientData, attentionDetails: sectionsData }}
+                      onModalMessage={showModalMessage}
+                    />
+                  )}
+                </>
+              ) : (
+                <div className="hce-waiting-placeholder">
+                  <p>Por favor, despliegue la agenda para cargar la atención del paciente asignado.</p>
+                </div>
+              )}
+          </div>
+
+          {/* 💡 SOLUCIÓN: Botón Guardar Flotante Fijo estilo FAB (Siempre visible) */}
+          {activeTab !== 'signature' && patientData.id && (
+            <button 
+              type="button"
+              onClick={finalizarAtencionMedicaTotal}
+              className="hce-floating-action-button"
+              title="Finalizar y Guardar Atención"
+              aria-label="Finalizar y Guardar Atención"
             >
-              Guardar
+              <Save size={28} color="#ffffff" strokeWidth={2} />
+              <span className="fab-tooltip">Finalizar Atención</span>
             </button>
           )}
-        </div>
-      </div>
 
-      {/* BARRA INFERIOR FIJA - CON ICONOS LUCIDE REACT */}
-      <div style={Styles.fixedBottomBar}>
-        <button
-          style={activeTab === 'triaje' ? Styles.fixedBottomBarButtonActive : Styles.fixedBottomBarButton}
-          onClick={() => setActiveTab('triaje')}
-        >
-          <Thermometer size={Styles.fixedBottomBarButtonIcon.fontSize} style={activeTab === 'triaje' ? Styles.fixedBottomBarButtonIconActive : Styles.fixedBottomBarButtonIcon} />
-          <span style={activeTab === 'triaje' ? Styles.fixedBottomBarTextActive : Styles.fixedBottomBarText}>Triaje</span>
-        </button>
-        <button
-          style={activeTab === 'diseaseAndExam' ? Styles.fixedBottomBarButtonActive : Styles.fixedBottomBarButton}
-          onClick={() => setActiveTab('diseaseAndExam')}
-        >
-          <Stethoscope size={Styles.fixedBottomBarButtonIcon.fontSize} style={activeTab === 'diseaseAndExam' ? Styles.fixedBottomBarButtonIconActive : Styles.fixedBottomBarButtonIcon} />
-          <span style={activeTab === 'diseaseAndExam' ? Styles.fixedBottomBarTextActive : Styles.fixedBottomBarText}>Enfermedad</span>
-        </button>
-        <button
-          style={activeTab === 'diagnosis' ? Styles.fixedBottomBarButtonActive : Styles.fixedBottomBarButton}
-          onClick={() => setActiveTab('diagnosis')}
-        >
-          <Lightbulb size={Styles.fixedBottomBarButtonIcon.fontSize} style={activeTab === 'diagnosis' ? Styles.fixedBottomBarButtonIconActive : Styles.fixedBottomBarButtonIcon} />
-          <span style={activeTab === 'diagnosis' ? Styles.fixedBottomBarTextActive : Styles.fixedBottomBarText}>Diagnóstico</span>
-        </button>
-        <button
-          style={activeTab === 'exams' ? Styles.fixedBottomBarButtonActive : Styles.fixedBottomBarButton}
-          onClick={() => setActiveTab('exams')}
-        >
-          <Microscope size={Styles.fixedBottomBarButtonIcon.fontSize} style={activeTab === 'exams' ? Styles.fixedBottomBarButtonIconActive : Styles.fixedBottomBarButtonIcon} />
-          <span style={activeTab === 'exams' ? Styles.fixedBottomBarTextActive : Styles.fixedBottomBarText}>Exámenes</span>
-        </button>
-        <button
-          style={activeTab === 'medication' ? Styles.fixedBottomBarButtonActive : Styles.fixedBottomBarButton}
-          onClick={() => setActiveTab('medication')}
-        >
-          <Pill size={Styles.fixedBottomBarButtonIcon.fontSize} style={activeTab === 'medication' ? Styles.fixedBottomBarButtonIconActive : Styles.fixedBottomBarButtonIcon} />
-          <span style={activeTab === 'medication' ? Styles.fixedBottomBarTextActive : Styles.fixedBottomBarText}>Medicacion</span>
-        </button>
-        <button
-          style={activeTab === 'discharge' ? Styles.fixedBottomBarButtonActive : Styles.fixedBottomBarButton}
-          onClick={() => setActiveTab('discharge')}
-        >
-          <CheckCircle size={Styles.fixedBottomBarButtonIcon.fontSize} style={activeTab === 'discharge' ? Styles.fixedBottomBarButtonIconActive : Styles.fixedBottomBarButtonIcon} />
-          <span style={activeTab === 'discharge' ? Styles.fixedBottomBarTextActive : Styles.fixedBottomBarText}>Alta</span>
-        </button>
-        <button
-          style={activeTab === 'signature' ? Styles.fixedBottomBarButtonActive : Styles.fixedBottomBarButton}
-          onClick={() => setActiveTab('signature')}
-        >
-          <PenTool size={Styles.fixedBottomBarButtonIcon.fontSize} style={activeTab === 'signature' ? Styles.fixedBottomBarButtonIconActive : Styles.fixedBottomBarButtonIcon} />
-          <span style={activeTab === 'signature' ? Styles.fixedBottomBarTextActive : Styles.fixedBottomBarText}>Firma</span>
-        </button>
-      </div>
+          {/* 4. PANEL LATERAL DESPLEGABLE */}
+          {isAgendaOpen && (
+            <div className="agenda-offcanvas-overlay">
+              <div className="agenda-offcanvas-content">
+                <div className="agenda-offcanvas-header">
+                  <h3>Lista de Citas Médicas</h3>
+                  <button 
+                    type="button" 
+                    className="close-offcanvas-btn" 
+                    onClick={() => {
+                      if (patientData.id) setIsAgendaOpen(false);
+                      else showModalMessage("Debe seleccionar un paciente para comenzar.");
+                    }}
+                  >
+                    ✕
+                  </button>
+                </div>
+                <div className="agenda-offcanvas-scroll-zone">
+                  <AgendaPage onSelectPaciente={handleSelectPaciente} />
+                </div>
+              </div>
+            </div>
+          )}
 
-      {/* Uso del componente MessageModal (para mensajes generales) */}
-      <MessageModal message={modalMessage} onClose={closeModal} />
-
-      {/* Modal de selección de paciente */}
-      <AtencionMedicaPacienteCitadoSeleccionar
-        isOpen={mostrarSeleccionarPacienteModal}
-        onClose={() => setMostrarSeleccionarPacienteModal(false)}
-        onSelectPatient={handleSelectPatient}
-      />
+        <MessageModal message={modalMessage} onClose={closeModal} />
     </div>
   );
 }

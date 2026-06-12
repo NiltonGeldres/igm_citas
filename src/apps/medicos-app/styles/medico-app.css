@@ -469,3 +469,31 @@
     margin-left: -4px;
   }
 }
+
+/* ==========================================================================
+   AJUSTES DE INTEGRACIÓN COMPACTA (AGENDA DENTRO DE OFCANVAS)
+   ========================================================================== */
+
+.agenda-compact-embedded {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Forzar que las tarjetas de la agenda adopten un tamaño idóneo dentro del panel lateral */
+.agenda-offcanvas-scroll-zone .medico-main-content {
+  padding: 4px 0 !important;
+  margin: 0 !important;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Si tu PacienteCard tiene márgenes fijos muy grandes, los neutralizamos en el Offcanvas */
+.agenda-offcanvas-scroll-zone .patient-card, 
+.agenda-offcanvas-scroll-zone [className*="card"] { 
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  width: 100% !important;
+  box-sizing: border-box;
+}
