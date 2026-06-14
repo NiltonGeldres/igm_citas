@@ -7,7 +7,6 @@ import {
 import MessageModal from './common/MessageModal';
 import AtencionMedicaService from "./AtencionMedicaService";
 import { useDebounceSave } from './useDebounceSave'; 
-
 import { AgendaPage } from '../../apps/medicos-app/pages/AgendaPage';
 
 import AtencionMedicaMedicamentoPanel from './AtencionMedicaMedicamento/AtencionMedicaMedicamentoPanel';
@@ -17,11 +16,11 @@ import AtencionMedicaExamenFisicoPanel from './AtencionMedicaExamenFisico/Atenci
 import AtencionMedicaSintomaPanel from './AtencionMedicaSintoma/AtencionMedicaSintomaPanel';
 import AtencionMedicaDiagnostico from './AtencionMedicaDiagnostico/AtencionMedicaDiagnostico';
 import AtencionMedicaExamen from './AtencionMedicaExamen/AtencionMedicaExamen';
-import AtencionMedicaTriaje from './AtencionMedicaTriaje/AtencionMedicaTriajePanel'; 
+import AtencionMedicaTriajePanel from './AtencionMedicaTriaje/AtencionMedicaTriajePanel'; 
 import FirmaPeruPanel from '../../shared/components/FirmaPeru/FirmaPeruPanel';
-
 import './styles/medico-app-hce.css';
 import { formatCapitalize } from './utils/textFormatter';
+import { AtencionMedicaTriajeService } from './AtencionMedicaTriaje/AtencionMedicaTriajeService';
 
 function AtencionMedicaForm() {
   const navigate = useNavigate();
@@ -29,6 +28,10 @@ function AtencionMedicaForm() {
   const [activeTab, setActiveTab] = useState('triaje');
   const [modalMessage, setModalMessage] = useState('');
   const [isAgendaOpen, setIsAgendaOpen] = useState(false);
+
+  // ------------ TRIAJE Y DATOS DE PACIENTE UNIFICADOS ------------     
+  const [pacienteActivo, setPacienteActivo] = useState(null); 
+  const [cargandoTriaje, setCargandoTriaje] = useState(false);
 
   const [patientData, setPatientData] = useState(() => {
     if (location.state?.paciente) {
@@ -39,13 +42,14 @@ function AtencionMedicaForm() {
         age: p.edad ? `${p.edad} años` : 'Edad',
         id: p.id,
         hc: p.numHistoria || p.id,
+        accionAgenda: location.state.accionAgenda || 'ATENDER',
+        triaje: [] // 💡 Ahora el triaje nace inicializado dentro de patientData
       };
     }
-    return { name: '', sex: '', age: 'Edad', id: '', hc: '' };
+    return { name: '', sex: '', age: 'Edad', id: '', hc: '', accionAgenda: 'ATENDER', triaje: [] };
   });
 
   const [sectionsData, setSectionsData] = useState({
-    PanelTriaje: [], 
     PanelAntecedentes: '',
     PanelExamenFisico: '',
     PanelSintomas: '',
@@ -58,12 +62,66 @@ function AtencionMedicaForm() {
     PanelAlta: '',
   });
 
-  const fullMedicalRecord = {
-    patient: patientData,
-    attentionDetails: sectionsData,
-    timestamp: new Date().toISOString(),
+  // Sincronizar el paciente activo inicial si viene desde la navegación router
+  useEffect(() => {
+    if (location.state?.paciente) {
+      setPacienteActivo(location.state.paciente);
+    }
+  }, [location.state]);
+
+  // 📡 GATILLO DE NEGOCIO EFICIENTE: Sincroniza la descarga directo a patientData.triaje
+  useEffect(() => {
+    if (!patientData?.id) return;
+
+    const cargarDatosTriajeDelPaciente = async () => {
+      try {
+        setCargandoTriaje(true);
+        console.log(`📡 Consumiendo Triaje para Paciente ID: ${patientData.id} - Acción: ${patientData.accionAgenda}`);
+        
+        const signosVitalesProcesados = await AtencionMedicaTriajeService.obtenerTriajePorPaciente(
+          patientData.id,
+          patientData.accionAgenda
+        );
+
+        // 💡 Inyección inmediata de la respuesta de la API dentro del nodo triaje de patientData
+        setPatientData(prev => ({
+          ...prev,
+          triaje: signosVitalesProcesados
+        }));
+
+        console.log(`📊 [Sincronización Directa] Signos vitales incrustados en patientData con éxito.`);
+      } catch (error) {
+        console.error("❌ Falló la sincronización del componente de triajes:", error);
+      } finally {
+        setCargandoTriaje(false);
+      }
+    };
+
+    cargarDatosTriajeDelPaciente();
+  }, [patientData?.id, patientData?.accionAgenda]);
+
+  // 💡 MANEJADOR MODIFICADO: Guarda los cambios reactivos de los inputs directo en patientData.triaje
+  const handleTriajeChange = (nuevosSignos) => {
+    if (!patientData.id) return;
+    
+    setPatientData(prev => ({
+      ...prev,
+      triaje: nuevosSignos
+    }));
   };
 
+  // ---------------------------------------------------------------------     
+
+  // ESTRUCTURA CONSOLIDADA FINAL PARA LA PERSISTENCIA AUTOMÁTICA DE LA API
+const fullMedicalRecord = {
+  patient: patientData, 
+  attentionDetails: {
+    ...sectionsData,
+    // Aseguramos que viaje un array limpio listo para JPA/Hibernate
+    PanelDiagnostico: Array.isArray(sectionsData.PanelDiagnostico) ? sectionsData.PanelDiagnostico : []
+  },
+  timestamp: new Date().toISOString(),
+};
   const ejecutarPersistenciaAutomatica = async (record) => {
     if (patientData.id) {
       await AtencionMedicaService.guardarRegistro(record);
@@ -78,14 +136,27 @@ function AtencionMedicaForm() {
     }
   }, [patientData.id]);
 
-  const handleSelectPaciente = (pacienteLimpio) => {
+  const handleSelectPaciente = (pacienteSeleccionado) => {
+    if (!pacienteSeleccionado) return;
+
+    setPacienteActivo(pacienteSeleccionado);
+    const accionGatillada = 
+      pacienteSeleccionado.accionAgenda || 
+      (pacienteSeleccionado.atendido === true ? 'ACTUALIZAR' : 'ATENDER');
+
+    console.log(`📥 [Formulario] Capturando estado del paciente: ${pacienteSeleccionado.nombres} -> Estado: ${accionGatillada}`);
+
     setPatientData({
-      name: pacienteLimpio.nombres || `${pacienteLimpio.apellidoPaterno} ${pacienteLimpio.apellidoMaterno || ''}`,
-      sex: pacienteLimpio.sexo,
-      age: pacienteLimpio.edad ? `${pacienteLimpio.edad} años` : 'Edad',
-      id: pacienteLimpio.id,
-      hc: pacienteLimpio.numHistoria || pacienteLimpio.id,
+      name: pacienteSeleccionado.nombres || 
+            `${pacienteSeleccionado.apellidoPaterno || ''} ${pacienteSeleccionado.apellidoMaterno || ''}`.trim(),
+      sex: pacienteSeleccionado.sexo || 'N/A',
+      age: pacienteSeleccionado.edad ? `${pacienteSeleccionado.edad} años` : 'Edad',
+      id: pacienteSeleccionado.id,
+      hc: pacienteSeleccionado.idCita || pacienteSeleccionado.numHistoria || pacienteSeleccionado.id,
+      accionAgenda: accionGatillada,
+      triaje: [] // Inicializa vacío hasta que el useEffect responda con los datos del backend
     });
+
     setIsAgendaOpen(false);
   };
 
@@ -104,30 +175,40 @@ function AtencionMedicaForm() {
     }));
   };
 
-  const finalizarAtencionMedicaTotal = async () => {
-    if (!patientData.id) {
-      showModalMessage('Por favor, selecciona un paciente antes de cerrar la atención.');
-      return;
-    }
+const finalizarAtencionMedicaTotal = async () => {
+  if (!patientData.id) {
+    showModalMessage('Por favor, selecciona un paciente antes de cerrar la atención.');
+    return;
+  }
 
-    showModalMessage('Procesando el alta y cierre clínico...');
-    try {
-        await AtencionMedicaService.guardarRegistro(fullMedicalRecord);
-        showModalMessage('¡Atención médica finalizada con éxito!');
-        
-        setPatientData({ name: '', sex: '', age: 'Edad', id: '', hc: '' });
-        setSectionsData({
-          PanelTriaje: [], PanelAntecedentes: '', PanelExamenFisico: '', PanelSintomas: '',
-          PanelTratamientos: [], PanelDiagnostico: [], PanelPlanTrabajo: [], PanelMedicacion: '',
-          PanelAlergias: '', Impresion: '', PanelAlta: ''
-        });
-        
-        setIsAgendaOpen(true);
-    } catch (error) {
-        console.error(error);
-        showModalMessage(`Error al cerrar ciclo: ${error.message}`);
-    }
-  };
+  showModalMessage('Procesando el alta y cierre clínico...');
+  try {
+    await AtencionMedicaService.guardarRegistro(fullMedicalRecord);
+    showModalMessage('¡Atención médica finalizada con éxito!');
+    
+    setPacienteActivo(null);
+    setPatientData({ name: '', sex: '', age: 'Edad', id: '', hc: '', accionAgenda: 'ATENDER', triaje: [] });
+    
+    // 🌟 Reseteo clínico corregido con array limpio
+    setSectionsData({
+      PanelAntecedentes: '', 
+      PanelExamenFisico: '', 
+      PanelSintomas: '',
+      PanelTratamientos: [], 
+      PanelDiagnostico: [], // <--- Cambiado de "" a [] para mantener consistencia de tipo
+      PanelPlanTrabajo: [], 
+      PanelMedicacion: '',
+      PanelAlergias: '', 
+      Impresion: '', 
+      PanelAlta: ''
+    });
+    
+    setIsAgendaOpen(true);
+  } catch (error) {
+    console.error(error);
+    showModalMessage(`Error al cerrar ciclo: ${error.message}`);
+  }
+};
 
   const menuItems = [
     { id: 'triaje', label: 'Triaje', icon: Thermometer },
@@ -186,6 +267,7 @@ function AtencionMedicaForm() {
                       className="btn-open-agenda-main"
                       onClick={() => setIsAgendaOpen(true)}
                     >
+                      <Calendar size={14} style={{ marginRight: '4px' }} />
                       Cargar Lista de Citas
                     </button>
                   </div>
@@ -213,7 +295,6 @@ function AtencionMedicaForm() {
                 </div>
               </div>
 
-            {/* 💡 REDISEÑO: Contenedor con estructura estilo Tabs Médicos tradicionales */}
             <div className="hce-tabs-navigation-container">
               <div className="hce-tabs-track">
                 {menuItems.map((item) => {
@@ -242,11 +323,19 @@ function AtencionMedicaForm() {
               {patientData.id ? (
                 <>
                   {activeTab === 'triaje' && (
-                    <AtencionMedicaTriaje
-                      content={sectionsData.PanelTriaje}
-                      onContentChange={(newList) => handleSectionContentChange('PanelTriaje', newList)}
-                      onModalMessage={showModalMessage}
-                    />
+                    cargandoTriaje ? (
+                      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '40px', color: '#64748b', fontSize: '13px', fontWeight: '500' }}>
+                        <RefreshCw size={16} className="spinner-sync" style={{ marginRight: '8px' }} />
+                        <span>Cargando Signos Vitales...</span>
+                      </div>
+                    ) : (
+                      <AtencionMedicaTriajePanel 
+                        idPacienteSeleccionado={patientData.id} 
+                        content={patientData.triaje || []} // 💡 Consume directo desde el objeto unificado patientData
+                        onContentChange={handleTriajeChange}
+                        onModalMessage={showModalMessage}
+                      /> 
+                    )               
                   )}
 
                   {activeTab === 'diseaseAndExam' && (
@@ -305,7 +394,7 @@ function AtencionMedicaForm() {
 
                   {activeTab === 'signature' && (
                     <FirmaPeruPanel
-                      medicalRecordData={{ patient: patientData, attentionDetails: sectionsData }}
+                      medicalRecordData={fullMedicalRecord}
                       onModalMessage={showModalMessage}
                     />
                   )}
@@ -317,7 +406,7 @@ function AtencionMedicaForm() {
               )}
           </div>
 
-          {/* 💡 SOLUCIÓN: Botón Guardar Flotante Fijo estilo FAB (Siempre visible) */}
+          {/* 3. BOTÓN GUARDAR FLOTANTE FIJO ESTILO FAB */}
           {activeTab !== 'signature' && patientData.id && (
             <button 
               type="button"

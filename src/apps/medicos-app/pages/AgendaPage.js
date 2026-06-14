@@ -14,7 +14,6 @@ const LoadingSpinner = () => (
   </div>
 );
 
-// 💡 Inyectamos parámetros opcionales para controlarla desde el Offcanvas
 export const AgendaPage = ({ onSelectPaciente, soloLectura = false }) => {
   const navigate = useNavigate();   
   const { user, loading: authLoading } = useAuth();
@@ -26,8 +25,6 @@ export const AgendaPage = ({ onSelectPaciente, soloLectura = false }) => {
   if (!user) return <div style={{ padding: '2rem' }}>No has iniciado sesión.</div>;
 
   return (
-    /* 💡 Agregamos una clase condicional para que si está metida en el offcanvas 
-          no aplique layouts rígidos que rompan el contenedor de HCE */
     <div className={onSelectPaciente ? "agenda-compact-embedded" : "agenda-page-main-wrapper"}>
       
       <DateSelector fecha={fecha} setFecha={setFecha} />
@@ -45,20 +42,33 @@ export const AgendaPage = ({ onSelectPaciente, soloLectura = false }) => {
             <PacienteCard 
               key={p.id} 
               paciente={p}
-              /* 💡 Si es de 'soloLectura' (pestaña principal de Agenda), anulamos la acción del botón.
-                    Si no es solo lectura, revisamos si actúa como interceptor del Offcanvas o como navegación tradicional */
+              /* 💡 Si es soloLectura, el botón no debe ejecutar acciones */
               onAtender={
                 soloLectura 
                   ? null 
                   : () => {
+                      // Clonamos el objeto de manera profunda para evitar mutaciones directas del estado
                       const pacienteLimpio = JSON.parse(JSON.stringify(p));
                       
+                      // 💡 CAPTURA SIMÉTRICA: Deducimos la acción según el flag nativo de la API
+                      const determinarAccion = pacienteLimpio.atendido === true ? 'ACTUALIZAR' : 'ATENDER';
+                      
+                      // Inyectamos la variable de control que el formulario ya está esperando escuchar
+                      pacienteLimpio.accionAgenda = determinarAccion;
+
                       if (onSelectPaciente) {
-                        // Flujo Offcanvas: Le pasa el paciente al formulario sin cambiar de ruta
+                        // Flujo Offcanvas (HCE abierta): Envía el payload enriquecido al formulario directamente
+                        console.log(`🔀 [Offcanvas] Pasando paciente con acción: ${determinarAccion}`);
                         onSelectPaciente(pacienteLimpio);
                       } else {
-                        // Flujo Tradicional: Navega cambiando el estado de la ruta
-                        navigate('/med/atencion-medica', { state: { paciente: pacienteLimpio } });
+                        // Flujo Tradicional (Vista Agenda): Navega a la HCE inyectando el estado completo en el router
+                        console.log(`🚀 [Navegación] Redireccionando a HCE con acción: ${determinarAccion}`);
+                        navigate('/med/atencion-medica', { 
+                          state: { 
+                            paciente: pacienteLimpio,
+                            accionAgenda: determinarAccion // Lo pasamos también a nivel de raíz del state por seguridad
+                          } 
+                        });
                       }
                     }
               } 

@@ -642,4 +642,33 @@ transform: scale(0.94) translateY(0);
 }
 
 
+/* ==========================================================================
+   BOTÓN DE DICTADO ULTRA-COMPACTO (MINIMALISTA)
+   ========================================================================== */
+.hce-mic-trigger-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background-color: transparent !important; /* Eliminamos el círculo azul fuerte */
+  color: #94a3b8 !important; /* Gris neutro por defecto */
+  width: 28px !important;
+  height: 28px !important;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  padding: 0 !important;
+  margin-left: 4px;
+}
+
+.hce-mic-trigger-button:hover {
+  color: #0070da !important;
+  background-color: rgba(0, 112, 218, 0.05) !important;
+  border-radius: 50%;
+}
+
+.hce-mic-trigger-button.is-recording {
+  color: #ef4444 !important;
+  background-color: rgba(239, 68, 68, 0.1) !important;
+  border-radius: 50%;
+}
 
