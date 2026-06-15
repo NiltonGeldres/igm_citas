@@ -1,281 +1,251 @@
-// src/components/DigitalSignature/FirmaPeruPanel.js
-import React, { useState } from 'react';
-//import Styles from '../../Styles'; 
-import Styles from "../../../Styles"
-import { Signature, Loader2, CheckCircle, XCircle, FileText } from 'lucide-react';
+// src/components/AtencionMedica/AtencionMedicaPdfPanel.js
+import React from 'react';
+import Styles from "../../../Styles";
+import { FileText, Download, User, ClipboardList } from 'lucide-react';
 
 /**
- * Clase simulada FirmaPeru para interactuar con el Invoker.
- * En un entorno real, esta clase sería proporcionada por el SDK de Firma Perú.
- * Asume que el Invoker expone un endpoint HTTP local.
+ * Componente optimizado para la visualización e impresión de la Ficha Clínica.
+ * Aplica correcciones de exclusión de paneles y nombres dinámicos del sistema.
+ * * @param {Object} props
+ * @param {Object} props.medicalRecordData - Objeto maestro de la atención (DataPaciente)
+ * @param {Object} props.userSession - Datos del usuario logueado en la App (Médico)
  */
-class FirmaPeru {
-  constructor(invokerUrl) {
-    this.invokerUrl = invokerUrl;
-    // Asegura que la URL termine en / para facilitar la construcción de rutas
-    if (!this.invokerUrl.endsWith('/')) {
-      this.invokerUrl += '/';
-    }
-    console.log(`FirmaPeru Invoker inicializado con URL: ${this.invokerUrl}`);
-  }
+function AtencionMedicaPdfPanel({ medicalRecordData, userSession }) {
 
-  /**
-   * Simula la ejecución de la firma con Firma Perú Invoker.
-   * @param {Array<Object>} pdfs - Array de objetos { url: string, name: string } de los documentos a firmar.
-   * En un escenario real, las URLs podrían ser a tu backend que sirve los PDFs.
-   * @param {Object} firmaParam - Parámetros de la firma (posx, posy, reason).
-   * @param {string} token - Token de autenticación/sesión proporcionado por SGD.
-   * @returns {Promise<Object>} Objeto con url_base y status.
-   */
-  async ejecutar(pdfs, firmaParam, token) {
-    console.log("Iniciando ejecución de Firma Perú Invoker...");
-    console.log("Documentos:", pdfs);
-    console.log("Parámetros de Firma:", firmaParam);
-    console.log("Token:", token);
-
-    // SIMULACIÓN DE LA LLAMADA AL INVOKER LOCAL
-    // En un escenario real, esto sería una llamada fetch a un endpoint específico
-    // que el FirmaPeru Invoker expone localmente (ej. via WebSocket o HTTP).
-    // Los datos enviados serían los documentos, parámetros y token.
-    // El Invoker abriría una ventana, pediría PIN, interactuaría con el DNIe/Token.
-
-    try {
-      // Simula una llamada a un endpoint local que el Invoker podría exponer.
-      // La estructura exacta del payload y la respuesta dependerán de la API real de FirmaPeru Invoker.
-      const response = await fetch(`${this.invokerUrl}signDocument`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}` // Si el Invoker requiere autenticación
-        },
-        body: JSON.stringify({
-          documents: pdfs.map(doc => ({ url: doc.url, name: doc.name })),
-          signatureParameters: firmaParam
-        }),
-        // Si el Invoker está en localhost, puede que necesites 'no-cors' si no tiene CORS configurado,
-        // pero esto impediría leer la respuesta. Idealmente, el Invoker tendría CORS bien configurado.
-        // mode: 'cors',
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Error al comunicarse con Firma Perú Invoker: ${response.status} - ${errorText}`);
-      }
-
-      const result = await response.json(); // Asumiendo que el Invoker devuelve JSON
-
-      // La imagen muestra url_base como parte de la respuesta.
-      // Aquí simulamos esa respuesta.
-      if (result.status === 'OK' && result.url_base) {
-        console.log("Firma Perú Invoker ejecutado con éxito.");
-        return {
-          status: 'OK',
-          url_base: result.url_base, // URL base para los documentos firmados
-          signedDocuments: pdfs.map(doc => ({ // Simulación de URLs de documentos firmados
-            originalName: doc.name,
-            signedUrl: `${result.url_base}${encodeURIComponent(doc.name)}_signed.pdf?token=${token}`
-          }))
-        };
-      } else {
-        throw new Error(`Firma Perú Invoker devolvió un error: ${result.message || JSON.stringify(result)}`);
-      }
-
-    } catch (error) {
-      console.error("FirmaPeru.ejecutar falló:", error);
-      throw new Error(`No se pudo conectar o firmar con Firma Perú Invoker: ${error.message}`);
-    }
-  }
-}
-
-/**
- * Componente de React para la integración con Firma Perú Invoker.
- * Muestra los documentos a firmar y el proceso de firma.
- *
- * @param {Object} props - Las propiedades del componente.
- * @param {Object} props.medicalRecordData - Los datos completos del registro médico a firmar.
- * @param {function(string): void} props.onModalMessage - Función para mostrar mensajes en el modal principal de la aplicación.
- */
-function FirmaPeruPanel({ medicalRecordData, onModalMessage }) {
-  const [isSigning, setIsSigning] = useState(false);
-  const [signatureStatus, setSignatureStatus] = useState(null); // 'success', 'error', null
-  const [signedDocumentUrls, setSignedDocumentUrls] = useState([]);
-
-  // URLs de los documentos a firmar (ejemplo, en un caso real vendrían de tu backend)
-  // Para la atención médica, podrías generar un PDF dinámicamente en tu backend
-  // y luego proporcionar la URL para que FirmaPeru Invoker lo descargue y firme.
-  const documentsToSign = [
-    { url: "http://miservidor.com/docs/atencion_medica_1.pdf", name: "AtencionMedica_PacienteX.pdf" },
-    // Si tu aplicación genera múltiples documentos para la firma
-    // { url: "http://miservidor.com/docs/consentimiento_2.pdf", name: "Consentimiento_PacienteX.pdf" },
-  ];
-
-  // Parámetros de la firma gráfica (ejemplo)
-  const firmaParameters = {
-    posx: 10,
-    posy: 12,
-    reason: "Soy el autor del documento de atención médica",
+  const handleDescargarPdf = () => {
+    window.print();
   };
 
-  // Token (simulado, en un caso real vendría de tu backend o SGD)
-  const signatureToken = "TOKEN_ENVIADO_POR_SGD_O_BACKEND";
-
-  // Instancia del Invoker (la IP y puerto deben coincidir con donde se ejecuta el Invoker localmente)
-  // ¡IMPORTANTE! Reemplaza esta IP y puerto con la configuración real de tu Firma Perú Invoker.
-  const firmaPeruInvoker = new FirmaPeru("http://192.168.1.10:9091"); // IP y puerto de la máquina local con el Invoker
-
-  const handleSignDocuments = async () => {
-    setIsSigning(true);
-    setSignatureStatus(null);
-    setSignedDocumentUrls([]);
-    onModalMessage('Iniciando proceso de firma con Firma Perú Invoker...');
-
-    // En un escenario real, aquí podrías primero enviar 'medicalRecordData' a tu backend
-    // para que lo convierta en un PDF/XML y te devuelva una URL temporal para firmar.
-    // Por simplicidad, usaremos las URLs de ejemplo 'documentsToSign'.
-
-    try {
-      const result = await firmaPeruInvoker.ejecutar(documentsToSign, firmaParameters, signatureToken);
-
-      if (result.status === 'OK') {
-        setSignatureStatus('success');
-        setSignedDocumentUrls(result.signedDocuments);
-        onModalMessage('¡Documentos firmados digitalmente con éxito por Firma Perú!');
-      } else {
-        throw new Error(`Firma fallida: ${result.message || 'Respuesta inesperada del Invoker.'}`);
-      }
-    } catch (error) {
-      console.error('Error durante la firma con Firma Perú Invoker:', error);
-      setSignatureStatus('error');
-      onModalMessage(`Ocurrió un error al firmar: ${error.message}. Asegúrate que Firma Perú Invoker esté ejecutándose.`);
-    } finally {
-      setIsSigning(false);
-    }
-  };
-
-  // Función auxiliar para renderizar el resumen de los datos (similar al DigitalSignaturePanel anterior)
-  const renderMedicalRecordSummary = (data) => {
-    if (!data || Object.keys(data).length === 0 || (!data.patient && !data.attentionDetails)) {
-      return <p style={{ color: Styles.colorTextMedium, textAlign: 'center' }}>No hay datos de atención médica para firmar. Por favor, complete las secciones del registro médico.</p>;
-    }
-
+  if (!medicalRecordData || Object.keys(medicalRecordData).length === 0) {
     return (
-      <div style={{ maxHeight: '300px', overflowY: 'auto', paddingRight: '10px' }}>
-        <h4 style={{ ...Styles.sectionTitle, fontSize: '18px', marginBottom: '10px', color: Styles.colorTextDark }}>Resumen del Paciente:</h4>
-        <p style={Styles.listItemText}><strong>Nombre:</strong> {data.patient?.name || 'N/A'}</p>
-        <p style={Styles.listItemText}><strong>ID:</strong> {data.patient?.id || 'N/A'}</p>
-        <p style={Styles.listItemText}><strong>Sexo:</strong> {data.patient?.sex || 'N/A'}</p>
-        <p style={Styles.listItemText}><strong>Edad:</strong> {data.patient?.age || 'N/A'}</p>
-
-        <h4 style={{ ...Styles.sectionTitle, fontSize: '18px', marginTop: '20px', marginBottom: '10px', color: Styles.colorTextDark }}>Detalles de la Atención:</h4>
-        {Object.keys(data.attentionDetails || {}).length > 0 ? (
-          Object.entries(data.attentionDetails).map(([key, value]) => (
-            <div key={key} style={{ marginBottom: '10px', borderBottom: `1px solid ${Styles.colorBorderSubtle}`, paddingBottom: '5px' }}>
-              <p style={{ ...Styles.listItemText, fontWeight: 'bold', marginBottom: '5px' }}>{key.replace(/Panel/g, '').replace(/([A-Z])/g, ' $1').trim()}:</p>
-              {Array.isArray(value) ? (
-                value.length > 0 ? (
-                  value.map((item, index) => (
-                    <p key={item.id || index} style={{ ...Styles.listItemText, marginLeft: '10px', fontSize: '14px' }}>
-                      - {item.label || item.diagnostico || item.examen || item.descripcion || JSON.stringify(item)}
-                      {item.codigoCIE && ` (CIE: ${item.codigoCIE})`}
-                      {item.cantidad && ` (Cant: ${item.cantidad})`}
-                      {item.dosis && ` (Dosis: ${item.dosis})`}
-                    </p>
-                  ))
-                ) : (
-                  <p style={{ ...Styles.listItemText, marginLeft: '10px', fontSize: '14px', color: Styles.colorTextMedium }}>Sin registros.</p>
-                )
-              ) : (
-                <p style={{ ...Styles.listItemText, marginLeft: '10px', fontSize: '14px' }}>{value || 'N/A'}</p>
-              )}
-            </div>
-          ))
-        ) : (
-          <p style={{ color: Styles.colorTextMedium, textAlign: 'center' }}>No hay detalles de atención registrados.</p>
-        )}
+      <div style={Styles.medicalSection}>
+        <p style={{ color: '#64748b', textAlign: 'center', padding: '20px' }}>
+          No hay datos disponibles de la atención médica para generar el reporte.
+        </p>
       </div>
     );
-  };
+  }
+
+  // 1. Extracción de Filiación, Paneles y Datos del Entorno
+  const { patient = {}, attentionDetails = {}, entidadNombre = 'MICLINICA' } = medicalRecordData;
+  
+  // 5. Nombre del Médico de la sesión actual de la APP
+  const nombreMedico = userSession?.nombre || userSession?.usuario || 'Médico Tratante';
+  
+  // 6. Nombre del Paciente para la firma
+  const nombrePaciente = patient.name || 'Paciente';
 
   return (
     <div style={Styles.medicalSection}>
-      <h3 style={Styles.sectionTitle}>Firma Digital con Firma Perú</h3>
+      
+      {/* Botón de control superior (Oculto en la impresión) */}
+      <div className="no-print" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', borderBottom: '1px solid #e2e8f0', paddingBottom: '12px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <FileText size={20} color="#0066ff" />
+          <h3 style={{ ...Styles.sectionTitle, margin: 0, fontSize: '16px', color: '#1e293b' }}>
+            Documento de Egreso / Ficha Clínica PDF
+          </h3>
+        </div>
+        
+        <button
+          type="button"
+          onClick={handleDescargarPdf}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            backgroundColor: '#0066ff',
+            color: '#ffffff',
+            border: 'none',
+            borderRadius: '20px',
+            padding: '8px 16px',
+            fontSize: '13px',
+            fontWeight: '600',
+            cursor: 'pointer',
+            boxShadow: '0 2px 4px rgba(0, 102, 255, 0.2)',
+            transition: 'background-color 0.2s'
+          }}
+        >
+          <Download size={14} strokeWidth={2.5} />
+          <span>Descargar / Imprimir PDF</span>
+        </button>
+      </div>
 
-      {renderMedicalRecordSummary(medicalRecordData)}
-
-      <button
-        onClick={handleSignDocuments}
-        style={{
-          ...Styles.saveButton,
-          backgroundColor: isSigning ? Styles.colorTextMedium : Styles.colorPrimary,
-          marginTop: '30px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: '10px',
-        }}
-        disabled={isSigning}
-      >
-        {isSigning ? (
-          <>
-            <Loader2 size={24} style={{ animation: 'spin 1s linear infinite' }} />
-            Firmando Documentos...
-          </>
-        ) : (
-          <>
-            <Signature size={24} />
-            Firmar Documentos con Firma Perú
-          </>
-        )}
-      </button>
-
-      {signatureStatus === 'success' && (
-        <div style={{ marginTop: '15px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', color: Styles.colorGreenSuccess, marginBottom: '10px' }}>
-            <CheckCircle size={24} style={{ marginRight: '8px' }} />
-            <p style={{ margin: 0, fontSize: '16px', fontWeight: 'bold' }}>¡Firma Exitosa!</p>
+      {/* ======================================================================= */}
+      {/* AREA DEL DOCUMENTO OFICIAL (LO QUE QUEDARÁ EN EL PDF IMPRESO) */}
+      {/* ======================================================================= */}
+      <div id="documento-clinico-pdf" style={{
+        backgroundColor: '#ffffff',
+        padding: '20px',
+        borderRadius: '8px',
+        border: '1px solid #e2e8f0',
+        fontFamily: 'sans-serif'
+      }}>
+        
+        {/* Cabecera Institucional (4. Nombre dinámico de la clínica) */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '2px solid #0066ff', paddingBottom: '12px', marginBottom: '20px' }}>
+          <div>
+            <h1 style={{ margin: 0, fontSize: '20px', color: '#0066ff', fontWeight: 'bold', letterSpacing: '-0.5px', textTransform: 'uppercase' }}>
+              🏥 {entidadNombre}
+            </h1>
+            <p style={{ margin: '2px 0 0 0', fontSize: '11px', color: '#64748b', fontWeight: '500' }}>
+              Expediente Electrónico de Atención Ambulatoria
+            </p>
           </div>
-          <h4 style={{ ...Styles.sectionTitle, fontSize: '16px', marginBottom: '10px', textAlign: 'center' }}>Documentos Firmados:</h4>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            {signedDocumentUrls.map((doc, index) => (
-              <a
-                key={index}
-                href={doc.signedUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{
-                  ...Styles.listItemButton, // Reutiliza estilo de botón de lista
-                  backgroundColor: Styles.colorBackgroundLight,
-                  color: Styles.colorPrimary,
-                  fontWeight: 'bold',
-                  textDecoration: 'none',
-                  padding: '10px 15px',
-                  borderRadius: '8px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  boxShadow: '0 2px 5px rgba(0,0,0,0.05)',
-                }}
-              >
-                <FileText size={18} />
-                {doc.originalName} (Ver Firmado)
-              </a>
-            ))}
+          <div style={{ textAlign: 'right' }}>
+            <h2 style={{ margin: 0, fontSize: '13px', color: '#1e293b', fontWeight: '600' }}>
+              INFORME DE ATENCIÓN MÉDICA
+            </h2>
+            <p style={{ margin: '2px 0 0 0', fontSize: '11px', color: '#64748b' }}>
+              Fecha: {new Date().toLocaleDateString('es-PE')}
+            </p>
           </div>
         </div>
-      )}
-      {signatureStatus === 'error' && (
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: '15px', color: Styles.colorAlert }}>
-          <XCircle size={24} style={{ marginRight: '8px' }} />
-          <p style={{ margin: 0, fontSize: '16px', fontWeight: 'bold' }}>Error en la Firma.</p>
-        </div>
-      )}
 
-      {/* Animación de spin para el loader */}
+        {/* Bloque: Datos del Paciente */}
+        <div style={{ marginBottom: '20px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px', color: '#0066ff' }}>
+            <User size={14} strokeWidth={2.5} />
+            <h4 style={{ margin: 0, fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+              Filiación del Paciente
+            </h4>
+          </div>
+          
+          <div style={{ 
+            display: 'table', 
+            width: '100%', 
+            backgroundColor: '#f8fafc', 
+            borderRadius: '6px', 
+            border: '1px solid #e2e8f0',
+            fontSize: '13px',
+            padding: '10px'
+          }}>
+            <div style={{ display: 'table-row' }}>
+              <div style={{ display: 'table-cell', padding: '4px 8px', fontWeight: '600', color: '#475569', width: '15%' }}>Paciente:</div>
+              <div style={{ display: 'table-cell', padding: '4px 8px', color: '#1e293b', width: '45%' }}>{nombrePaciente}</div>
+              <div style={{ display: 'table-cell', padding: '4px 8px', fontWeight: '600', color: '#475569', width: '15%' }}>Documento:</div>
+              <div style={{ display: 'table-cell', padding: '4px 8px', color: '#1e293b', width: '25%' }}>{patient.id || 'N/A'}</div>
+            </div>
+            <div style={{ display: 'table-row' }}>
+              <div style={{ display: 'table-cell', padding: '4px 8px', fontWeight: '600', color: '#475569' }}>Edad:</div>
+              <div style={{ display: 'table-cell', padding: '4px 8px', color: '#1e293b' }}>{patient.age ? `${patient.age} años` : 'N/A'}</div>
+              <div style={{ display: 'table-cell', padding: '4px 8px', fontWeight: '600', color: '#475569' }}>Sexo:</div>
+              <div style={{ display: 'table-cell', padding: '4px 8px', color: '#1e293b', textTransform: 'capitalize' }}>{patient.sex || 'N/A'}</div>
+            </div>
+          </div>
+        </div>
+
+        {/* Bloque: Detalles Clínicos Dinámicos (Filtrados) */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          {Object.entries(attentionDetails)
+            .filter(([panelKey]) => {
+              // 2 y 3. Excluir explícitamente Alergias e Impresión
+              const keyMinuscula = panelKey.toLowerCase();
+              return !keyMinuscula.includes('alergia') && !keyMinuscula.includes('impresion');
+            })
+            .map(([panelKey, value]) => {
+              
+              // Normalizar nombres clave (ej: "panelTratamientos" o "panelMedicacion" -> "Medicamentos")
+              let cleanTitle = panelKey.replace(/Panel/g, '').replace(/([A-Z])/g, ' $1').trim();
+              if (cleanTitle.toLowerCase().includes('tratamiento') || cleanTitle.toLowerCase().includes('medicaci')) {
+                cleanTitle = "Medicamentos / Receta";
+              }
+
+              return (
+                <div key={panelKey} style={{ borderBottom: '1px solid #f1f5f9', paddingBottom: '12px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px', color: '#334155' }}>
+                    <ClipboardList size={13} color="#475569" />
+                    <h4 style={{ margin: 0, fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', color: '#475569' }}>
+                      {cleanTitle}
+                    </h4>
+                  </div>
+
+                  {/* 1. Tratamiento Correcto de Arreglos (Mapeo de la Medicación estructurada) */}
+                  {Array.isArray(value) ? (
+                    value.length > 0 ? (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', paddingLeft: '14px' }}>
+                        {value.map((item, idx) => (
+                          <div key={item.id || idx} style={{ fontSize: '13px', color: '#1e293b', lineHeight: '1.4' }}>
+                            • <span style={{ fontWeight: '600' }}>{item.descripcion || item.diagnostico || item.examen || item.label || JSON.stringify(item)}</span>
+                            {item.codigoCIE && ` [CIE-10: ${item.codigoCIE}]`}
+                            {item.via && ` - Vía: ${item.via}`}
+                            {item.dosis && ` (Dosis: ${item.dosis})`}
+                            {item.frecuencia && ` cada ${Math.round(24 / item.frecuencia)} hrs`}
+                            {item.periodo && ` por ${item.periodo} días`}
+                            {item.cantidad && ` [Cant. Recetada: ${item.cantidad} und]`}
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p style={{ margin: '0 0 0 14px', fontSize: '12px', color: '#94a3b8', fontStyle: 'italic' }}>Sin registros anotados en esta sección.</p>
+                    )
+                  ) : (
+                    <p style={{ margin: '0 0 0 14px', fontSize: '13px', color: '#334155', lineHeight: '1.5', whiteSpace: 'pre-wrap' }}>
+                      {value || 'No refiere.'}
+                    </p>
+                  )}
+                </div>
+              );
+            })}
+        </div>
+
+        {/* Sección de Firmas al pie con Nombres de Variables Reales */}
+        <div style={{ marginTop: '60px', display: 'table', width: '100%' }}>
+          <div style={{ display: 'table-row' }}>
+            {/* 5. Firma con el Nombre del Médico Logueado */}
+            {/* Firma del Médico */}
+            <div style={{ display: 'table-cell', width: '50%', textAlign: 'center', padding: '10px' }}>
+              <div style={{ width: '240px', borderTop: '1px solid #cbd5e1', margin: '0 auto', paddingTop: '6px' }}>
+                <p style={{ margin: 0, fontSize: '11px', fontWeight: '700', color: '#1e293b', textTransform: 'uppercase' }}>
+                  Dr(a). {nombreMedico}
+                </p>
+                <p style={{ margin: '2px 0 0 0', fontSize: '10px', color: '#64748b', fontWeight: '500' }}>
+                  Médico Tratante / Auditor
+                </p>
+              </div>
+            </div>
+            
+            {/* 6. Firma con el Nombre Completo del Paciente */}
+            <div style={{ display: 'table-cell', width: '50%', textAlign: 'center', padding: '10px' }}>
+              <div style={{ width: '220px', borderTop: '1px solid #cbd5e1', margin: '0 auto', paddingTop: '6px' }}>
+                <p style={{ margin: 0, fontSize: '12px', fontWeight: '700', color: '#1e293b', textTransform: 'uppercase' }}>
+                  {nombrePaciente}
+                </p>
+                <p style={{ margin: '2px 0 0 0', fontSize: '10px', color: '#64748b', fontWeight: '500' }}>
+                  Paciente / Huella Digital
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      {/* CSS DE IMPRESIÓN SEGURO */}
       <style>
         {`
-          @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+          @media print {
+            body * {
+              visibility: hidden;
+            }
+            #documento-clinico-pdf, #documento-clinico-pdf * {
+              visibility: visible;
+            }
+            #documento-clinico-pdf {
+              position: absolute;
+              left: 0;
+              top: 0;
+              width: 100%;
+              border: none !important;
+              padding: 0 !important;
+            }
+            @page {
+              size: auto;
+              margin: 15mm 12mm;
+            }
+            .no-print {
+              display: none !important;
+            }
           }
         `}
       </style>
@@ -283,4 +253,4 @@ function FirmaPeruPanel({ medicalRecordData, onModalMessage }) {
   );
 }
 
-export default FirmaPeruPanel;
+export default AtencionMedicaPdfPanel;

@@ -57,8 +57,8 @@ function AtencionMedicaForm() {
     PanelDiagnostico: [],
     PanelPlanTrabajo: [],
     PanelMedicacion: '',
-    PanelAlergias: '',
-    Impresion: '',
+//    PanelAlergias: '',
+//    Impresion: '',
     PanelAlta: '',
   });
 
@@ -345,14 +345,14 @@ const finalizarAtencionMedicaTotal = async () => {
                         onContentChange={(newContent) => handleSectionContentChange('PanelAntecedentes', newContent)}
                         onModalMessage={showModalMessage}
                       />
-                      <AtencionMedicaExamenFisicoPanel
-                        content={sectionsData.PanelExamenFisico}
-                        onContentChange={(newContent) => handleSectionContentChange('PanelExamenFisico', newContent)}
-                        onModalMessage={showModalMessage}
-                      />
                       <AtencionMedicaSintomaPanel
                         content={sectionsData.PanelSintomas}
                         onContentChange={(newContent) => handleSectionContentChange('PanelSintomas', newContent)}
+                        onModalMessage={showModalMessage}
+                      />
+                      <AtencionMedicaExamenFisicoPanel
+                        content={sectionsData.PanelExamenFisico}
+                        onContentChange={(newContent) => handleSectionContentChange('PanelExamenFisico', newContent)}
                         onModalMessage={showModalMessage}
                       />
                     </>

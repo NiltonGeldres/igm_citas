@@ -1,172 +1,312 @@
 // src/components/Medicacion/AtencionMedicaMedicamentoPanel.js
-import React, { useState } from 'react';
-import AutoCompleteInput from '../common/AutoCompleteInput'; // Ruta relativa a common
-import AtencionMedicaMedicamentoDetalleModal from './AtencionMedicaMedicamentoDetalleModal'; // Ruta relativa al modal en la misma carpeta
-import Styles from '../../../Styles'; // Ruta relativa a Styles
+import React, { useState, useEffect } from 'react';
+import AutoCompleteInput from '../common/AutoCompleteInput'; 
+import AtencionMedicaMedicamentoDetalleModal from './AtencionMedicaMedicamentoDetalleModal'; 
+import Styles from '../../../Styles'; 
 import { v4 as uuidv4 } from 'uuid';
-import { Pencil, Trash2 } from 'lucide-react'; // Importar iconos de Lucide React
+import { Pencil, Trash2 } from 'lucide-react'; 
+import { AtencionMedicaMedicamentoService } from './AtencionMedicaMedicamentoService';
 
-/**
- * Componente independiente para gestionar la sección de Medicación.
- * Incluye la búsqueda de medicamentos con autocompletado,
- * la adición de detalles (dosis, frecuencia, cantidad, vía) a través de un modal,
- * y la visualización/edición/eliminación de los medicamentos en una lista.
- *
- * @param {Object} props - Las propiedades del componente.
- * @param {Array<Object>} props.content - La lista actual de medicamentos (PanelTratamientos).
- * @param {function(Array<Object>): void} props.onContentChange - Función para actualizar la lista de medicamentos en el padre.
- * @param {function(string): void} props.onModalMessage - Función para mostrar mensajes en el modal principal de la aplicación.
- */
-function AtencionMedicaMedicamentoPanel({ content, onContentChange, onModalMessage }) {
-  // Estado para controlar la visibilidad y el medicamento a editar en el modal de detalles
+function AtencionMedicaMedicamentoPanel({ content = [], onContentChange, onModalMessage }) {
+  const [mostrarBuscador, setMostrarBuscador] = useState(false);
+  const [tipoBusqueda, setTipoBusqueda] = useState('INDIVIDUAL'); // 'INDIVIDUAL' o 'PAQUETE'
   const [mostrarDetalleMedicamentoModal, setMostrarDetalleMedicamentoModal] = useState(false);
   const [medicamentoActualParaEditar, setMedicamentoActualParaEditar] = useState(null);
+  const [paquetesDisponibles, setPaquetesDisponibles] = useState([]);
 
-  // --- Función para simular la obtención de sugerencias de medicamentos ---
-  // En un proyecto real, esta función haría una llamada a una API
+  useEffect(() => {
+    const cargarPaquetes = async () => {
+      const pkgs = await AtencionMedicaMedicamentoService.obtenerPaquetesDisponibles();
+      setPaquetesDisponibles(pkgs);
+    };
+    cargarPaquetes();
+  }, []);
+
   const fetchMedicationSuggestions = async (query) => {
-    console.log("Obteniendo sugerencias de medicamentos para:", query);
-    const mockMedications = [
-      { id: 'med1', label: 'Paracetamol 500mg' },
-      { id: 'med2', label: 'Ibuprofeno 400mg' },
-      { id: 'med3', label: 'Amoxicilina 250mg' },
-      { id: 'med4', label: 'Omeprazol 20mg' },
-      { id: 'med5', label: 'Loratadina 10mg' },
-      { id: 'med6', label: 'Atorvastatina 20mg' },
-      { id: 'med7', label: 'Metformina 850mg' },
-      { id: 'med8', label: 'Salbutamol Inhalador' },
-      { id: 'med9', label: 'Losartán 50mg' },
-      { id: 'med10', label: 'Tramadol 50mg' },
-      { id: 'med11', label: 'Diazepam 5mg' },
-      { id: 'med12', label: 'Aspirina 100mg' },
-      { id: 'med13', label: 'Ciprofloxacino 500mg' },
-      { id: 'med14', label: 'Prednisona 5mg' },
-      { id: 'med15', label: 'Simvastatina 40mg' },
-    ];
-    return new Promise(resolve => {
-      setTimeout(() => {
-        const filtered = mockMedications.filter(med =>
-          med.label.toLowerCase().includes(query.toLowerCase())
-        );
-        resolve(filtered);
-      }, 200); // Simula un retraso de red
-    });
+    return await AtencionMedicaMedicamentoService.buscarMedicamentosCatalogo(query);
   };
 
-  /**
-   * Maneja la selección de un medicamento del autocompletado.
-   * Abre el modal de detalles para que el usuario ingrese dosis, frecuencia y cantidad.
-   * Si el medicamento ya existe, lo carga para edición.
-   * @param {Object} medicationItem - El medicamento seleccionado del autocompletado.
-   */
+  // CAMINO A: SELECCIÓN INDIVIDUAL (Abre el Modal)
   const handleAddMedication = (medicationItem) => {
     const existingMed = content.find(item => item.descripcion === medicationItem.label);
     if (existingMed) {
-      onModalMessage(`El medicamento "${medicationItem.label}" ya ha sido agregado. Abriendo para editar.`);
+      if (onModalMessage) onModalMessage(`El medicamento "${medicationItem.label}" ya fue agregado. Editando posología.`);
       setMedicamentoActualParaEditar(existingMed);
     } else {
       setMedicamentoActualParaEditar({
-        id: uuidv4(), // Genera un ID único para el nuevo medicamento
+        id: uuidv4(),
         descripcion: medicationItem.label,
         dosis: '',
         frecuencia: '',
+        periodo: '',
         cantidad: '',
-        via: '', // INCLUIDO: el nuevo campo Vía inicializado
+        via: '',
       });
     }
-    setMostrarDetalleMedicamentoModal(true); // Abre el modal de detalles
+    setMostrarDetalleMedicamentoModal(true);
   };
 
-  /**
-   * Maneja el guardado de los detalles del medicamento desde el modal.
-   * Actualiza la lista de medicamentos en el estado del componente padre.
-   * @param {Object} updatedMedication - El objeto medicamento con los detalles actualizados.
-   */
+  // CAMINO B: CARGA POR PAQUETE CLÍNICO (Inyección Directa)
+  const handleCargarPaquete = (e) => {
+    const paqueteId = e.target.value;
+    if (!paqueteId) return;
+
+    const paqueteSeleccionado = paquetesDisponibles.find(pkg => pkg.id === paqueteId);
+    if (!paqueteSeleccionado) return;
+
+    let nuevosAgregados = 0;
+    const listaActualizada = [...content];
+
+    paqueteSeleccionado.medicamentosAsociados.forEach(medItem => {
+      const yaExiste = listaActualizada.some(item => item.descripcion.toLowerCase() === medItem.descripcion.toLowerCase());
+      
+      if (!yaExiste) {
+        listaActualizada.push({
+          id: uuidv4(),
+          descripcion: medItem.descripcion,
+          dosis: medItem.dosis,
+          frecuencia: medItem.frecuencia,
+          periodo: medItem.periodo,
+          cantidad: medItem.cantidad,
+          via: medItem.via
+        });
+        nuevosAgregados++;
+      }
+    });
+
+    onContentChange(listaActualizada);
+    setMostrarBuscador(false);
+    e.target.value = ""; // Reset del dropdown
+
+    if (onModalMessage && nuevosAgregados > 0) {
+      onModalMessage(`Se inyectaron ${nuevosAgregados} medicamentos del paquete "${paqueteSeleccionado.nombrePaquete}".`);
+    }
+  };
+
   const handleSaveMedicationDetails = (updatedMedication) => {
     const existingIndex = content.findIndex(item => item.id === updatedMedication.id);
-    let updatedList;
+    let updatedList = [...content];
     if (existingIndex > -1) {
-      // Si el medicamento ya existe (edición), lo actualiza en la lista
-      updatedList = [...content];
       updatedList[existingIndex] = updatedMedication;
     } else {
-      // Si es un medicamento nuevo, lo añade a la lista
-      updatedList = [...content, updatedMedication];
+      updatedList.push(updatedMedication);
     }
-    onContentChange(updatedList); // Notifica al componente padre el cambio
-    setMostrarDetalleMedicamentoModal(false); // Cierra el modal
-    setMedicamentoActualParaEditar(null); // Limpia el medicamento en edición
+    onContentChange(updatedList);
+    setMostrarDetalleMedicamentoModal(false);
+    setMedicamentoActualParaEditar(null);
+    setMostrarBuscador(false);
   };
 
-  /**
-   * Elimina un medicamento de la lista.
-   * @param {string} medicationId - El ID del medicamento a eliminar.
-   */
   const handleDeleteMedication = (medicationId) => {
     const updatedList = content.filter(med => med.id !== medicationId);
-    onContentChange(updatedList); // Notifica al componente padre el cambio
-    onModalMessage('Medicamento eliminado.');
+    onContentChange(updatedList);
+    if (onModalMessage) onModalMessage('Medicamento eliminado del tratamiento.');
   };
 
   return (
     <div style={Styles.medicalSection}>
-      <h3 style={Styles.sectionTitle}>Panel Medicación</h3>
-      <AutoCompleteInput
-        placeholder="Dicta o escribe un medicamento..."
-        onSelectSuggestion={handleAddMedication}
-        fetchSuggestions={fetchMedicationSuggestions}
-        onModalMessage={onModalMessage} // Pasa la función de mensajes al autocompletado
-      />
+      {/* Cabecera Uniforme */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+        <h3 style={{ ...Styles.sectionTitle, margin: 0, fontSize: '16px', color: '#1e293b', fontWeight: '600' }}>
+          Tratamiento / Medicación
+        </h3>
+        
+        <button
+          type="button"
+          onClick={() => setMostrarBuscador(!mostrarBuscador)}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+            backgroundColor: mostrarBuscador ? '#f1f5f9' : '#ffffff',
+            border: '1px solid #cbd5e1',
+            borderRadius: '20px',
+            padding: '6px 14px',
+            color: '#1d4ed8',
+            fontSize: '13px',
+            fontWeight: '500',
+            cursor: 'pointer'
+          }}
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1d4ed8" strokeWidth="2.5">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+          {mostrarBuscador ? 'Cerrar opciones' : 'Añadir medicamento o receta'}
+        </button>
+      </div>
 
-      {content.length > 0 && (
-        <ul style={Styles.structuredList}>
-          {content.map((item) => (
-            <li key={item.id} style={Styles.bubbleListItemNoAvatar}>
-              {/* Contenido principal del medicamento */}
-              <div style={Styles.bubbleContentNoAvatar}>
-                <div style={Styles.bubbleTopRow}>
-                  <span style={Styles.bubbleName}>{item.descripcion}</span>
-                  <div style={Styles.bubbleActionsTopRight}> {/* Contenedor para los iconos de acción */}
-                    <button
-                      style={Styles.bubbleActionButton}
-                      onClick={(e) => {
-                        e.stopPropagation(); // Evita que el clic en el botón active el li
-                        setMedicamentoActualParaEditar(item);
-                        setMostrarDetalleMedicamentoModal(true);
-                      }}
-                    >
-                      <Pencil size={18} style={Styles.bubbleActionButtonIcon} />
-                    </button>
-                    <button
-                      style={{ ...Styles.bubbleActionButton, ...Styles.bubbleActionButtonDelete }}
-                      onClick={(e) => {
-                        e.stopPropagation(); // Evita que el clic en el botón active el li
-                        handleDeleteMedication(item.id);
-                      }}
-                    >
-                      <Trash2 size={18} style={Styles.bubbleActionButtonIcon} />
-                    </button>
-                  </div>
-                </div>
-                <p style={Styles.bubbleDetails}>
-                  Vía: {item.via || 'N/A'} | Dosis: {item.dosis || 'N/A'} | Frecuencia: {item.frecuencia || 'N/A'} veces/día | Cantidad: {item.cantidad || 'N/A'}
-                </p>
-              </div>
-            </li>
-          ))}
-        </ul>
+      {/* Caja de Herramientas Apilada Verticalmente */}
+      {mostrarBuscador && (
+        <div style={{ 
+          display: 'flex', 
+          flexDirection: 'column',
+          gap: '12px', 
+          marginBottom: '16px', 
+          backgroundColor: '#f8fafc',
+          padding: '14px',
+          borderRadius: '8px',
+          border: '1px solid #e2e8f0'
+        }}>
+          {/* Tabs superiores */}
+          <div style={{ display: 'flex', gap: '4px', borderBottom: '1px solid #e2e8f0', paddingBottom: '8px' }}>
+            <button
+              type="button"
+              onClick={() => setTipoBusqueda('INDIVIDUAL')}
+              style={{
+                padding: '4px 12px',
+                fontSize: '12px',
+                fontWeight: '600',
+                borderRadius: '4px',
+                border: 'none',
+                cursor: 'pointer',
+                backgroundColor: tipoBusqueda === 'INDIVIDUAL' ? '#e0f2fe' : 'transparent',
+                color: tipoBusqueda === 'INDIVIDUAL' ? '#0369a1' : '#64748b'
+              }}
+            >
+              💊 Fármaco Individual
+            </button>
+            <button
+              type="button"
+              onClick={() => setTipoBusqueda('PAQUETE')}
+              style={{
+                padding: '4px 12px',
+                fontSize: '12px',
+                fontWeight: '600',
+                borderRadius: '4px',
+                border: 'none',
+                cursor: 'pointer',
+                backgroundColor: tipoBusqueda === 'PAQUETE' ? '#e0f2fe' : 'transparent',
+                color: tipoBusqueda === 'PAQUETE' ? '#0369a1' : '#64748b'
+              }}
+            >
+              📦 Cargar Receta Preconfigurada
+            </button>
+          </div>
+
+          {/* Renderizado del buscador según Tab activo */}
+          {tipoBusqueda === 'INDIVIDUAL' ? (
+            <div>
+              <AutoCompleteInput
+                placeholder="Busque el medicamento (Ej: Paracetamol, Amoxicilina)..."
+                onSelectSuggestion={handleAddMedication}
+                fetchSuggestions={fetchMedicationSuggestions}
+                onModalMessage={onModalMessage} 
+                style={{ padding: '6px 12px', height: '34px', fontSize: '13px' }} 
+              />
+            </div>
+          ) : (
+            <div>
+              <select
+                onChange={handleCargarPaquete}
+                defaultValue=""
+                style={{
+                  width: '100%',
+                  height: '34px',
+                  padding: '0 10px',
+                  borderRadius: '6px',
+                  border: '1px solid #cbd5e1',
+                  backgroundColor: '#ffffff',
+                  fontSize: '13px',
+                  color: '#334155',
+                  outline: 'none',
+                  cursor: 'pointer'
+                }}
+              >
+                <option value="" disabled>-- Seleccione un Paquete Farmacológico --</option>
+                {paquetesDisponibles.map(pkg => (
+                  <option key={pkg.id} value={pkg.id}>
+                    {pkg.nombrePaquete} ({pkg.medicamentosAsociados?.length} items)
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+        </div>
       )}
 
-      {/* Renderiza el modal de detalles de medicación si está visible */}
+      {/* Lista Estricta optimizada en espacio */}
+      {content.length > 0 && (
+        <div style={{ border: '1px solid #e2e8f0', borderRadius: '8px', backgroundColor: '#ffffff' }}>
+          {content.map((item, index) => (
+            <div 
+              key={item.id} 
+              style={{
+                display: 'flex',
+                alignItems: 'center', // Alineación vertical centrada para balancear las 2 filas
+                padding: '12px 14px', // Reducido el padding interno para ganar espacio
+                borderBottom: index === content.length - 1 ? 'none' : '1px solid #e2e8f0',
+                gap: '10px' // Reducido el gap para empujar todo a la izquierda
+              }}
+            >
+              {/* Controles del Registro: Compactos y bien pegados a la izquierda */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMedicamentoActualParaEditar(item);
+                    setMostrarDetalleMedicamentoModal(true);
+                  }}
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '2px', color: '#3b82f6' }}
+                >
+                  <Pencil size={15} strokeWidth={2.5} />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleDeleteMedication(item.id)}
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '2px', color: '#f87171' }}
+                >
+                  <Trash2 size={15} strokeWidth={2.5} />
+                </button>
+                <div style={{
+                  backgroundColor: '#f1f5f9', color: '#64748b', fontWeight: '600', fontSize: '11px',
+                  padding: '2px 5px', borderRadius: '4px', minWidth: '18px', textAlign: 'center', border: '1px solid #e2e8f0'
+                }}>
+                  {index + 1}
+                </div>
+              </div>
+
+              {/* Bloque Clínico de 2 Filas: Ahora goza de más espacio horizontal */}
+              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                {/* FILA 1: Nombre */}
+                <div style={{ fontSize: '14px', color: '#1e293b', fontWeight: '600', lineHeight: '1.2' }}>
+                  {item.descripcion}
+                </div>
+                
+                {/* FILA 2: Badges */}
+                <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', alignItems: 'center' }}>
+                  <span style={{ fontSize: '11px', backgroundColor: '#f0fdf4', color: '#16a34a', padding: '1px 5px', borderRadius: '4px', border: '1px solid #bbf7d0', fontWeight: '500', textTransform: 'capitalize' }}>
+                    Vía: {item.via}
+                  </span>
+                  <span style={{ fontSize: '11px', backgroundColor: '#eff6ff', color: '#2563eb', padding: '1px 5px', borderRadius: '4px', border: '1px solid #bfdbfe', fontWeight: '500' }}>
+                    Dosis: {item.dosis}
+                  </span>
+                  <span style={{ fontSize: '11px', backgroundColor: '#fff7ed', color: '#ea580c', padding: '1px 5px', borderRadius: '4px', border: '1px solid #ffedd5', fontWeight: '500' }}>
+                    Cada: {item.frecuencia ? `Cada ${Math.round(24 / item.frecuencia)} hrs` : 'N/A'} ({item.frecuencia} v/d)
+                  </span>
+                  <span style={{ fontSize: '11px', backgroundColor: '#f3e8ff', color: '#9333ea', padding: '1px 5px', borderRadius: '4px', border: '1px solid #e9d5ff', fontWeight: '500' }}>
+                    Durante: {item.periodo} días
+                  </span>
+                  <span style={{ fontSize: '11px', backgroundColor: '#f1f5f9', color: '#475569', padding: '1px 5px', borderRadius: '4px', border: '1px solid #e2e8f0', fontWeight: '600' }}>
+                    Total: Disp. {item.cantidad} und.
+                  </span>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Modal de Detalles Operativo */}
       {mostrarDetalleMedicamentoModal && (
         <AtencionMedicaMedicamentoDetalleModal
           medication={medicamentoActualParaEditar}
           onClose={() => {
             setMostrarDetalleMedicamentoModal(false);
-            setMedicamentoActualParaEditar(null); // Limpiar el estado al cerrar
+            setMedicamentoActualParaEditar(null);
           }}
           onSave={handleSaveMedicationDetails}
-          showMessage={onModalMessage} // Pasa la función de mensajes al modal
+          showMessage={onModalMessage}
         />
       )}
     </div>
