@@ -1,0 +1,280 @@
+
+// src/components/AtencionMedica/AtencionMedicaPdfPanel.js
+import React from 'react';
+import Styles from "../../../Styles";
+import { FileText, Download, User, ClipboardList } from 'lucide-react';
+import { useAuth } from '../../../shared/context/AuthContext'; // Ajusta la ruta si es necesario
+
+function AtencionMedicaFirmaPanel({ medicalRecordData }) {
+  const { user } = useAuth();
+
+  const handleDescargarPdf = () => {
+    window.print();
+  };
+
+  if (!medicalRecordData) {
+    return (
+      <div style={Styles.medicalSection}>
+        <p style={{ color: '#64748b', textAlign: 'center', padding: '20px' }}>
+          No hay datos disponibles de la atención médica.
+        </p>
+      </div>
+    );
+  }
+
+  // Extracción según la estructura real de tu JSON
+  const { patient = {}, attentionDetails = {} } = medicalRecordData;
+  
+  // Variables de cabecera
+  const entidadNombre = user?.nombreEntidad || 'CLINICA REGALADO SAC';
+  const nombreMedico = user?.nombresUsuario || 'Regalado Monteverde Miguel Angel';
+
+  // =======================================================================
+  // MAPEO DIRECTO DE LLAVES REALES DEL BACKEND (SENSIBLE A MAYÚSCULAS)
+  // =======================================================================
+  const dataTriaje = patient.triaje; // Viene dentro de patient
+  const dataAntecedentes = attentionDetails.PanelAntecedentes;
+  const dataSintomas = attentionDetails.PanelSintomas;
+  const dataExamenFisico = attentionDetails.PanelExamenFisico;
+  const dataDiagnosticos = attentionDetails.PanelDiagnostico;
+  const dataExamenes = attentionDetails.PanelPlanTrabajo; // Llave real para Exámenes
+  const dataTratamientos = attentionDetails.PanelTratamientos; // Llave real para Medicación
+  const dataAlta = attentionDetails.PanelAlta;
+
+  // =======================================================================
+  // RENDERIZADOR ESPECÍFICO PARA TRIAJE
+  // =======================================================================
+  const renderTriaje = (triajeArray) => {
+    if (!triajeArray || !Array.isArray(triajeArray) || triajeArray.length === 0) {
+      return <p style={{ margin: '0 0 0 14px', fontSize: '13px', color: '#94a3b8', fontStyle: 'italic' }}>No refiere.</p>;
+    }
+    return (
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '10px', paddingLeft: '14px' }}>
+        {triajeArray.map((item, idx) => (
+          <div key={item.id || idx} style={{ fontSize: '13px', color: '#1e293b', backgroundColor: '#f8fafc', padding: '6px 10px', borderRadius: '4px', border: '1px solid #e2e8f0' }}>
+            <span style={{ color: '#475569', fontWeight: '500' }}>{item.nombre}:</span>{' '}
+            <span style={{ fontWeight: '700', color: '#0f172a' }}>{item.valor}</span>{' '}
+            <span style={{ fontSize: '11px', color: '#64748b' }}>{item.unidad}</span>
+          </div>
+        ))}
+      </div>
+    );
+  };
+
+  // =======================================================================
+  // RENDERIZADOR GENERAL PARA TEXTO PLANO
+  // =======================================================================
+  const renderTextoPlano = (value) => {
+    if (!value || typeof value !== 'string' || value.trim() === "") {
+      return <p style={{ margin: '0 0 0 14px', fontSize: '13px', color: '#94a3b8', fontStyle: 'italic' }}>No refiere.</p>;
+    }
+    return (
+      <p style={{ margin: '0 0 0 14px', fontSize: '13px', color: '#334155', lineHeight: '1.5', whiteSpace: 'pre-wrap' }}>
+        {value}
+      </p>
+    );
+  };
+
+  return (
+    <div style={Styles.medicalSection}>
+      
+      {/* Botón de control superior (Oculto en la impresión) */}
+      {/* REPORTE CLÍNICO IMPRESO */}
+      <div id="documento-clinico-pdf" style={{ backgroundColor: '#ffffff', padding: '20px', borderRadius: '8px', border: '1px solid #e2e8f0', fontFamily: 'sans-serif' }}>
+        {/* Cabecera */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '2px solid #0066ff', paddingBottom: '12px', marginBottom: '20px' }}>
+          <div>
+            <h1 style={{ margin: 0, fontSize: '20px', color: '#0066ff', fontWeight: 'bold', textTransform: 'uppercase' }}>
+              🏥 {entidadNombre}
+            </h1>
+            <p style={{ margin: '2px 0 0 0', fontSize: '11px', color: '#64748b', fontWeight: '500' }}>
+              Expediente Electrónico de Atención Ambulatoria
+            </p>
+          </div>
+          <div style={{ textAlign: 'right' }}>
+            <h2 style={{ margin: 0, fontSize: '13px', color: '#1e293b', fontWeight: '600' }}>
+              HISTORIA CLINICA
+            </h2>
+            <p style={{ margin: '2px 0 0 0', fontSize: '11px', color: '#64748b' }}>
+              Fecha: {new Date().toLocaleDateString('es-PE')}
+            </p>
+          </div>
+        </div>
+
+        {/* Filiación */}
+        <div style={{ marginBottom: '20px' }}>
+          <div style={{ display: 'table', width: '100%', backgroundColor: '#f8fafc', borderRadius: '6px', border: '1px solid #e2e8f0', fontSize: '13px', padding: '10px' }}>
+            <div style={{ display: 'table-row' }}>
+              <div style={{ display: 'table-cell', padding: '4px 8px', fontWeight: '600', color: '#475569', width: '15%' }}>Paciente:</div>
+              <div style={{ display: 'table-cell', padding: '4px 8px', color: '#1e293b', width: '45%', fontWeight: '700' }}>{patient.name}</div>
+              <div style={{ display: 'table-cell', padding: '4px 8px', fontWeight: '600', color: '#475569', width: '15%' }}>N° Historia:</div>
+              <div style={{ display: 'table-cell', padding: '4px 8px', color: '#1e293b', width: '25%' }}>{patient.hc || 'N/A'}</div>
+            </div>
+          </div>
+        </div>
+
+        {/* ======================================================================= */}
+        {/* EL ORDEN SOLICITADO: Triaje, Antecedentes, Sintomas, Examenfisico, Diagnosticos, Examenes, Medicacion, Alta */}
+        {/* ======================================================================= */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          
+          {/* 1. Triaje */}
+          <div style={{ borderBottom: '1px solid #f1f5f9', paddingBottom: '12px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
+              <ClipboardList size={13} color="#475569" />
+              <h4 style={{ margin: 0, fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', color: '#475569' }}>
+                Triaje / Signos Vitales
+              </h4>
+            </div>
+            {renderTriaje(dataTriaje)}
+          </div>
+
+          {/* 2. Antecedentes */}
+          <div style={{ borderBottom: '1px solid #f1f5f9', paddingBottom: '12px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
+              <ClipboardList size={13} color="#475569" />
+              <h4 style={{ margin: 0, fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', color: '#475569' }}>
+                Antecedentes
+              </h4>
+            </div>
+            {renderTextoPlano(dataAntecedentes)}
+          </div>
+
+          {/* 3. Síntomas */}
+          <div style={{ borderBottom: '1px solid #f1f5f9', paddingBottom: '12px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
+              <ClipboardList size={13} color="#475569" />
+              <h4 style={{ margin: 0, fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', color: '#475569' }}>
+                Síntomas
+              </h4>
+            </div>
+            {renderTextoPlano(dataSintomas)}
+          </div>
+
+          {/* 4. Examen Físico */}
+          <div style={{ borderBottom: '1px solid #f1f5f9', paddingBottom: '12px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
+              <ClipboardList size={13} color="#475569" />
+              <h4 style={{ margin: 0, fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', color: '#475569' }}>
+                Examen Físico
+              </h4>
+            </div>
+            {renderTextoPlano(dataExamenFisico)}
+          </div>
+
+          {/* 5. Diagnósticos */}
+          <div style={{ borderBottom: '1px solid #f1f5f9', paddingBottom: '12px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
+              <ClipboardList size={13} color="#475569" />
+              <h4 style={{ margin: 0, fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', color: '#475569' }}>
+                Diagnósticos
+              </h4>
+            </div>
+            {!dataDiagnosticos || dataDiagnosticos.length === 0 ? (
+              <p style={{ margin: '0 0 0 14px', fontSize: '13px', color: '#94a3b8', fontStyle: 'italic' }}>No refiere.</p>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '5px', paddingLeft: '14px' }}>
+                {dataDiagnosticos.map((item, idx) => (
+                  <div key={item.id || idx} style={{ fontSize: '13px', color: '#1e293b' }}>
+                    • <span style={{ fontWeight: '600' }}>{item.diagnostico}</span> {item.codigoCIE && `[CIE-10: ${item.codigoCIE}]`} - <span style={{ fontStyle: 'italic', color: '#64748b' }}>{item.clasificacion}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* 6. Exámenes (PanelPlanTrabajo) */}
+          <div style={{ borderBottom: '1px solid #f1f5f9', paddingBottom: '12px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
+              <ClipboardList size={13} color="#475569" />
+              <h4 style={{ margin: 0, fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', color: '#475569' }}>
+                Exámenes
+              </h4>
+            </div>
+            {!dataExamenes || dataExamenes.length === 0 ? (
+              <p style={{ margin: '0 0 0 14px', fontSize: '13px', color: '#94a3b8', fontStyle: 'italic' }}>No refiere.</p>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '5px', paddingLeft: '14px' }}>
+                {dataExamenes.map((item, idx) => (
+                  <div key={item.id || idx} style={{ fontSize: '13px', color: '#1e293b' }}>
+                    • <span style={{ fontWeight: '600' }}>{item.examen}</span> {item.codigoProcedimiento && `(CPT: ${item.codigoProcedimiento})`}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* 7. Medicación (PanelTratamientos) */}
+          <div style={{ borderBottom: '1px solid #0066ff', paddingBottom: '12px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
+              <ClipboardList size={13} color="#0066ff" />
+              <h4 style={{ margin: 0, fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', color: '#0066ff' }}>
+                Medicación
+              </h4>
+            </div>
+            {!dataTratamientos || dataTratamientos.length === 0 ? (
+              <p style={{ margin: '0 0 0 14px', fontSize: '13px', color: '#94a3b8', fontStyle: 'italic' }}>No refiere.</p>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '5px', paddingLeft: '14px' }}>
+                {dataTratamientos.map((item, idx) => (
+                  <div key={item.id || idx} style={{ fontSize: '13px', color: '#1e293b', lineHeight: '1.4' }}>
+                    • <span style={{ fontWeight: '600' }}>{item.descripcion}</span>
+                    {item.via && ` - Vía: ${item.via}`}
+                    {item.dosis && ` (Dosis: ${item.dosis})`}
+                    {item.frecuencia && ` cada ${item.frecuencia} horas`}
+                    {item.periodo && ` por ${item.periodo} días`}
+                    {item.cantidad && ` [Cantidad: ${item.cantidad} und]`}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* 8. Alta */}
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
+              <ClipboardList size={13} color="#475569" />
+              <h4 style={{ margin: 0, fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', color: '#475569' }}>
+                Alta
+              </h4>
+            </div>
+            {renderTextoPlano(dataAlta)}
+          </div>
+
+        </div>
+
+        {/* Firmas */}
+        <div style={{ marginTop: '60px', display: 'table', width: '100%' }}>
+          <div style={{ display: 'table-row' }}>
+            <div style={{ display: 'table-cell', width: '50%', textAlign: 'center', padding: '10px' }}>
+              <div style={{ width: '240px', borderTop: '1px solid #cbd5e1', margin: '0 auto', paddingTop: '6px' }}>
+                <p style={{ margin: 0, fontSize: '11px', fontWeight: '700', color: '#1e293b', textTransform: 'uppercase' }}>
+                  Dr(a). {nombreMedico}
+                </p>
+                <p style={{ margin: '2px 0 0 0', fontSize: '10px', color: '#64748b', fontWeight: '500' }}>
+                  Médico Tratante / Firma Digital
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      {/* Estilos CSS de impresión */}
+      <style>
+        {`
+          @media print {
+            body * { visibility: hidden; }
+            #documento-clinico-pdf, #documento-clinico-pdf * { visibility: visible; }
+            #documento-clinico-pdf { position: absolute; left: 0; top: 0; width: 100%; border: none !important; padding: 0 !important; }
+            @page { size: auto; margin: 15mm 12mm; }
+            .no-print { display: none !important; }
+          }
+        `}
+      </style>
+    </div>
+  );
+}
+
+export default AtencionMedicaFirmaPanel;
