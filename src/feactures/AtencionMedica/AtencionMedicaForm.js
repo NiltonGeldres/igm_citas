@@ -21,8 +21,12 @@ import AtencionMedicaFirmaPanel from './AtencionMedicaFirma/AtencionMedicaFirmaP
 import './styles/medico-app-hce.css';
 import { formatCapitalize } from './utils/textFormatter';
 import { AtencionMedicaTriajeService } from './AtencionMedicaTriaje/AtencionMedicaTriajeService';
+import ModalExitoFirma  from './AtencionMedicaFirma/ModalExitoFirma';
 
 function AtencionMedicaForm() {
+  const [datosGuardadosExito, setDatosGuardadosExito] = useState(null); 
+  const [mostrarModalExito, setMostrarModalExito] = useState(false);
+
   const navigate = useNavigate();
   const location = useLocation();
   const [activeTab, setActiveTab] = useState('triaje');
@@ -169,7 +173,7 @@ function AtencionMedicaForm() {
       [sectionName]: newContent,
     }));
   };
-
+/*
   const finalizarAtencionMedicaTotal = async () => {
     if (!patientData.id) {
       showModalMessage('Por favor, selecciona un paciente antes de cerrar la atención.');
@@ -203,6 +207,86 @@ function AtencionMedicaForm() {
       showModalMessage(`Error al cerrar ciclo: ${error.message}`);
     }
   };
+
+*/
+
+  const finalizarAtencionMedicaTotal = async () => {
+    if (!patientData.id) {
+      showModalMessage('Por favor, selecciona un paciente antes de cerrar la atención.');
+      return;
+    }
+
+    showModalMessage('Procesando el guardado clínico y aplicando rúbrica...');
+    
+    try {
+      // 1. Enviamos el registro completo al Backend
+      // El backend interceptará el ID del médico logueado, guardará en BD y estampará la rúbrica en el PDF
+      const response = await AtencionMedicaService.guardarYFirmarAtencion(fullMedicalRecord);
+      
+      // 2. Cerramos el modal de carga inicial
+      closeModal();
+
+      // 3. Almacenamos la respuesta del backend (que contiene las URLs de los PDFs oficiales)
+      setDatosGuardadosExito(response.data); 
+      setMostrarModalExito(true); // Abrimos la ventana/modal de éxito controlada
+
+    } catch (error) {
+      console.error(error);
+      showModalMessage(`Error al cerrar ciclo: ${error.message}`);
+    }
+  };
+
+// --- Reemplazar o actualizar esta función ---
+const ejecutarGuardadoYFirmaFinal = async () => {
+  if (!patientData.id) {
+    showModalMessage('Por favor, selecciona un paciente antes de cerrar la atención.');
+    return;
+  }
+
+  showModalMessage('Guardando historial clínico y aplicando rúbrica médica...');
+  
+  try {
+    // Invocamos al nuevo endpoint unificado del Service
+    const response = await AtencionMedicaService.guardarYFirmarAtencion(fullMedicalRecord);
+    
+    closeModal(); // Cierra el mensaje de carga "Guardando..."
+    
+    // Guardamos la respuesta (URLs de los PDFs) y abrimos el modal de éxito directo
+    setDatosGuardadosExito(response.data); 
+    setMostrarModalExito(true); 
+
+  } catch (error) {
+    console.error("Error al firmar y guardar:", error);
+    showModalMessage(`No se pudo procesar la firma: ${error.message}`);
+  }
+};
+  
+// Función para limpiar el formulario y regresar a la agenda cuando el médico termine de imprimir
+const handleFinalizarFlujoYRegresar = () => {
+  setMostrarModalExito(false);
+  setDatosGuardadosExito(null);
+  setPacienteActivo(null);
+  setPatientData({ 
+          name: ''
+        , sex: ''
+        , age: 'Edad'
+        , id: ''
+        , hc: ''
+        , accionAgenda: 'ATENDER'
+        , triaje: [] 
+  });
+  setSectionsData({
+      PanelAntecedentes: ''
+    , PanelExamenFisico: ''
+    , PanelSintomas: ''
+    , PanelTratamientos: []
+    , PanelDiagnostico: []
+    , PanelPlanTrabajo: []
+    , PanelMedicacion: ''
+    , PanelAlta: ''
+  });
+  setIsAgendaOpen(true); // Reabre la agenda para el siguiente paciente
+};
 
   const imprimirFichaCompleta = () => {
     setModoImpresion('completo');
@@ -423,11 +507,11 @@ function AtencionMedicaForm() {
                         </div>
 
                         {/* Botón de Acción Principal unificado para Guardar/Firmar todo el acto */}
-                        <button
-                          type="button"
-                          onClick={finalizarAtencionMedicaTotal}
-                          style={{ display: 'flex', alignItems: 'center', gap: '8px', backgroundColor: '#dc2626', color: '#ffffff', border: 'none', borderRadius: '6px', padding: '10px 18px', fontSize: '13px', fontWeight: '700', cursor: 'pointer', boxShadow: '0 2px 4px rgba(220,38,38,0.2)' }}
-                        >
+                          <button
+                            type="button"
+                            onClick={ejecutarGuardadoYFirmaFinal}
+                            style={{ display: 'flex', alignItems: 'center', gap: '8px', backgroundColor: '#dc2626', color: '#ffffff', border: 'none', borderRadius: '6px', padding: '10px 18px', fontSize: '13px', fontWeight: '700', cursor: 'pointer', boxShadow: '0 2px 4px rgba(220,38,38,0.2)' }}
+                          >
                           <Save size={16} />
                           <span>Firmar </span>
                         </button>
@@ -662,6 +746,13 @@ function AtencionMedicaForm() {
         `}</style>
 
         <MessageModal message={modalMessage} onClose={closeModal} />
+
+        <ModalExitoFirma 
+          isOpen={mostrarModalExito} 
+          documentos={datosGuardadosExito?.documentos} 
+          onCerrar={handleFinalizarFlujoYRegresar} 
+        />
+
     </div>
   );
 }
