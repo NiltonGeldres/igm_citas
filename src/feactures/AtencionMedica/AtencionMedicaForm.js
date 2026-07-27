@@ -246,6 +246,7 @@ const ejecutarGuardadoYFirmaFinal = async () => {
   showModalMessage('Guardando historial clínico y aplicando rúbrica médica...');
   
   try {
+  console.log("ENVIO "+JSON.stringify(fullMedicalRecord))
     // Invocamos al nuevo endpoint unificado del Service
     const response = await AtencionMedicaService.guardarYFirmarAtencion(fullMedicalRecord);
     
