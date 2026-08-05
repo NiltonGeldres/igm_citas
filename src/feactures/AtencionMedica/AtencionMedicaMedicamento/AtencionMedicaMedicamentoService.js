@@ -1,10 +1,20 @@
+
 // src/components/Medicacion/AtencionMedicaMedicamentoService.js
+import axios from "axios";
+//import header from "../../shared/utils/Header";
+import header from "../../../shared/utils/Header";
 
-// URL base de tu API (puedes sacarla de un archivo .env o configurarla globalmente)
-const API_BASE_URL = 'http://localhost:8080/api/v1';
+const API_URL = process.env.REACT_APP_URL_API;
+const SERVICE__BIENES_BUSCAR = `${API_URL}/api/v1/catalogos/bienes/buscar`;
 
-// Mantenemos temporalmente los paquetes si aún no vienen del backend, 
-// o puedes limpiar esto cuando crees la API de paquetes.
+// Constantes de paginación predeterminadas para solicitudes a la API
+const PAGINACION_DEFAULT = {
+  PAGINA_ACTUAL: 1,
+  TAMANO_PAGINA: 10,
+  TIPO_PRODUCTO: 0,
+};
+
+// Paquetes temporales (pueden ser reemplazados posteriormente por endpoint de backend)
 const MOCK_CATALOGO_PAQUETES_MEDICACION = [
   {
     id: 'pkg-med-01',
@@ -27,45 +37,48 @@ const MOCK_CATALOGO_PAQUETES_MEDICACION = [
 
 export const AtencionMedicaMedicamentoService = {
   /**
-   * Busca medicamentos en el catálogo real del backend mediante la API GET.
+   * Busca medicamentos en el catálogo real del backend mediante Axios y GET.
    * @param {string} query - Término de búsqueda (ej. "LORA")
-   * @param {number} idEntidad - ID de la entidad actual (por defecto 2 según tu ejemplo)
+   * @param {number} [idEntidadOverride] - ID de entidad opcional (si no se provee, intenta obtenerlo de la variable global de sesión)
    */
-  buscarMedicamentosCatalogo: async (query, idEntidad = 2) => {
+  buscarMedicamentosCatalogo: async (query, idEntidadOverride) => {
     try {
       if (!query || query.trim() === '') return [];
 
-      // Construcción de la URL con los parámetros requeridos por tu API
-      const url = `${API_BASE_URL}/catalogos/bienes/buscar?idEntidad=${idEntidad}&termino=${encodeURIComponent(query)}&tipoProducto=0&tamanoPagina=10&paginaActual=1`;
+      // Recuperación de la entidad global o uso del parámetro provisto (ej. usuario logueado)
+      // Ajusta según cómo almacenes la variable global de sesión en tu app (ej. localStorage o store global)
+      const entidadGlobal = idEntidadOverride || 
+                            (typeof window !== 'undefined' && window.idEntidadGlobal) || 
+                            JSON.parse(localStorage.getItem('usuario') || '{}').idEntidad || 2;
 
-      const response = await fetch(url, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          // 'Authorization': 'Bearer ' + token // Descomenta si usas tokens de seguridad
-        }
+      const params = {
+        idEntidad: entidadGlobal,
+        termino: query.trim(),
+        tipoProducto: PAGINACION_DEFAULT.TIPO_PRODUCTO,
+        tamanoPagina: PAGINACION_DEFAULT.TAMANO_PAGINA,
+        paginaActual: PAGINACION_DEFAULT.PAGINA_ACTUAL,
+      };
+
+      // Solicitud HTTP utilizando Axios y los headers globales configurados
+      const response = await axios.get(SERVICE__BIENES_BUSCAR, {
+        params,
+        headers: header() // Integración con la utilidad de cabeceras y tokens del sistema
       });
 
-      if (!response.ok) {
-        throw new Error(`Error en la petición: ${response.statusText}`);
-      }
+      const resultadoJson = response.data;
 
-      const resultadoJson = await response.json();
-
-      // Validamos que la respuesta sea exitosa y contenga la data
-      if (resultadoJson.estado === 'EXITO' && Array.isArray(resultadoJson.data)) {
-        // 🔄 MAPEO DE DATOS: 
-        // Transformamos el JSON del backend al formato que el componente de React espera ({ id, label, ... })
+      // Validamos la estructura del JSON devuelto por la API
+      if (resultadoJson && resultadoJson.estado === 'EXITO' && Array.isArray(resultadoJson.data)) {
+        // Mapeo adaptado al formato que consumen los componentes de interfaz (React Select / Listas)
         return resultadoJson.data.map(item => ({
           id: item.idProducto,
-          label: item.nombre, // O puedes usar item.nombreComercial según prefieras
+          label: item.nombreComercial || item.nombre,
           codigo: item.codigo,
           concentracion: item.concentracion,
           formaFarmaceutica: item.formaFarmaceutica,
           presentacion: item.presentacion,
           idViaDefault: item.idViaDefault,
-          // Guardamos el objeto original por si el componente necesita propiedades extra
-          raw: item 
+          raw: item // Objeto original intacto para cualquier requerimiento posterior
         }));
       }
 
@@ -77,7 +90,6 @@ export const AtencionMedicaMedicamentoService = {
   },
 
   obtenerPaquetesDisponibles: async () => {
-    // Si posteriormente creas una API para los paquetes, la reemplazaras aquí.
     return new Promise((resolve) => {
       setTimeout(() => {
         resolve(MOCK_CATALOGO_PAQUETES_MEDICACION);
@@ -85,60 +97,3 @@ export const AtencionMedicaMedicamentoService = {
     });
   }
 };
-
-// src/components/Medicacion/AtencionMedicaMedicamentoService.js
-/*
-const MOCK_CATALOGO_MEDICAMENTOS = [
-  { id: 'med1', label: 'Paracetamol 500mg' },
-  { id: 'med2', label: 'Ibuprofeno 400mg' },
-  { id: 'med3', label: 'Amoxicilina 500mg' },
-  { id: 'med4', label: 'Omeprazol 20mg' },
-  { id: 'med5', label: 'Loratadina 10mg' },
-  { id: 'med6', label: 'Atorvastatina 20mg' },
-  { id: 'med7', label: 'Metformina 850mg' },
-  { id: 'med8', label: 'Salbutamol 100mcg/dosis Inhalador' }
-];
-
-const MOCK_CATALOGO_PAQUETES_MEDICACION = [
-  {
-    id: 'pkg-med-01',
-    nombrePaquete: 'Esquema Erradicación H. Pylori',
-    medicamentosAsociados: [
-      { id: 'med-p1', descripcion: 'Omeprazol 20mg', dosis: '20.0', frecuencia: 2, periodo: 14, cantidad: 28, via: 'Oral' },
-      { id: 'med-p2', descripcion: 'Amoxicilina 500mg', dosis: '1000.0', frecuencia: 2, periodo: 14, cantidad: 56, via: 'Oral' },
-      { id: 'med-p3', descripcion: 'Ciprofloxacino 500mg', dosis: '500.0', frecuencia: 2, periodo: 14, cantidad: 28, via: 'Oral' }
-    ]
-  },
-  {
-    id: 'pkg-med-02',
-    nombrePaquete: 'Sintomático Respiratorio Adulto',
-    medicamentosAsociados: [
-      { id: 'med-s1', descripcion: 'Paracetamol 500mg', dosis: '500.0', frecuencia: 3, periodo: 3, cantidad: 9, via: 'Oral' },
-      { id: 'med-s2', descripcion: 'Loratadina 10mg', dosis: '10.0', frecuencia: 1, periodo: 5, cantidad: 5, via: 'Oral' }
-    ]
-  }
-];
-
-export const AtencionMedicaMedicamentoService = {
-  buscarMedicamentosCatalogo: async (query) => {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        if (!query) return resolve([]);
-        const filtered = MOCK_CATALOGO_MEDICAMENTOS.filter(med =>
-          med.label.toLowerCase().includes(query.toLowerCase())
-        );
-        resolve(filtered);
-      }, 150);
-    });
-  },
-
-  obtenerPaquetesDisponibles: async () => {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        resolve(MOCK_CATALOGO_PAQUETES_MEDICACION);
-      }, 100);
-    });
-  }
-};
-
-*/
