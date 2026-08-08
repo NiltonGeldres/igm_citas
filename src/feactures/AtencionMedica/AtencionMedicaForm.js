@@ -22,8 +22,11 @@ import './styles/medico-app-hce.css';
 import { formatCapitalize } from './utils/textFormatter';
 import { AtencionMedicaTriajeService } from './AtencionMedicaTriaje/AtencionMedicaTriajeService';
 import ModalExitoFirma  from './AtencionMedicaFirma/ModalExitoFirma';
+import { getCatalogoInit } from './common/catalogoService';
+
 
 function AtencionMedicaForm() {
+  const perfil = JSON.parse(sessionStorage.getItem('user_profile'));
   const [datosGuardadosExito, setDatosGuardadosExito] = useState(null); 
   const [mostrarModalExito, setMostrarModalExito] = useState(false);
 
@@ -67,6 +70,25 @@ function AtencionMedicaForm() {
     PanelMedicacion: '',
     PanelAlta: '',
   });
+
+const [cargando, setCargando] = useState(false);
+
+  useEffect(() => {
+    const precargarCatalogo = async () => {
+      try {
+        setCargando(true);
+        // Al montar el formulario, se descarga y almacena en memoria RAM una sola vez
+        await getCatalogoInit(perfil?.idEntidad);
+      } catch (error) {
+        console.error("Fallo al precargar el catálogo de atención médica", error);
+      } finally {
+        setCargando(false);
+      }
+    };
+
+    precargarCatalogo();
+  }, []);
+
 
   useEffect(() => {
     if (location.state?.paciente) {
@@ -127,7 +149,8 @@ function AtencionMedicaForm() {
     }
   };
 
-  const estadoGuardado = useDebounceSave(fullMedicalRecord, ejecutarPersistenciaAutomatica, 2000);
+ // const estadoGuardado = useDebounceSave(fullMedicalRecord, ejecutarPersistenciaAutomatica, 2000);
+  const estadoGuardado = "";
 
   useEffect(() => {
     if (!patientData.id) {
