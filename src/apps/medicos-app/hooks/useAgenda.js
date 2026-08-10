@@ -4,7 +4,6 @@ import agendaService from '../services/agendaService';
 export const useAgenda = (idMedico, fechaSeleccionada) => {
   const [citados, setCitados] = useState([]);
   const [loading, setLoading] = useState(true);
-      console.log("CITADOS    "+idMedico+fechaSeleccionada)
   const cargarAgenda = useCallback(async () => {
     if (!idMedico || !fechaSeleccionada) return;
     setLoading(true);

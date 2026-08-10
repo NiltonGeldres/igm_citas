@@ -1,43 +1,31 @@
 // src/components/AtencionMedicaDiagnostico/AtencionMedicaDiagnosticoService.js
+import axios from "axios";
+import header from "../../../shared/utils/Header";
 import { AtencionMedicaDiagnosticoMapper } from './AtencionMedicaDiagnosticoMapper';
 
-// =========================================================================
-// 🔬 MOCKS DE DESARROLLO HOMOLOGADOS (Estructura idéntica de API)
-// =========================================================================
+const API_URL = process.env.REACT_APP_URL_API;
+const SERVICE_DIAGNOSTICO_BUSCAR = `${API_URL}/api/v1/catalogos/diagnosticos/buscar`;
 
-// Catálogo base con la estructura idéntica que maneja la base de datos / API
+const PAGINACION_DEFAULT = {
+  PAGINA_ACTUAL: 1,
+  TAMANO_PAGINA: 10,
+};
+
+// =========================================================================
+// 🔬 MOCKS DE DESARROLLO (Alineados al JSON real de la API)
+// =========================================================================
 const MOCK_CATALOGO_BUSQUEDA = [
-  { idDiagnosticoApi: 201, descripcionCie: 'Diabetes Mellitus Tipo 2 sin mención de complicación', codigoAlfa: 'E11.9', clasificacion: '' },
-  { idDiagnosticoApi: 202, descripcionCie: 'Hipotiroidismo Primario / No Especificado', codigoAlfa: 'E03.9', clasificacion: '' },
-  { idDiagnosticoApi: 203, descripcionCie: 'Hipertiroidismo con Bocio Difuso (Enfermedad de Graves)', codigoAlfa: 'E05.0', clasificacion: '' },
-  { idDiagnosticoApi: 204, descripcionCie: 'Obesidad Debida a Exceso de Calorías', codigoAlfa: 'E66.0', clasificacion: '' },
-  { idDiagnosticoApi: 205, descripcionCie: 'Hiperlipidemia Mixta', codigoAlfa: 'E78.2', clasificacion: '' },
-  { idDiagnosticoApi: 206, descripcionCie: 'Síndrome de Ovario Poliquístico', codigoAlfa: 'E28.2', clasificacion: '' },
-  { idDiagnosticoApi: 207, descripcionCie: 'Tiroiditis Autoinmune (Hashimoto)', codigoAlfa: 'E06.3', clasificacion: '' },
-  { idDiagnosticoApi: 208, descripcionCie: 'Insuficiencia Adrenocortical Primaria (Enfermedad de Addison)', codigoAlfa: 'E27.1', clasificacion: '' },
-  { idDiagnosticoApi: 209, descripcionCie: 'Hiperproactinemia', codigoAlfa: 'E22.1', clasificacion: '' },
-  { idDiagnosticoApi: 210, descripcionCie: 'Nódulo Tiroideo Solitario No Tóxico', codigoAlfa: 'E04.1', clasificacion: '' }
+  { idDiagnostico: 47, codigoCie: 'A07.0', descripcion: 'Balantidiasis' },
+  { idDiagnostico: 48, codigoCie: 'A07.1', descripcion: 'Giardiasis [lambliasis]' },
+  { idDiagnostico: 59, codigoCie: 'A09.X', descripcion: 'Diarrea y gastroenteritis de presunto origen infeccioso' },
+  { idDiagnostico: 179, codigoCie: 'A39.5', descripcion: 'Enfermedad cardiaca debida a meningococo' },
+  { idDiagnostico: 201, codigoCie: 'E11.9', descripcion: 'Diabetes Mellitus Tipo 2 sin mención de complicación' }
 ];
 
-// Escenario 1: MOCK_RESPONSE_NO_ATENDIDO (Los 3 primeros con su clasificación ya tipificada)
-const MOCK_RESPONSE_NO_ATENDIDO = [
-  { idDiagnosticoApi: 201, descripcionCie: 'Diabetes Mellitus Tipo 2 sin mención de complicación', codigoAlfa: 'E11.9', clasificacion: 'definitivo' },
-  { idDiagnosticoApi: 202, descripcionCie: 'Hipotiroidismo Primario / No Especificado', codigoAlfa: 'E03.9', clasificacion: 'presuntivo' },
-  { idDiagnosticoApi: 203, descripcionCie: 'Hipertiroidismo con Bocio Difuso (Enfermedad de Graves)', codigoAlfa: 'E05.0', clasificacion: 'repetitivo' }
-];
+const MOCK_RESPONSE_NO_ATENDIDO = [];
 
-// Escenario 2: MOCK_RESPONSE_ATENDIDO (Los 5 primeros con su estructura completa)
 const MOCK_RESPONSE_ATENDIDO = [
-  { idDiagnosticoApi: 201, descripcionCie: 'Diabetes Mellitus Tipo 2 sin mención de complicación', codigoAlfa: 'E11.9', clasificacion: 'definitivo' },
-  { idDiagnosticoApi: 202, descripcionCie: 'Hipotiroidismo Primario / No Especificado', codigoAlfa: 'E03.9', clasificacion: 'definitivo' },
-  { idDiagnosticoApi: 203, descripcionCie: 'Hipertiroidismo con Bocio Difuso (Enfermedad de Graves)', codigoAlfa: 'E05.0', clasificacion: 'repetitivo' },
-  { idDiagnosticoApi: 204, descripcionCie: 'Obesidad Debida a Exceso de Calorías', codigoAlfa: 'E66.0', clasificacion: 'presuntivo' },
-  { idDiagnosticoApi: 205, descripcionCie: 'Hiperlipidemia Mixta', codigoAlfa: 'E78.2', clasificacion: 'definitivo' }
-];
-
-// Escenario 3: MOCK_RESPONSE_BUSQUEDA (Estructura idéntica para modo lectura)
-const MOCK_RESPONSE_BUSQUEDA = [
-  { idDiagnosticoApi: 201, descripcionCie: 'Diabetes Mellitus Tipo 2 sin mención de complicación', codigoAlfa: 'E11.9', clasificacion: 'repetitivo' }
+  { idDiagnosticoApi: 201, descripcionCie: 'Diabetes Mellitus Tipo 2 sin mención de complicación', codigoAlfa: 'E11.9', clasificacion: 'definitivo' }
 ];
 
 // =========================================================================
@@ -45,18 +33,17 @@ const MOCK_RESPONSE_BUSQUEDA = [
 // =========================================================================
 export const AtencionMedicaDiagnosticoService = {
 
-  /**
-   * Obtiene los diagnósticos actuales de la atención del paciente.
-   */
   obtenerDiagnosticosPorPaciente: async (idPaciente, accionAgenda) => {
-    const isProduction = process.env.NODE_ENV === 'production';
+    console.log("obtenerDiagnosticosPorPaciente:", idPaciente, accionAgenda);
+    const isProduction = process.env.REACT_APP_NODE_ENV === 'production';
 
     if (isProduction) {
       try {
-        const response = await fetch(`/api/atencion-medica/diagnosticos/${idPaciente}?accion=${accionAgenda}`);
-        if (!response.ok) throw new Error('Error al recuperar diagnósticos del servidor');
-        const data = await response.json();
-        return AtencionMedicaDiagnosticoMapper.apiToUiRecordList(data);
+        const response = await axios.get(`${API_URL}/api/atencion-medica/diagnosticos/${idPaciente}`, {
+          params: { accion: accionAgenda },
+          headers: header()
+        });
+        return AtencionMedicaDiagnosticoMapper.apiToUiRecordList(response.data);
       } catch (error) {
         console.error('❌ Error en producción al obtener diagnósticos:', error);
         throw error;
@@ -64,53 +51,47 @@ export const AtencionMedicaDiagnosticoService = {
     } else {
       return new Promise((resolve) => {
         setTimeout(() => {
-          let datosDisparados;
-
-          switch (accionAgenda) {
-            case 'ATENDER':
-              datosDisparados = MOCK_RESPONSE_NO_ATENDIDO;
-              break;
-            case 'ACTUALIZAR':
-              datosDisparados = MOCK_RESPONSE_ATENDIDO;
-              break;
-            case 'BUSQUEDA':
-            default:
-              datosDisparados = MOCK_RESPONSE_BUSQUEDA;
-              break;
-          }
-
-          console.log(`📋 [MockService] Homologado disparado para: ${accionAgenda}`);
+          let datosDisparados = accionAgenda === 'ACTUALIZAR' ? MOCK_RESPONSE_ATENDIDO : MOCK_RESPONSE_NO_ATENDIDO;
           resolve(AtencionMedicaDiagnosticoMapper.apiToUiRecordList(datosDisparados));
         }, 300);
       });
     }
   },
 
-  /**
-   * Filtra el catálogo de la especialidad para el Autocomplete.
-   */
   buscarDiagnosticosCatalogo: async (query) => {
-    const isProduction = process.env.NODE_ENV === 'production';
-    const cleanQuery = (query || '').trim().toLowerCase();
+    console.log("Ingreso a buscarDiagnosticosCatalogo");
+    const isProduction = process.env.REACT_APP_NODE_ENV === 'production';
+    const cleanQuery = (query || '').trim();
+
+    if (!cleanQuery) return [];
 
     if (isProduction) {
       try {
-        const response = await fetch(`/api/atencion-medica/catalogo/cie10?search=${encodeURIComponent(cleanQuery)}`);
-        if (!response.ok) throw new Error('Error al consultar catálogo de producción');
-        const data = await response.json();
-        return AtencionMedicaDiagnosticoMapper.apiToUiCatalogList(data);
+        const response = await axios.get(SERVICE_DIAGNOSTICO_BUSCAR, {
+          params: {
+            busqueda: cleanQuery,
+            limite: PAGINACION_DEFAULT.TAMANO_PAGINA,
+            pagina: PAGINACION_DEFAULT.PAGINA_ACTUAL
+          },
+          headers: header()
+        });
+
+        const resultadoJson = response.data;
+        if (resultadoJson && resultadoJson.estado === 'EXITO' && Array.isArray(resultadoJson.data)) {
+          return AtencionMedicaDiagnosticoMapper.apiToUiCatalogList(resultadoJson.data);
+        }
+
+        return [];
       } catch (error) {
-        console.error('❌ Error en catálogo de producción:', error);
-        throw error;
+        console.error('❌ Error al buscar diagnósticos en el catálogo:', error);
+        return [];
       }
     } else {
       return new Promise((resolve) => {
         setTimeout(() => {
-          if (!cleanQuery) return resolve([]);
-
           const filtrados = MOCK_CATALOGO_BUSQUEDA.filter(item =>
-            item.descripcionCie.toLowerCase().includes(cleanQuery) ||
-            item.codigoAlfa.toLowerCase().includes(cleanQuery)
+            item.descripcion.toLowerCase().includes(cleanQuery.toLowerCase()) ||
+            item.codigoCie.toLowerCase().includes(cleanQuery.toLowerCase())
           );
           resolve(AtencionMedicaDiagnosticoMapper.apiToUiCatalogList(filtrados));
         }, 200);

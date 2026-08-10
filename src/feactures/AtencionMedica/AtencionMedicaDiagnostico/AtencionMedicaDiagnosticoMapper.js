@@ -11,10 +11,13 @@ export const AtencionMedicaDiagnosticoMapper = {
     
     return {
       // Usamos el ID de la API directamente mapeado para mantener la persistencia relacional
-      id: apiItem.idDiagnosticoApi?.toString() || '', 
-      label: apiItem.descripcionCie || '',
+      id: apiItem.idDiagnostico?.toString() || '', 
+//      id: apiItem.idDiagnosticoApi?.toString() || '', 
+      label: apiItem.descripcion || '',
+//      label: apiItem.descripcionCie || '',
       diagnostico: apiItem.descripcionCie || '',
-      codigoCIE: apiItem.codigoAlfa || '',
+//      codigoCIE: apiItem.codigoAlfa || '',
+      codigoCIE: apiItem.codigoCie || '',
       clasificacion: apiItem.clasificacion || '' // Si es catálogo vendrá "", si está guardado vendrá su tipo
     };
   },

@@ -73,21 +73,6 @@ function AtencionMedicaForm() {
 
 const [cargando, setCargando] = useState(false);
 
-  useEffect(() => {
-    const precargarCatalogo = async () => {
-      try {
-        setCargando(true);
-        // Al montar el formulario, se descarga y almacena en memoria RAM una sola vez
-        await getCatalogoInit(perfil?.idEntidad);
-      } catch (error) {
-        console.error("Fallo al precargar el catálogo de atención médica", error);
-      } finally {
-        setCargando(false);
-      }
-    };
-
-    precargarCatalogo();
-  }, []);
 
 
   useEffect(() => {
@@ -100,6 +85,7 @@ const [cargando, setCargando] = useState(false);
     if (!patientData?.id) return;
 
     const cargarDatosTriajeDelPaciente = async () => {
+      console.log(JSON.stringify(patientData))
       try {
         setCargandoTriaje(true);
         console.log(`📡 Consumiendo Triaje para Paciente ID: ${patientData.id} - Acción: ${patientData.accionAgenda}`);
@@ -159,6 +145,7 @@ const [cargando, setCargando] = useState(false);
   }, [patientData.id]);
 
   const handleSelectPaciente = (pacienteSeleccionado) => {
+//    alert(JSON.stringify(pacienteSeleccionado))
     if (!pacienteSeleccionado) return;
 
     setPacienteActivo(pacienteSeleccionado);
@@ -782,3 +769,20 @@ const handleFinalizarFlujoYRegresar = () => {
 }
 
 export default AtencionMedicaForm;
+/*
+  useEffect(() => {
+    const precargarCatalogo = async () => {
+      try {
+        setCargando(true);
+        // Al montar el formulario, se descarga y almacena en memoria RAM una sola vez
+        await getCatalogoInit(perfil?.idEntidad);
+      } catch (error) {
+        console.error("Fallo al precargar el catálogo de atención médica", error);
+      } finally {
+        setCargando(false);
+      }
+    };
+
+    precargarCatalogo();
+  }, []);
+*/

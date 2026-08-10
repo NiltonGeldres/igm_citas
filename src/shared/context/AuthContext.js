@@ -1,46 +1,71 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import AuthService from '../../master-data/services/auth.service';
-//import EntidadService from '../../master-data/services/EntidadService';
+import axios from 'axios';
+import header from '../../shared/utils/Header';
 
+const API_URL = process.env.REACT_APP_URL_API;
 const AuthContext = createContext();
+const SERVICE_CATALOGO_INICIAL = "/api/v1/catalogos/init";      
+
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  
-  const actualizarDatosGlobales = async () => {
-    const perfilToken = AuthService.leerPerfil();
-    if (perfilToken) {
-      try {
-        const resData = await AuthService.obtenerDatosGlobales(); 
-        console.log("Datos frescos desde API:", resData);
-        const perfilConDatosGlobales = {
-          ...perfilToken,     
-          nombresUsuario: resData.nombresUsuario,
-          nombreEntidad: resData.nombreEntidad,
-          email: resData.email         
-        };        
-        
-        console.log("Estado Global Hidratado:", perfilConDatosGlobales);
-        setUser(perfilConDatosGlobales);
+  const [catalogoGlobal, setCatalogoGlobal] = useState([]);
 
+  const cargarCatalogoGlobal = async () => {
+      try {
+        // Usamos GET ya que el backend espera una petición @GetMapping
+        const response = await axios.get(
+          `${API_URL}${SERVICE_CATALOGO_INICIAL}`, 
+          { headers: header() }
+        );
+        const data = response.data.catalogo || response.data;
+        setCatalogoGlobal(data);
+        sessionStorage.setItem('catalogo_global', JSON.stringify(data));
       } catch (error) {
-        console.error("Fallo la hidratación de datos globales:", error);
-      setUser(perfilToken);        
+        console.error("❌ Error al cargar el catálogo inicial:", error);
       }
-    } else {
-      console.warn("No hay sesión válida para hidratar datos.");
-    }
-    
-    setLoading(false);
-};
+    };
+
+    const actualizarDatosGlobales = async () => {
+      const perfilToken = AuthService.leerPerfil();
+      if (perfilToken) {
+        try {
+          const resData = await AuthService.obtenerDatosGlobales(); 
+          const perfilConDatosGlobales = {
+            ...perfilToken,    
+            nombresUsuario: resData.nombresUsuario,
+            nombreEntidad: resData.nombreEntidad,
+            email: resData.email,
+            idEntidad: resData.idEntidad // Incluido por si necesitas pasar la entidad al catálogo
+          };        
+        
+          setUser(perfilConDatosGlobales);
+          // Pasamos el idEntidad del usuario recién hidratado si aplica
+          await cargarCatalogoGlobal();
+
+        } catch (error) {
+          console.error("Fallo la hidratación de datos globales:", error);
+          setUser(perfilToken);        
+        }
+      } else {
+        console.warn("No hay sesión válida para hidratar datos.");
+        setUser(null);      
+      }
+      setLoading(false);
+    };
 
   useEffect(() => {
-    actualizarDatosGlobales();
+     const storedCatalogo = sessionStorage.getItem('catalogo_global');
+     if (storedCatalogo) {
+        setCatalogoGlobal(JSON.parse(storedCatalogo));
+     }    
+     actualizarDatosGlobales();
   }, []);
 
   const value = {
     user,
-//    entidad,
+    catalogoGlobal,    
     actualizarDatosGlobales,
     isLoggedIn: !!user,
     loading
@@ -56,74 +81,3 @@ export const useAuth = () => {
   }
   return context;
 };
-
-/*
-const actualizarDatosGlobales = async () => {
-    const perfilToken = AuthService.leerPerfil();
-    
-    if (perfilToken) {
-      try {
-        // 1. IMPORTANTE: Agrega los paréntesis () para ejecutar la función
-        const resData = await AuthService.obtenerDatosGlobales(); 
-        
-        console.log("Respuesta de API:", resData);
-
-        // 2. ERROR DE LÓGICA: No uses el estado 'datos' aquí. 
-        // setState es asíncrono. Usa 'resData' que es la variable fresca.
-        const datosGlobalesCompletos = {
-          ...perfilToken,     
-          nombreUsuario: resData.nombreUsuario, // Usamos resData directamente
-          nombreEntidad: resData.nombreEntidad,
-          email: resData.email         
-        };        
-        
-        console.log("Datos Combinados:", datosGlobalesCompletos);
-        
-        // 3. Ahora sí actualizamos los estados
-        setDatos(resData); 
-        setUser(datosGlobalesCompletos);
-
-      } catch (error) {
-        console.error("Error al cargar datos globales:", error);
-      }
-    }
-    setLoading(false);
-};
-*/
-
-/*
-  const actualizarDatosGlobales = async () => {
-    const perfil = AuthService.leerPerfil();
-    console.log("PERFIL   "+JSON.stringify(perfil))
-    if (perfil) {
-      setUser(perfil);
-      try {
-        // Obtenemos la entidad desde tu servicio existente
-        const res = await EntidadService.getEntidad();
-        setEntidad(res.data); 
-      } catch (error) {
-        console.error("Error al cargar entidad en Contexto", error);
-      }
-    }
-    setLoading(false);
-  };
-
-  */
-  /*
-  const actualizarDatosGlobales = async () => {
-    const perfil = AuthService.leerPerfil();
-    if (perfil) {
-      setUser(perfil);
-      try {
-        // Obtenemos la entidad desde tu servicio existente
-        const res = await AuthService.obtenerDatosGlobales(); 
-        //const res = await EntidadService.getEntidad();
-        setEntidad(res.data); 
-      } catch (error) {
-        console.error("Error al cargar entidad en Contexto", error);
-      }
-    }
-    setLoading(false);
-  };
-*/
-  

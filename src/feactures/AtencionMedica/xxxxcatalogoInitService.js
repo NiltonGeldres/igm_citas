@@ -1,4 +1,4 @@
-// features/AtencionMedica/catalogoInitService.js
+/*// features/AtencionMedica/catalogoInitService.js
 import axios from "axios";
 import header from "../../shared/utils/Header"; // Ajusta la ruta de tu header según tu estructura
 
@@ -45,3 +45,4 @@ export const clearCatalogoCache = () => {
   catalogoInitCache = null;
   currentIdEntidad = null;
 };
+*/

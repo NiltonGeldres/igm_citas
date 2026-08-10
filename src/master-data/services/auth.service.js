@@ -133,7 +133,7 @@ const obtenerDatosGlobales = (token) => {
     return axios
     .post(API_URL+DATOS_GLOBALES ,{},{ headers: header()})
     .then((response) => {
-        console.log("Datos Globales response "+response)
+       // console.log("Datos Globales response "+JSON.stringify(response))
         return response.data;
     });
 };

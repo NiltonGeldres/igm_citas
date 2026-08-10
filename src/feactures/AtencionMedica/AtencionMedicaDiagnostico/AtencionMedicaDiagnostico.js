@@ -199,9 +199,9 @@ function AtencionMedicaDiagnostico({ content = [], onContentChange, onModalMessa
                       }}
                     >
                       <option value="">-- Tipo --</option>
-                      <option value="presuntivo">Presuntivo</option>
-                      <option value="definitivo">Definitivo</option>
-                      <option value="repetitivo">Repetitivo</option>
+                      <option value="1">Presuntivo</option>
+                      <option value="2">Definitivo</option>
+                      <option value="3">Repetitivo</option>
                     </select>
                     
                     {/* Alerta en línea si falta tipificar */}

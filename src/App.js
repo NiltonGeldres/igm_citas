@@ -14,10 +14,11 @@ function App() {
   const Authority = user?.rol; 
   const navigate = useNavigate();
 
-  if (loading) return <div className="loading-screen">Cargando MediFlow...</div>;
-    const logOut = () => {
-    AuthService.logout(); // Limpia sessionStorage
-    navigate("/login");
+  if (loading) return <div className="loading-screen">Cargando MiClinica...</div>;
+  
+  const logOut = () => {
+        AuthService.logout(); // Limpia sessionStorage
+        navigate("/login");
   };
 
   return (
@@ -42,19 +43,16 @@ function App() {
         <Route path="/" element={
           !user ? <Navigate to="/login" replace /> : 
           (Authority === 'Medicos' ? <Navigate to="/med/agenda" replace /> : <Navigate to="/paciente/citas" replace />)
-//          (Authority === 4 ? <Navigate to="/med/agenda" replace /> : <Navigate to="/paciente/citas" replace />)
         } />
 
         {/* 3. MUNDO MÉDICO: El MedicoRouter ya incluye el Layout con el BaseHeader completo */}
         <Route path="/med/*" element={
           user?.rol === 'Medicos' ? <MedicoRouter onLogout={logOut}/> : <Navigate to="/login" replace />
-//          user?.idRol === 4 ? <MedicoRouter onLogout={logOut}/> : <Navigate to="/login" replace />
         } />
 
          {/* 4. MUNDO PACIENTE */}
         <Route path="/paciente/*" element={
           user?.rol === 'Usuarios' ? <PacientePage onLogout={logOut}/> : <Navigate to="/login" replace />
-//          user?.idRol === 2 ? <PacientePage onLogout={logOut}/> : <Navigate to="/login" replace />
         } />
 
         {/* 5. COMODÍN: Cualquier otra ruta vuelve al inicio */}

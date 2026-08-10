@@ -5,9 +5,9 @@ import AuthService from "../../master-data/services/auth.service";
 import Styles from '../../Styles'; // Importa tus estilos globales
 import MessageModal from '../utils/MessageModal'; // Importa el nuevo componente MessageModal
 import {useAuth } from "../context/AuthContext"
+
 const Login = () => {
   const navigate = useNavigate();
-  
   const { actualizarDatosGlobales } = useAuth();    
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -45,7 +45,6 @@ const Login = () => {
 
         setErrorMessage(mensajeParaUsuario);
         setShowErrorModal(true);
-        
         AuthService.logout(); // Limpiamos por seguridad
     } finally {
         setLoading(false);
@@ -97,46 +96,4 @@ const Login = () => {
   );
 };
 export default Login;
-
-
-  /*
-  const handleLogin = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    try {
-       const response =  await AuthService.login(email, password);
-       if (response.jwtToken) {
-           console.log("response.jwtToken  "+response.jwtToken)
-              await actualizarDatosGlobales(); // <--- ESTO LLENA EL HEADER AL INSTANTE
-              navigate("/");
-       }        
-        window.location.reload();
-
-    } catch (err) {
-        const statusCode = err.response?.status;
-        const serverMessage = err.response?.data?.message; // Si tu API devuelve un mensaje
-        console.log("Error Login   "+err.response)
-
-        let mensajeParaUsuario = "";
-
-        if (statusCode === 401) {
-            mensajeParaUsuario = "La contraseña o el correo son incorrectos. Por favor, verifica tus datos.";
-        } else if (statusCode === 403) {
-            mensajeParaUsuario = "Tu cuenta está desactivada o no tienes permisos para acceder. Contacta al administrador.";
-        } else if (statusCode === 404) {
-            mensajeParaUsuario = "El usuario ingresado no existe.";
-        } else if (statusCode >= 500) {
-            mensajeParaUsuario = "Tenemos problemas con nuestro servidor. Inténtalo más tarde.";
-        } else {
-            mensajeParaUsuario = "No se pudo conectar con el servidor. Revisa tu conexión a internet.";
-        }
-        setErrorMessage(mensajeParaUsuario);
-        setShowErrorModal(true);
-        
-        AuthService.logout(); // Limpiamos por seguridad
-    } finally {
-        setLoading(false);
-    }
-};
-*/
 
