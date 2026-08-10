@@ -1,12 +1,17 @@
 // src/components/Medicacion/AtencionMedicaMedicamentoDetalleModal.js
 import React, { useState, useEffect } from 'react';
+import { useAuth } from '../../../shared/context/AuthContext'; 
 
 function AtencionMedicaMedicamentoDetalleModal({ medication, onClose, onSave, showMessage }) {
+  const { catalogoGlobal } = useAuth(); // Accedemos al contexto
   const [dosis, setDosis] = useState('');
   const [frecuencia, setFrecuencia] = useState('');
   const [periodo, setPeriodo] = useState('');
   const [cantidad, setCantidad] = useState('');
   const [via, setVia] = useState('');
+  
+  // Extraemos el catálogo de vías de administración de forma segura
+  const viasAdministracion = catalogoGlobal?.catalogoViasAdministracion || [];
 
   useEffect(() => {
     if (medication) {
@@ -52,7 +57,7 @@ function AtencionMedicaMedicamentoDetalleModal({ medication, onClose, onSave, sh
       frecuencia: parsedFrecuencia,
       periodo: parsedPeriodo,
       cantidad: parsedCantidad,
-      via: via.trim(),
+      via: via.toString().trim(),
     });
   };
 
@@ -79,7 +84,11 @@ function AtencionMedicaMedicamentoDetalleModal({ medication, onClose, onSave, sh
     label: { display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '12px', color: '#475569', fontWeight: '600' },
     input: {
       height: '36px', padding: '0 10px', borderRadius: '6px', border: '1px solid #cbd5e1',
-      fontSize: '13px', color: '#1e293b', outline: 'none', backgroundColor: '#f8fafc'
+      fontSize: '13px', color: '#1e293b', outline: 'none', backgroundColor: '#f8fafc', width: '100%', boxSizing: 'border-box'
+    },
+    select: {
+      height: '36px', padding: '0 10px', borderRadius: '6px', border: '1px solid #cbd5e1',
+      fontSize: '13px', color: '#1e293b', outline: 'none', backgroundColor: '#f8fafc', width: '100%', boxSizing: 'border-box', cursor: 'pointer'
     },
     actions: { display: 'flex', gap: '10px', justifyContent: 'flex-end', padding: '12px 16px', backgroundColor: '#f8fafc', borderTop: '1px solid #e2e8f0' },
     btnCancel: { padding: '8px 14px', borderRadius: '20px', border: '1px solid #cbd5e1', backgroundColor: '#ffffff', color: '#64748b', fontSize: '13px', fontWeight: '500', cursor: 'pointer' },
@@ -94,17 +103,25 @@ function AtencionMedicaMedicamentoDetalleModal({ medication, onClose, onSave, sh
           Configurar Receta: {medication.descripcion}
         </div>
 
-        {/* Cuerpo con Inputs estilizados */}
+        {/* Cuerpo con Inputs y Selects estilizados */}
         <div style={modalStyles.body}>
           <label style={modalStyles.label}>
             Vía de Administración
-            <input
-              type="text"
+            <select
               value={via}
               onChange={(e) => setVia(e.target.value)}
-              style={modalStyles.input}
-              placeholder="Ej: Oral, Sublingual, Intravenosa"
-            />
+              style={modalStyles.select}
+            >
+              <option value="">-- Seleccione Vía de Administración --</option>
+              {viasAdministracion.map((itemVia) => (
+                <option 
+                  key={itemVia.idViaAdministracion} 
+                  value={itemVia.nombreViaAdministracion.trim()}
+                >
+                  {itemVia.nombreViaAdministracion} ({itemVia.grupoClasificacion})
+                </option>
+              ))}
+            </select>
           </label>
 
           <div style={{ display: 'flex', gap: '10px' }}>

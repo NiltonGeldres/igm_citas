@@ -32,7 +32,7 @@ function AtencionMedicaExamen({ content = [], onContentChange, onModalMessage, d
 
   // AGREGAR EXAMEN INDIVIDUAL
   const handleAddExam = (examItem) => {
-    const existingExam = content.find(item => item.codigoProcedimiento === examItem.codigoProcedimiento);
+    const existingExam = content.find(item => item.codigoExamen === examItem.codigoExamen);
 
     if (existingExam) {
       if (onModalMessage) {
@@ -45,7 +45,7 @@ function AtencionMedicaExamen({ content = [], onContentChange, onModalMessage, d
       id: uuidv4(),
       label: examItem.label,
       examen: examItem.label,
-      codigoProcedimiento: examItem.codigoProcedimiento || 'S/C',
+      codigoExamen: examItem.codigoExamen || 'S/C',
       tipoExamen: examItem.tipoExamen || '',
       diagnosticosAsociados: [] 
     };
@@ -66,14 +66,14 @@ function AtencionMedicaExamen({ content = [], onContentChange, onModalMessage, d
     const listaActualizada = [...content];
 
     paqueteSeleccionado.examenesAsociados.forEach(examItem => {
-      const yaExiste = listaActualizada.some(item => item.codigoProcedimiento === examItem.codigoProcedimiento);
+      const yaExiste = listaActualizada.some(item => item.codigoExamen === examItem.codigoExamen);
       
       if (!yaExiste) {
         listaActualizada.push({
           id: uuidv4(),
           label: examItem.label,
           examen: examItem.label,
-          codigoProcedimiento: examItem.codigoProcedimiento || 'S/C',
+          codigoExamen: examItem.codigoExamen || 'S/C',
           tipoExamen: examItem.tipoExamen || '',
           diagnosticosAsociados: []
         });
@@ -312,7 +312,7 @@ function AtencionMedicaExamen({ content = [], onContentChange, onModalMessage, d
                       fontWeight: '600',
                       border: '1px solid #e2e8f0'
                     }}>
-                      Cod: {item.codigoProcedimiento}
+                      Cod: {item.codigoExamen}
                     </span>
 
                     {/* Desplegable de Diagnósticos */}

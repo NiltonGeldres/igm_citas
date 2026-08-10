@@ -4,9 +4,14 @@ import AutoCompleteInput from '../common/AutoCompleteInput';
 import Styles from '../../../Styles'; 
 import { Trash2 } from 'lucide-react'; 
 import { AtencionMedicaDiagnosticoService } from './AtencionMedicaDiagnosticoService';
+import { useAuth } from '../../../shared/context/AuthContext'; 
 
 function AtencionMedicaDiagnostico({ content = [], onContentChange, onModalMessage }) {
+  const { catalogoGlobal } = useAuth(); // Accedemos al contexto
   const [mostrarBuscador, setMostrarBuscador] = useState(false);
+  // Extraemos el catálogo de tipos de diagnóstico de forma segura
+  const tiposDiagnostico = catalogoGlobal?.catalogoTipoDiagnostico || [];
+
 
   const fetchDiagnosisSuggestions = async (query) => {
     try {
@@ -184,26 +189,32 @@ function AtencionMedicaDiagnostico({ content = [], onContentChange, onModalMessa
                     </span>
 
                     {/* Selector de Clasificación justo al lado */}
+
                     <select
-                      value={item.clasificacion}
-                      onChange={(e) => handleClasificacionChange(item.id, e.target.value)}
-                      style={{
-                        ...selectStyle,
-                        padding: '4px 10px',
-                        borderRadius: '6px',
-                        fontSize: '13px',
-                        color: '#334155',
-                        width: '140px',
-                        outline: 'none',
-                        cursor: 'pointer'
-                      }}
-                    >
-                      <option value="">-- Tipo --</option>
-                      <option value="1">Presuntivo</option>
-                      <option value="2">Definitivo</option>
-                      <option value="3">Repetitivo</option>
-                    </select>
-                    
+                        value={item.clasificacion}
+                        onChange={(e) => handleClasificacionChange(item.id, e.target.value)}
+                        style={{
+                          ...selectStyle,
+                          padding: '4px 10px',
+                          borderRadius: '6px',
+                          fontSize: '13px',
+                          color: '#334155',
+                          width: '140px',
+                          outline: 'none',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        <option value="">-- Tipo --</option>
+                        {tiposDiagnostico.map((tipo) => (
+                          <option 
+                            key={tipo.idDiagnosticoSubclasificacion} 
+                            value={tipo.idDiagnosticoSubclasificacion}
+                          >
+                            {tipo.descripcion}
+                          </option>
+                        ))}
+                      </select>
+                                          
                     {/* Alerta en línea si falta tipificar */}
                     {!item.clasificacion && (
                       <span style={{ color: '#dc2626', fontSize: '11px', fontWeight: '600' }}>
