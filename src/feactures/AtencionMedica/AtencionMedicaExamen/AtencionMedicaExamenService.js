@@ -93,7 +93,8 @@ export const AtencionMedicaExamenService = {
   },
 
   buscarExamenesCatalogo: async (query, tipoServicioFiltro = 1, idEntidadFiltro = PAGINACION_DEFAULT.ID_ENTIDAD_DEFAULT) => {
-    console.log("Ingreso a buscarExamenesCatalogo");
+
+    console.log("Ingreso a buscarExamenesCatalogo"+JSON.stringify(query));
     const isProduction = process.env.REACT_APP_NODE_ENV === 'production';
     const cleanQuery = (query || '').trim();
 
@@ -111,7 +112,7 @@ export const AtencionMedicaExamenService = {
           },
           headers: header()
         });
-
+    console.log("Ingreso a buscarExamenesCatalogo" +JSON.stringify(response.data));
         const resultadoJson = response.data;
         if (resultadoJson && resultadoJson.estado === 'EXITO' && Array.isArray(resultadoJson.data)) {
           return AtencionMedicaExamenMapper.apiToUiCatalogList(resultadoJson.data);

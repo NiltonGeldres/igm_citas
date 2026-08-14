@@ -1,3 +1,4 @@
+/*
 import { useState, useEffect } from 'react';
 import Swal from "sweetalert2";
 import { Calendar, CreditCard, Home, Star, ChevronRight,User, CheckCircle2, ChevronLeft, Plus, Loader2 } from 'lucide-react';
@@ -504,7 +505,7 @@ export default function CitaV2({  direccionClinica = "Sede Central" , onLogout }
   );
 }
 
-
+*/
 
 
 

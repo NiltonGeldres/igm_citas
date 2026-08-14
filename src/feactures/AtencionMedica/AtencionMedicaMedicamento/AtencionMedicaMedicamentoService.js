@@ -1,3 +1,4 @@
+
 // src/components/Medicacion/AtencionMedicaMedicamentoService.js
 import axios from "axios";
 import header from "../../../shared/utils/Header";
@@ -8,7 +9,7 @@ const SERVICE_BIENES_BUSCAR = `${API_URL}/api/v1/catalogos/bienes/buscar`;
 
 const PAGINACION_DEFAULT = {
   PAGINA_ACTUAL: 1,
-  TAMANO_PAGINA: 10,
+  TAMANO_PAGINA: 30,
   TIPO_PRODUCTO: 0,
   ID_ENTIDAD_DEFAULT: 2,
 };
@@ -21,7 +22,17 @@ const MOCK_CATALOGO_PAQUETES_MEDICACION = [
     id: 'pkg-med-01',
     nombrePaquete: 'Esquema Erradicación H. Pylori',
     medicamentosAsociados: [
-      { id: 'med-p1', descripcion: 'Omeprazol 20mg', dosis: '20.0', frecuencia: 2, periodo: 14, cantidad: 28, via: 'Oral' },
+      { 
+        id: 'med-p1', 
+        descripcion: 'Omeprazol 20mg', 
+        dosis: '20.0', 
+        frecuencia: 2, 
+        periodo: 14, 
+        cantidad: 28, 
+        via: 'Oral' },
+
+
+
       { id: 'med-p2', descripcion: 'Amoxicilina 500mg', dosis: '1000.0', frecuencia: 2, periodo: 14, cantidad: 56, via: 'Oral' }
     ]
   }
