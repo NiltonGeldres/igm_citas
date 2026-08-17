@@ -97,6 +97,8 @@ export const AuthProvider = ({ children }) => {
               { headers: header() }
             );
             data = response.data.catalogo || response.data;
+            console.log("*** CATALOGO GLOBAL "+JSON.stringify(data))
+
           } else {
             // 3. Lógica para Desarrollo: Usamos el MOCK con un retraso simulado
             console.info("🛠️ Usando MOCK_CATALOGO_GLOBAL para desarrollo");

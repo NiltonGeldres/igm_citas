@@ -5,6 +5,170 @@ import { AtencionMedicaExamenMapper } from './AtencionMedicaExamenMapper';
 
 const API_URL = process.env.REACT_APP_URL_API;
 const SERVICE_EXAMEN_BUSCAR = `${API_URL}/api/v1/catalogos/servicios/buscar`;
+const SERVICE_PAQUETE_DETALLE = `${API_URL}/api/v1/catalogos/servicios/paquete/detalle`;
+
+const PAGINACION_DEFAULT = {
+  PAGINA_ACTUAL: 1,
+  TAMANO_PAGINA: 10,
+  ID_ENTIDAD_DEFAULT: 2,
+};
+
+// Catálogo MOCK de paquetes disponibles
+const MOCK_CATALOGO_PAQUETES = [
+  { id: '1', nombrePaquete: 'Preoperatorio Estándar' },
+  { id: '2', nombrePaquete: 'Perfil Lipídico / Metabólico' }
+];
+
+// Detalle MOCK para desarrollo local
+const MOCK_DETALLE_PAQUETES = {
+  '1': [
+    { idServicio: 1001, codigoServicio: '99211', nombreServicio: 'Hemograma Completo automatizado', tipoServicio: 1 },
+    { idServicio: 1002, codigoServicio: '81000', nombreServicio: 'Examen Completo de Orina (EGO)', tipoServicio: 1 },
+    { idServicio: 1004, codigoServicio: '93000', nombreServicio: 'Electrocardiograma de 12 derivadas (ECG)', tipoServicio: 1 },
+    { idServicio: 1007, codigoServicio: '82947', nombreServicio: 'Glucosa en ayunas en suero o plasma', tipoServicio: 1 },
+    { idServicio: 1008, codigoServicio: '82565', nombreServicio: 'Creatinina en sangre automatizada', tipoServicio: 1 }
+  ],
+  '2': [
+    { idServicio: 1006, codigoServicio: '80061', nombreServicio: 'Perfil Lipídico (Colesterol, Triglicéridos)', tipoServicio: 1 },
+    { idServicio: 1007, codigoServicio: '82947', nombreServicio: 'Glucosa en ayunas en suero o plasma', tipoServicio: 1 }
+  ]
+};
+
+const MOCK_CATALOGO_BUSQUEDA = [
+  { idProducto: 1001, codigo: "99211", nombre: "Hemograma Completo automatizado", tipoServicio: 1 },
+  { idProducto: 1002, codigo: "81000", nombre: "Examen Completo de Orina (EGO)", tipoServicio: 1 },
+  { idProducto: 1003, codigo: "71020", nombre: "Radiografía de Tórax (Antero-Posterior)", tipoServicio: 1 },
+  { idProducto: 1004, codigo: "93000", nombre: "Electrocardiograma de 12 derivadas (ECG)", tipoServicio: 1 },
+  { idProducto: 1005, codigo: "76700", nombre: "Ecografía Abdominal Total completa", tipoServicio: 1 },
+  { idProducto: 1006, codigo: "80061", nombre: "Perfil Lipídico (Colesterol, Triglicéridos)", tipoServicio: 1 },
+  { idProducto: 1007, codigo: "82947", nombre: "Glucosa en ayunas en suero o plasma", tipoServicio: 1 },
+  { idProducto: 1008, codigo: "82565", nombre: "Creatinina en sangre automatizada", tipoServicio: 1 }
+];
+
+const MOCK_RESPONSE_NO_ATENDIDO = [];
+const MOCK_RESPONSE_ATENDIDO = [
+  { idProducto: 1001, nombre: 'Hemograma Completo automatizado', codigo: '99211', tipoServicio: 1, diagnosticosAsociados: [] }
+];
+
+export const AtencionMedicaExamenService = {
+  obtenerPaquetesDisponibles: async () => {
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        resolve(MOCK_CATALOGO_PAQUETES);
+      }, 100);
+    });
+  },
+
+  obtenerDetallePaquete: async (idPaquete, tipoServicio = 1, idEntidad = PAGINACION_DEFAULT.ID_ENTIDAD_DEFAULT) => {
+    const isProduction = process.env.REACT_APP_NODE_ENV === 'production';
+
+    if (isProduction) {
+      try {
+        const response = await axios.get(SERVICE_PAQUETE_DETALLE, {
+          params: {
+            idEntidad,
+            idPaquete,
+            tipoServicio
+          },
+          headers: header()
+        });
+
+        // La API retorna una cadena JSON directamente según la firma del Controller
+        const rawData = typeof response.data === 'string' ? JSON.parse(response.data) : response.data;
+
+        if (rawData && rawData.estado === 'EXITO' && Array.isArray(rawData.data)) {
+          return AtencionMedicaExamenMapper.paqueteDetalleToUi(rawData.data);
+        }
+        return [];
+      } catch (error) {
+        console.error('❌ Error al obtener detalle del paquete de servicios:', error);
+        throw error;
+      }
+    } else {
+      return new Promise((resolve) => {
+        setTimeout(() => {
+          const items = MOCK_DETALLE_PAQUETES[idPaquete] || [];
+          resolve(AtencionMedicaExamenMapper.paqueteDetalleToUi(items));
+        }, 200);
+      });
+    }
+  },
+
+  obtenerExamenesPorPaciente: async (idPaciente, accionAgenda) => {
+    const isProduction = process.env.REACT_APP_NODE_ENV === 'production';
+
+    if (isProduction) {
+      try {
+        const response = await axios.get(`${API_URL}/api/atencion-medica/examenes/${idPaciente}`, {
+          params: { accion: accionAgenda },
+          headers: header()
+        });
+        return AtencionMedicaExamenMapper.apiToUiRecordList(response.data);
+      } catch (error) {
+        console.error('❌ Error en producción al obtener exámenes:', error);
+        throw error;
+      }
+    } else {
+      return new Promise((resolve) => {
+        setTimeout(() => {
+          let datosDisparados = accionAgenda === 'ACTUALIZAR' ? MOCK_RESPONSE_ATENDIDO : MOCK_RESPONSE_NO_ATENDIDO;
+          resolve(AtencionMedicaExamenMapper.apiToUiRecordList(datosDisparados));
+        }, 300);
+      });
+    }
+  },
+
+  buscarExamenesCatalogo: async (query, tipoServicioFiltro = 1, idEntidadFiltro = PAGINACION_DEFAULT.ID_ENTIDAD_DEFAULT) => {
+    const isProduction = process.env.REACT_APP_NODE_ENV === 'production';
+    const cleanQuery = (query || '').trim();
+
+    if (!cleanQuery) return [];
+
+    if (isProduction) {
+      try {
+        const response = await axios.get(SERVICE_EXAMEN_BUSCAR, {
+          params: {
+            idEntidad: idEntidadFiltro,
+            busqueda: cleanQuery,
+            tipoServicio: tipoServicioFiltro,
+            limite: PAGINACION_DEFAULT.TAMANO_PAGINA,
+            pagina: PAGINACION_DEFAULT.PAGINA_ACTUAL
+          },
+          headers: header()
+        });
+
+        const resultadoJson = response.data;
+        if (resultadoJson && resultadoJson.estado === 'EXITO' && Array.isArray(resultadoJson.data)) {
+          return AtencionMedicaExamenMapper.apiToUiCatalogList(resultadoJson.data);
+        }
+
+        return [];
+      } catch (error) {
+        console.error('❌ Error al buscar exámenes en el catálogo:', error);
+        return [];
+      }
+    } else {
+      return new Promise((resolve) => {
+        setTimeout(() => {
+          const filtrados = MOCK_CATALOGO_BUSQUEDA.filter(item =>
+            item.nombre.toLowerCase().includes(cleanQuery.toLowerCase()) ||
+            item.codigo.toLowerCase().includes(cleanQuery.toLowerCase())
+          );
+          resolve(AtencionMedicaExamenMapper.apiToUiCatalogList(filtrados));
+        }, 200);
+      });
+    }
+  }
+};
+
+/*
+// src/components/AtencionExamen/AtencionMedicaExamenService.js
+import axios from "axios";
+import header from "../../../shared/utils/Header";
+import { AtencionMedicaExamenMapper } from './AtencionMedicaExamenMapper';
+
+const API_URL = process.env.REACT_APP_URL_API;
+const SERVICE_EXAMEN_BUSCAR = `${API_URL}/api/v1/catalogos/servicios/buscar`;
 
 const PAGINACION_DEFAULT = {
   PAGINA_ACTUAL: 1,
@@ -136,3 +300,4 @@ export const AtencionMedicaExamenService = {
     }
   }
 };
+*/

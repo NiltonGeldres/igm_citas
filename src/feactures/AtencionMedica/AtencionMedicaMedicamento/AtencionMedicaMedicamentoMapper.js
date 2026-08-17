@@ -2,37 +2,52 @@
 
 export const AtencionMedicaMedicamentoMapper = {
   /**
-   * Mapea un elemento individual del catálogo de medicamentos/bienes.
-   * @param {Object} item - Objeto proveniente de la API o del Mock.
-   * @returns {Object|null} Objeto formateado para la UI.
+   * Mapea un elemento de la lista de CABECERAS DE PAQUETES.
+   */
+  apiToUiPackageItem: (item) => {
+    if (!item) return null;
+
+    return {
+      id: item.idPaqueteMedicacion || item.idPaquete || item.id,
+      label: item.nombrePaquete || item.descripcion || '',
+    };
+  },
+
+  /**
+   * Mapea el arreglo de CABECERAS DE PAQUETES.
+   */
+  apiToUiPackageList: (apiList) => {
+    if (!Array.isArray(apiList)) return [];
+    return apiList.map(item => AtencionMedicaMedicamentoMapper.apiToUiPackageItem(item));
+  },
+
+  /**
+   * Mapea un PRODUCTO/MEDICAMENTO dentro del detalle.
    */
   apiToUiCatalogItem: (item) => {
     if (!item) return null;
 
     return {
-      id: item.idProducto,
+      id: item.idProducto || item.id,
       label: item.nombreComercial || item.nombre || '',
       codigo: item.codigo || '',
       concentracion: item.concentracion || '',
       formaFarmaceutica: item.formaFarmaceutica || '',
       presentacion: item.presentacion || '',
       idViaDefault: item.idViaDefault ?? null,
-      
-      // Conserva el objeto original por si se requiere en un flujo posterior
+      dosisDefault: item.dosis || '',
+      frecuenciaDefault: item.frecuencia || '',
+      duracionDiasDefault: item.duracionDias || null,
+      cantidadPredefinida: item.cantidadPredefinida || 1,
       raw: item
     };
   },
 
   /**
-   * Mapea la lista de elementos devuelta por el backend al formato requerido por la UI.
-   * @param {Array} apiList - Arreglo de objetos "data" de la respuesta JSON.
-   * @returns {Array} Arreglo formateado para componentes de UI.
+   * Mapea la lista de PRODUCTOS/MEDICAMENTOS.
    */
   apiToUiCatalogList: (apiList) => {
-    // 🛡️ Mantiene la validación en el Mapper para evitar fallos con .map()
     if (!Array.isArray(apiList)) return [];
-
     return apiList.map(item => AtencionMedicaMedicamentoMapper.apiToUiCatalogItem(item));
   }
 };
-

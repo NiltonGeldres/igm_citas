@@ -14,9 +14,10 @@ function AtencionMedicaMedicamentoPanel({ content = [], onContentChange, onModal
   const [medicamentoActualParaEditar, setMedicamentoActualParaEditar] = useState(null);
   const [paquetesDisponibles, setPaquetesDisponibles] = useState([]);
 
+  // 🔄 CAMBIO 1: Carga de lista de paquetes alineada a la nueva función del servicio
   useEffect(() => {
     const cargarPaquetes = async () => {
-      const pkgs = await AtencionMedicaMedicamentoService.obtenerPaquetesDisponibles();
+      const pkgs = await AtencionMedicaMedicamentoService.obtenerListaPaquetes();
       setPaquetesDisponibles(pkgs);
     };
     cargarPaquetes();
@@ -36,39 +37,43 @@ function AtencionMedicaMedicamentoPanel({ content = [], onContentChange, onModal
       setMedicamentoActualParaEditar({
         id: uuidv4(),
         descripcion: medicationItem.label,
-        dosis: '',
-        frecuencia: '',
-        periodo: '',
-        cantidad: '',
-        via: '',
+        dosis: medicationItem.dosisDefault || '',
+        frecuencia: medicationItem.frecuenciaDefault || '',
+        periodo: medicationItem.duracionDiasDefault || '',
+        cantidad: medicationItem.cantidadPredefinida || '',
+        via: medicationItem.idViaDefault || '',
       });
     }
     setMostrarDetalleMedicamentoModal(true);
   };
 
-  // CAMINO B: CARGA POR PAQUETE CLÍNICO (Inyección Directa)
-  const handleCargarPaquete = (e) => {
+  // 🔄 CAMBIO 2: Manejador asíncrono para cargar el detalle del paquete al seleccionar
+  const handleCargarPaquete = async (e) => {
     const paqueteId = e.target.value;
     if (!paqueteId) return;
 
-    const paqueteSeleccionado = paquetesDisponibles.find(pkg => pkg.id === paqueteId);
+    const paqueteSeleccionado = paquetesDisponibles.find(pkg => String(pkg.id) === String(paqueteId));
     if (!paqueteSeleccionado) return;
+
+    // Obtención asíncrona de medicamentos asociados
+    const medicamentosAsociados = await AtencionMedicaMedicamentoService.obtenerProductosPorPaquete(paqueteId);
 
     let nuevosAgregados = 0;
     const listaActualizada = [...content];
 
-    paqueteSeleccionado.medicamentosAsociados.forEach(medItem => {
-      const yaExiste = listaActualizada.some(item => item.descripcion.toLowerCase() === medItem.descripcion.toLowerCase());
+    medicamentosAsociados.forEach(medItem => {
+      const nombreMed = medItem.label;
+      const yaExiste = listaActualizada.some(item => item.descripcion.toLowerCase() === nombreMed.toLowerCase());
       
       if (!yaExiste) {
         listaActualizada.push({
           id: uuidv4(),
-          descripcion: medItem.descripcion,
-          dosis: medItem.dosis,
-          frecuencia: medItem.frecuencia,
-          periodo: medItem.periodo,
-          cantidad: medItem.cantidad,
-          via: medItem.via
+          descripcion: nombreMed,
+          dosis: medItem.dosisDefault || '',
+          frecuencia: medItem.frecuenciaDefault || '',
+          periodo: medItem.duracionDiasDefault || '',
+          cantidad: medItem.cantidadPredefinida || '',
+          via: medItem.idViaDefault || ''
         });
         nuevosAgregados++;
       }
@@ -79,7 +84,7 @@ function AtencionMedicaMedicamentoPanel({ content = [], onContentChange, onModal
     e.target.value = ""; // Reset del dropdown
 
     if (onModalMessage && nuevosAgregados > 0) {
-      onModalMessage(`Se inyectaron ${nuevosAgregados} medicamentos del paquete "${paqueteSeleccionado.nombrePaquete}".`);
+      onModalMessage(`Se inyectaron ${nuevosAgregados} medicamentos del paquete "${paqueteSeleccionado.label}".`);
     }
   };
 
@@ -214,9 +219,10 @@ function AtencionMedicaMedicamentoPanel({ content = [], onContentChange, onModal
                 }}
               >
                 <option value="" disabled>-- Seleccione un Paquete Farmacológico --</option>
+                {/* 🔄 CAMBIO 3: Renderizado usando pkg.label en lugar de propiedades directas del backend */}
                 {paquetesDisponibles.map(pkg => (
                   <option key={pkg.id} value={pkg.id}>
-                    {pkg.nombrePaquete} ({pkg.medicamentosAsociados?.length} items)
+                    {pkg.label}
                   </option>
                 ))}
               </select>
@@ -233,13 +239,12 @@ function AtencionMedicaMedicamentoPanel({ content = [], onContentChange, onModal
               key={item.id} 
               style={{
                 display: 'flex',
-                alignItems: 'center', // Alineación vertical centrada para balancear las 2 filas
-                padding: '12px 14px', // Reducido el padding interno para ganar espacio
+                alignItems: 'center',
+                padding: '12px 14px',
                 borderBottom: index === content.length - 1 ? 'none' : '1px solid #e2e8f0',
-                gap: '10px' // Reducido el gap para empujar todo a la izquierda
+                gap: '10px'
               }}
             >
-              {/* Controles del Registro: Compactos y bien pegados a la izquierda */}
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <button
                   type="button"
@@ -266,29 +271,26 @@ function AtencionMedicaMedicamentoPanel({ content = [], onContentChange, onModal
                 </div>
               </div>
 
-              {/* Bloque Clínico de 2 Filas: Ahora goza de más espacio horizontal */}
               <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                {/* FILA 1: Nombre */}
                 <div style={{ fontSize: '14px', color: '#1e293b', fontWeight: '600', lineHeight: '1.2' }}>
                   {item.descripcion}
                 </div>
                 
-                {/* FILA 2: Badges */}
                 <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', alignItems: 'center' }}>
                   <span style={{ fontSize: '11px', backgroundColor: '#f0fdf4', color: '#16a34a', padding: '1px 5px', borderRadius: '4px', border: '1px solid #bbf7d0', fontWeight: '500', textTransform: 'capitalize' }}>
-                    Vía: {item.via}
+                    Vía: {item.via || 'N/A'}
                   </span>
                   <span style={{ fontSize: '11px', backgroundColor: '#eff6ff', color: '#2563eb', padding: '1px 5px', borderRadius: '4px', border: '1px solid #bfdbfe', fontWeight: '500' }}>
-                    Dosis: {item.dosis}
+                    Dosis: {item.dosis || 'N/A'}
                   </span>
                   <span style={{ fontSize: '11px', backgroundColor: '#fff7ed', color: '#ea580c', padding: '1px 5px', borderRadius: '4px', border: '1px solid #ffedd5', fontWeight: '500' }}>
-                    Cada: {item.frecuencia ? `Cada ${Math.round(24 / item.frecuencia)} hrs` : 'N/A'} ({item.frecuencia} v/d)
+                    Cada: {item.frecuencia ? `Cada ${Math.round(24 / item.frecuencia)} hrs` : 'N/A'} ({item.frecuencia || 0} v/d)
                   </span>
                   <span style={{ fontSize: '11px', backgroundColor: '#f3e8ff', color: '#9333ea', padding: '1px 5px', borderRadius: '4px', border: '1px solid #e9d5ff', fontWeight: '500' }}>
-                    Durante: {item.periodo} días
+                    Durante: {item.periodo || '0'} días
                   </span>
                   <span style={{ fontSize: '11px', backgroundColor: '#f1f5f9', color: '#475569', padding: '1px 5px', borderRadius: '4px', border: '1px solid #e2e8f0', fontWeight: '600' }}>
-                    Total: Disp. {item.cantidad} und.
+                    Total: Disp. {item.cantidad || 0} und.
                   </span>
                 </div>
               </div>
