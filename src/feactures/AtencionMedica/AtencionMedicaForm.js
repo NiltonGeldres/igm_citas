@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { 
-  Thermometer, Stethoscope, Lightbulb, Microscope, Pill, 
+import { Thermometer, Stethoscope, Lightbulb, Microscope, Pill, 
   CheckCircle, PenTool, User, Cloud, RefreshCw, Calendar, Save, FileText, Layout
 } from 'lucide-react';
+
 import MessageModal from './common/MessageModal';
 import AtencionMedicaService from "./AtencionMedicaService";
 import { useDebounceSave } from './useDebounceSave'; 
@@ -24,12 +24,12 @@ import { AtencionMedicaTriajeService } from './AtencionMedicaTriaje/AtencionMedi
 import ModalExitoFirma  from './AtencionMedicaFirma/ModalExitoFirma';
 import { getCatalogoInit } from './common/catalogoService';
 
+import { AtencionMedicaMapper } from './AtencionMedicaMapper';
 
 function AtencionMedicaForm() {
   const perfil = JSON.parse(sessionStorage.getItem('user_profile'));
   const [datosGuardadosExito, setDatosGuardadosExito] = useState(null); 
   const [mostrarModalExito, setMostrarModalExito] = useState(false);
-
   const navigate = useNavigate();
   const location = useLocation();
   const [activeTab, setActiveTab] = useState('triaje');
@@ -43,7 +43,6 @@ function AtencionMedicaForm() {
   // ------------ TRIAJE Y DATOS DE PACIENTE UNIFICADOS ------------     
   const [pacienteActivo, setPacienteActivo] = useState(null); 
   const [cargandoTriaje, setCargandoTriaje] = useState(false);
-
   const [patientData, setPatientData] = useState(() => {
     if (location.state?.paciente) {
       const p = location.state.paciente;
@@ -53,14 +52,14 @@ function AtencionMedicaForm() {
         age: p.edad ? `${p.edad} años` : 'Edad',
         id: p.id,
         hc: p.numHistoria || p.id,
-        accionAgenda: location.state.accionAgenda || 'ATENDER',
-        triaje: [] 
+        accionAgenda: location.state.accionAgenda || 'ATENDER'
       };
     }
     return { name: '', sex: '', age: 'Edad', id: '', hc: '', accionAgenda: 'ATENDER', triaje: [] };
   });
 
   const [sectionsData, setSectionsData] = useState({
+    triaje: [] ,
     PanelAntecedentes: '',
     PanelExamenFisico: '',
     PanelSintomas: '',
@@ -183,42 +182,7 @@ const [cargando, setCargando] = useState(false);
       [sectionName]: newContent,
     }));
   };
-/*
-  const finalizarAtencionMedicaTotal = async () => {
-    if (!patientData.id) {
-      showModalMessage('Por favor, selecciona un paciente antes de cerrar la atención.');
-      return;
-    }
 
-    showModalMessage('Procesando el alta y cierre clínico...');
-    try {
-      await AtencionMedicaService.guardarRegistro(fullMedicalRecord);
-      showModalMessage('¡Atención médica finalizada y guardada con éxito!');
-      
-      setPacienteActivo(null);
-      setPatientData({ name: '', sex: '', age: 'Edad', id: '', hc: '', accionAgenda: 'ATENDER', triaje: [] });
-      
-      setSectionsData({
-        PanelAntecedentes: '', 
-        PanelExamenFisico: '', 
-        PanelSintomas: '',
-        PanelTratamientos: [], 
-        PanelDiagnostico: [], 
-        PanelPlanTrabajo: [], 
-        PanelMedicacion: '',
-        PanelAlergias: '', 
-        Impresion: '', 
-        PanelAlta: ''
-      });
-      
-      setIsAgendaOpen(true);
-    } catch (error) {
-      console.error(error);
-      showModalMessage(`Error al cerrar ciclo: ${error.message}`);
-    }
-  };
-
-*/
 
   const finalizarAtencionMedicaTotal = async () => {
     if (!patientData.id) {
@@ -246,58 +210,63 @@ const [cargando, setCargando] = useState(false);
     }
   };
 
-// --- Reemplazar o actualizar esta función ---
 const ejecutarGuardadoYFirmaFinal = async () => {
   if (!patientData.id) {
-    showModalMessage('Por favor, selecciona un paciente antes de cerrar la atención.');
+    showModalMessage('Por favor, selecciona un paciente antes de procesar.');
     return;
   }
 
-  showModalMessage('Guardando historial clínico y aplicando rúbrica médica...');
-  
   try {
-  console.log("ENVIO "+JSON.stringify(fullMedicalRecord))
-    // Invocamos al nuevo endpoint unificado del Service
-    const response = await AtencionMedicaService.guardarYFirmarAtencion(fullMedicalRecord);
-    
-    closeModal(); // Cierra el mensaje de carga "Guardando..."
-    
-    // Guardamos la respuesta (URLs de los PDFs) y abrimos el modal de éxito directo
-    setDatosGuardadosExito(response.data); 
-    setMostrarModalExito(true); 
+    // 1. Obtener el contexto del usuario en sesión
+    const contextoUsuario = {
+      idMedico: sessionStorage.getItem('idMedico') || 2,
+      idEntidad: sessionStorage.getItem('idEntidad') || 2,
+      idUsuario: sessionStorage.getItem('idUsuario') || 12,
+    };
+
+    // 2. Mapear datos hacia la estructura que espera Spring Boot
+    const payload = AtencionMedicaMapper.uiToApiRequest(patientData, sectionsData, contextoUsuario);
+    console.log("PAYLOAD   "+JSON.stringify(payload))
+    // 3. Invocar al backend
+    const response = await AtencionMedicaService.guardarAtencionCompleta(payload);
+
+    if (response.exito) {
+      console.log("Atención guardada exitosamente. ID:", response.idAtencion);
+      // Actualizar estados o abrir modal de éxito
+    }
 
   } catch (error) {
-    console.error("Error al firmar y guardar:", error);
-    showModalMessage(`No se pudo procesar la firma: ${error.message}`);
+    const apiErrors = error.response?.data?.errors;
+    const errorMsg = apiErrors ? JSON.stringify(apiErrors) : error.message;
+    showModalMessage(`Error al validar el registro: ${errorMsg}`);
   }
 };
-  
-// Función para limpiar el formulario y regresar a la agenda cuando el médico termine de imprimir
-const handleFinalizarFlujoYRegresar = () => {
-  setMostrarModalExito(false);
-  setDatosGuardadosExito(null);
-  setPacienteActivo(null);
-  setPatientData({ 
-          name: ''
-        , sex: ''
-        , age: 'Edad'
-        , id: ''
-        , hc: ''
-        , accionAgenda: 'ATENDER'
-        , triaje: [] 
-  });
-  setSectionsData({
-      PanelAntecedentes: ''
-    , PanelExamenFisico: ''
-    , PanelSintomas: ''
-    , PanelTratamientos: []
-    , PanelDiagnostico: []
-    , PanelPlanTrabajo: []
-    , PanelMedicacion: ''
-    , PanelAlta: ''
-  });
-  setIsAgendaOpen(true); // Reabre la agenda para el siguiente paciente
-};
+  // Función para limpiar el formulario y regresar a la agenda cuando el médico termine de imprimir
+  const handleFinalizarFlujoYRegresar = () => {
+    setMostrarModalExito(false);
+    setDatosGuardadosExito(null);
+    setPacienteActivo(null);
+    setPatientData({ 
+            name: ''
+          , sex: ''
+          , age: 'Edad'
+          , id: ''
+          , hc: ''
+          , accionAgenda: 'ATENDER'
+    });
+    setSectionsData({
+        triaje: [] 
+      ,  PanelAntecedentes: ''
+      , PanelExamenFisico: ''
+      , PanelSintomas: ''
+      , PanelTratamientos: []
+      , PanelDiagnostico: []
+      , PanelPlanTrabajo: []
+      , PanelMedicacion: ''
+      , PanelAlta: ''
+    });
+    setIsAgendaOpen(true); // Reabre la agenda para el siguiente paciente
+  };
 
   const imprimirFichaCompleta = () => {
     setModoImpresion('completo');
@@ -524,7 +493,7 @@ const handleFinalizarFlujoYRegresar = () => {
                             style={{ display: 'flex', alignItems: 'center', gap: '8px', backgroundColor: '#dc2626', color: '#ffffff', border: 'none', borderRadius: '6px', padding: '10px 18px', fontSize: '13px', fontWeight: '700', cursor: 'pointer', boxShadow: '0 2px 4px rgba(220,38,38,0.2)' }}
                           >
                           <Save size={16} />
-                          <span>Firmar </span>
+                          <span>Guardar </span>
                         </button>
                       </div>
 
@@ -769,6 +738,45 @@ const handleFinalizarFlujoYRegresar = () => {
 }
 
 export default AtencionMedicaForm;
+
+/*
+  const finalizarAtencionMedicaTotal = async () => {
+    if (!patientData.id) {
+      showModalMessage('Por favor, selecciona un paciente antes de cerrar la atención.');
+      return;
+    }
+
+    showModalMessage('Procesando el alta y cierre clínico...');
+    try {
+      await AtencionMedicaService.guardarRegistro(fullMedicalRecord);
+      showModalMessage('¡Atención médica finalizada y guardada con éxito!');
+      
+      setPacienteActivo(null);
+      setPatientData({ name: '', sex: '', age: 'Edad', id: '', hc: '', accionAgenda: 'ATENDER', triaje: [] });
+      
+      setSectionsData({
+        PanelAntecedentes: '', 
+        PanelExamenFisico: '', 
+        PanelSintomas: '',
+        PanelTratamientos: [], 
+        PanelDiagnostico: [], 
+        PanelPlanTrabajo: [], 
+        PanelMedicacion: '',
+        PanelAlergias: '', 
+        Impresion: '', 
+        PanelAlta: ''
+      });
+      
+      setIsAgendaOpen(true);
+    } catch (error) {
+      console.error(error);
+      showModalMessage(`Error al cerrar ciclo: ${error.message}`);
+    }
+  };
+
+*/
+
+
 /*
   useEffect(() => {
     const precargarCatalogo = async () => {
@@ -786,3 +794,30 @@ export default AtencionMedicaForm;
     precargarCatalogo();
   }, []);
 */
+
+
+  /*
+// --- Reemplazar o actualizar esta función ---
+  const ejecutarGuardadoYFirmaFinal = async () => {
+    if (!patientData.id) {
+      showModalMessage('Por favor, selecciona un paciente antes de cerrar la atención.');
+      return;
+    }
+    showModalMessage('Guardando historial clínico y aplicando rúbrica médica...');
+    try {
+    console.log("ENVIO "+JSON.stringify(fullMedicalRecord))
+      // Invocamos al nuevo endpoint unificado del Service
+      const response = await AtencionMedicaService.guardarYFirmarAtencion(fullMedicalRecord);
+      
+      closeModal(); // Cierra el mensaje de carga "Guardando..."
+      
+      // Guardamos la respuesta (URLs de los PDFs) y abrimos el modal de éxito directo
+      setDatosGuardadosExito(response.data); 
+      setMostrarModalExito(true); 
+
+    } catch (error) {
+      console.error("Error al firmar y guardar:", error);
+      showModalMessage(`No se pudo procesar la firma: ${error.message}`);
+    }
+  };
+  */

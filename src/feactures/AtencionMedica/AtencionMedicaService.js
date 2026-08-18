@@ -11,6 +11,24 @@ const SERVICE = "/atencionmedica";
 const ENDPOINT_GUARDAR_FIRMA = "/atencionMedicaGuardar"; 
 const usuario = sessionStorage.getItem('username');
 
+const SERVICE_BASE = "/api/v1/atenciones-medicas";
+
+/**
+ * Persiste la atención médica en BD pasando las validaciones @Valid de Spring Boot.
+ */
+const guardarAtencionCompleta = (atencionMedicaRequest) => {
+    return axios.post(
+        `${API_URL}${SERVICE_BASE}/guardar`, 
+        atencionMedicaRequest,
+        { headers: header() }
+    ).then(response => response.data)
+     .catch(function (error) {
+        console.error("Error en guardarAtencionCompleta:", error.response?.data || error.toJSON());
+        throw error; 
+    });
+};
+
+
 /**
  * Proceso del MVP: Envía el JSON clínico, Spring Boot persiste en BD, 
  * estampa la rúbrica del médico y genera las rutas de los PDFs finales.
@@ -55,6 +73,7 @@ const getXUsuario = () => {
 };
 
 const AtencionMedicaService = {
+  guardarAtencionCompleta,    
   getTodos,
   getXUsuario,
   guardarRegistro,
