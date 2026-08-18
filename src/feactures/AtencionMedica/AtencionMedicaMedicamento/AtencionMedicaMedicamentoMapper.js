@@ -1,4 +1,10 @@
 // src/components/Medicacion/AtencionMedicaMedicamentoMapper.js
+const formatTitleCase = (str) => {
+  if (!str) return '';
+  const cleanStr = String(str).trim().toLowerCase();
+  return cleanStr.charAt(0).toUpperCase() + cleanStr.slice(1);
+};
+
 
 export const AtencionMedicaMedicamentoMapper = {
   /**
@@ -6,10 +12,10 @@ export const AtencionMedicaMedicamentoMapper = {
    */
   apiToUiPackageItem: (item) => {
     if (!item) return null;
-
+      const nombreRaw = item.nombrePaquete ;
     return {
       id: item.idPaqueteMedicacion || item.idPaquete || item.id,
-      label: item.nombrePaquete || item.descripcion || '',
+      label: formatTitleCase(nombreRaw),
     };
   },
 
@@ -21,15 +27,19 @@ export const AtencionMedicaMedicamentoMapper = {
     return apiList.map(item => AtencionMedicaMedicamentoMapper.apiToUiPackageItem(item));
   },
 
+
+
   /**
    * Mapea un PRODUCTO/MEDICAMENTO dentro del detalle.
    */
   apiToUiCatalogItem: (item) => {
     if (!item) return null;
+      const nombreRaw = item.nombreComercial || item.nombre || '';
+      const labelFormateado = formatTitleCase(nombreRaw);
 
     return {
       id: item.idProducto || item.id,
-      label: item.nombreComercial || item.nombre || '',
+      label: labelFormateado,
       codigo: item.codigo || '',
       concentracion: item.concentracion || '',
       formaFarmaceutica: item.formaFarmaceutica || '',
@@ -49,5 +59,8 @@ export const AtencionMedicaMedicamentoMapper = {
   apiToUiCatalogList: (apiList) => {
     if (!Array.isArray(apiList)) return [];
     return apiList.map(item => AtencionMedicaMedicamentoMapper.apiToUiCatalogItem(item));
-  }
+  },
+
+
+
 };

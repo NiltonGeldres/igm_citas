@@ -310,7 +310,7 @@ const Styles = {
     paddingRight: '40px',
     borderRadius: '10px',
     border: '1px solid #e0e0e0',
-    fontSize: '16px',
+    fontSize: '14px',
     boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.05)',
     outline: 'none',
     transition: 'border-color 0.2s ease, box-shadow 0.2s ease',

@@ -13,19 +13,20 @@ function AtencionMedicaExamen({ content = [], onContentChange, onModalMessage, d
   const [paquetesDisponibles, setPaquetesDisponibles] = useState([]);
   const [cargandoPaquete, setCargandoPaquete] = useState(false);
 
-  // Cargar paquetes al montar el componente
+  // 1. Cargar paquetes al montar el componente (usando setPaquetesDisponibles)
   useEffect(() => {
     const cargarPaquetes = async () => {
       try {
-        const pkgs = await AtencionMedicaExamenService.obtenerPaquetesDisponibles();
-        setPaquetesDisponibles(pkgs);
+        const lista = await AtencionMedicaExamenService.obtenerListaPaquetes();
+        setPaquetesDisponibles(lista);
       } catch (error) {
-        if (onModalMessage) onModalMessage('Error al cargar la lista de paquetes de servicios.');
+        console.error("Error al cargar lista de paquetes:", error);
       }
     };
     cargarPaquetes();
   }, []);
 
+  // 2. Función para el AutoCompleteInput (pasa directamente la promesa del servicio)
   const fetchExamSuggestions = async (query) => {
     try {
       return await AtencionMedicaExamenService.buscarExamenesCatalogo(query);
@@ -35,21 +36,21 @@ function AtencionMedicaExamen({ content = [], onContentChange, onModalMessage, d
     }
   };
 
-  // AGREGAR EXAMEN INDIVIDUAL
+  // 3. AGREGAR EXAMEN INDIVIDUAL
   const handleAddExam = (examItem) => {
     const existingExam = content.find(item => item.codigoExamen === examItem.codigoExamen);
 
     if (existingExam) {
       if (onModalMessage) {
-        onModalMessage(`El examen "${examItem.label}" ya se encuentra en el plan de trabajo.`);
+        onModalMessage(`El examen "${examItem.label || examItem.examen}" ya se encuentra en el plan de trabajo.`);
       }
       return;
     }
 
     const nuevoExamen = {
       id: uuidv4(),
-      label: examItem.label,
-      examen: examItem.label,
+      label: examItem.label || examItem.examen,
+      examen: examItem.examen || examItem.label,
       codigoExamen: examItem.codigoExamen || 'S/C',
       tipoExamen: examItem.tipoExamen || '1',
       diagnosticosAsociados: [] 
@@ -59,16 +60,18 @@ function AtencionMedicaExamen({ content = [], onContentChange, onModalMessage, d
     setMostrarBuscador(false);
   };
 
-  // AGREGAR EN BLOQUE POR PAQUETE (Consumo dinámico de API)
+  // 4. AGREGAR EN BLOQUE POR PAQUETE
   const handleCargarPaquete = async (e) => {
     const paqueteId = e.target.value;
     if (!paqueteId) return;
 
-    const paqueteSeleccionado = paquetesDisponibles.find(pkg => String(pkg.id) === String(paqueteId));
+    const paqueteSeleccionado = paquetesDisponibles.find(
+      pkg => String(pkg.idPaqueteExamen || pkg.id) === String(paqueteId)
+    );
 
     try {
       setCargandoPaquete(true);
-      const examenesDelPaquete = await AtencionMedicaExamenService.obtenerDetallePaquete(paqueteId);
+      const examenesDelPaquete = await AtencionMedicaExamenService.obtenerProductosPorPaquete(paqueteId);
 
       if (!examenesDelPaquete || examenesDelPaquete.length === 0) {
         if (onModalMessage) onModalMessage('El paquete seleccionado no contiene exámenes registrados.');
@@ -86,8 +89,8 @@ function AtencionMedicaExamen({ content = [], onContentChange, onModalMessage, d
         if (!yaExiste) {
           listaActualizada.push({
             id: uuidv4(),
-            label: examItem.label,
-            examen: examItem.label,
+            label: examItem.label || examItem.examen,
+            examen: examItem.examen || examItem.label,
             codigoExamen: examItem.codigoExamen || 'S/C',
             tipoExamen: examItem.tipoExamen || '1',
             diagnosticosAsociados: []
@@ -212,7 +215,7 @@ function AtencionMedicaExamen({ content = [], onContentChange, onModalMessage, d
                 color: tipoBusqueda === 'PAQUETE' ? '#0369a1' : '#64748b'
               }}
             >
-              📦 Cargar por Paquete (Preoperatorio...)
+              📦 Cargar por Paquete
             </button>
           </div>
 
@@ -249,18 +252,21 @@ function AtencionMedicaExamen({ content = [], onContentChange, onModalMessage, d
                 <option value="" disabled>
                   {cargandoPaquete ? 'Cargando detalle del paquete...' : '-- Seleccione un Paquete Clínico Configurado --'}
                 </option>
-                {paquetesDisponibles.map(pkg => (
-                  <option key={pkg.id} value={pkg.id}>
-                    {pkg.nombrePaquete}
-                  </option>
-                ))}
+                {paquetesDisponibles.map(pkg => {
+                  const pkgId = pkg.idPaqueteExamen || pkg.id;
+                  return (
+                    <option key={pkgId} value={pkgId}>
+                      {pkg.nombrePaquete}
+                    </option>
+                  );
+                })}
               </select>
             </div>
           )}
         </div>
       )}
 
-      {/* Lista Estricta de 2 Filas por Registro */}
+      {/* Lista de Registros */}
       {content.length > 0 && (
         <div style={{
           border: '1px solid #e2e8f0',
@@ -392,7 +398,7 @@ function AtencionMedicaExamen({ content = [], onContentChange, onModalMessage, d
                               const seleccionado = item.diagnosticosAsociados.includes(codigo);
                               return (
                                 <div
-                                  key={diag.id}
+                                  key={diag.id || codigo}
                                   onClick={() => handleToggleDiagnostico(item.id, codigo)}
                                   style={{
                                     display: 'flex',
@@ -456,7 +462,6 @@ function AtencionMedicaExamen({ content = [], onContentChange, onModalMessage, d
 }
 
 export default AtencionMedicaExamen;
-
 
 /*
 // src/components/AtencionExamen/AtencionMedicaExamen.js
