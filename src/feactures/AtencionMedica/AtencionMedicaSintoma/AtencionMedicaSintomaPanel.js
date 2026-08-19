@@ -9,7 +9,7 @@ import { Mic, MicOff, HeartPulse } from 'lucide-react'; // Icono semántico idea
  * Sincroniza y persiste reactivamente en tiempo real con la DataPaciente global.
  */
 const AtencionMedicaSintomasPanel = ({ content = '', onContentChange, onModalMessage }) => {
-  const title = "Síntomas Principales / Motivo de Consulta";
+  const title = "Enfermedad Actual / Síntomas Principales / Motivo de Consulta";
 
   // Inicialización del Hook de Voz con concatenación inteligente
   const { startListening, stopListening, isListening, error } = useVoiceRecognition(

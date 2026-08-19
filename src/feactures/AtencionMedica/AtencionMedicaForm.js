@@ -58,17 +58,17 @@ function AtencionMedicaForm() {
     return { name: '', sex: '', age: 'Edad', id: '', hc: '', accionAgenda: 'ATENDER', triaje: [] };
   });
 
-  const [sectionsData, setSectionsData] = useState({
-    triaje: [] ,
-    PanelAntecedentes: '',
-    PanelExamenFisico: '',
-    PanelSintomas: '',
-    PanelTratamientos: [],
-    PanelDiagnostico: [],
-    PanelPlanTrabajo: [],
-    PanelMedicacion: '',
-    PanelAlta: '',
-  });
+ const [sectionsData, setSectionsData] = useState({
+  triaje: [],
+  PanelAntecedentes: [], // 👈 Cambiado a arreglo
+  PanelExamenFisico: [],  // 👈 Cambiado a arreglo
+  PanelSintomas: [],      // 👈 Cambiado a arreglo
+  PanelTratamientos: [],
+  PanelDiagnostico: [],
+  PanelPlanTrabajo: [],
+  PanelMedicacion: [],   // 👈 Cambiado a arreglo
+  PanelAlta: [],         // 👈 Cambiado a arreglo
+});
 
 const [cargando, setCargando] = useState(false);
 
@@ -215,15 +215,18 @@ const ejecutarGuardadoYFirmaFinal = async () => {
     showModalMessage('Por favor, selecciona un paciente antes de procesar.');
     return;
   }
+    console.log("PAYLOAD   "+JSON.stringify(patientData));
 
   try {
     // 1. Obtener el contexto del usuario en sesión
+    console.log("PAYLOAD   Ingreso  TRY ");
     const contextoUsuario = {
       idMedico: sessionStorage.getItem('idMedico') || 2,
       idEntidad: sessionStorage.getItem('idEntidad') || 2,
       idUsuario: sessionStorage.getItem('idUsuario') || 12,
     };
 
+    console.log("PAYLOAD   Antes de Mapper "+JSON.stringify(sectionsData));
     // 2. Mapear datos hacia la estructura que espera Spring Boot
     const payload = AtencionMedicaMapper.uiToApiRequest(patientData, sectionsData, contextoUsuario);
     console.log("PAYLOAD   "+JSON.stringify(payload))
@@ -254,17 +257,17 @@ const ejecutarGuardadoYFirmaFinal = async () => {
           , hc: ''
           , accionAgenda: 'ATENDER'
     });
-    setSectionsData({
-        triaje: [] 
-      ,  PanelAntecedentes: ''
-      , PanelExamenFisico: ''
-      , PanelSintomas: ''
-      , PanelTratamientos: []
-      , PanelDiagnostico: []
-      , PanelPlanTrabajo: []
-      , PanelMedicacion: ''
-      , PanelAlta: ''
-    });
+  setSectionsData({
+    triaje: [],
+    PanelAntecedentes: [],
+    PanelExamenFisico: [],
+    PanelSintomas: [],
+    PanelTratamientos: [],
+    PanelDiagnostico: [],
+    PanelPlanTrabajo: [],
+    PanelMedicacion: [],
+    PanelAlta: []
+  });
     setIsAgendaOpen(true); // Reabre la agenda para el siguiente paciente
   };
 

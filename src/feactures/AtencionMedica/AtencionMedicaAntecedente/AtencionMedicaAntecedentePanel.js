@@ -8,8 +8,8 @@ import { Mic, MicOff, FileText } from 'lucide-react'; // Iconos modernos para la
  * Componente optimizado para la gestión de la Enfermedad Actual / Anamnesis.
  * Sincroniza en tiempo real con DataPaciente a través de onContentChange.
  */
-const AtencionMedicaEnfermedadPanel = ({ content = '', onContentChange, onModalMessage }) => {
-  const title = "Enfermedad Actual / Anamnesis";
+const AtencionMedicaAntecedentePanel = ({ content = '', onContentChange, onModalMessage }) => {
+  const title = "Antecedente";
 
   // Inicialización del Hook de Reconocimiento de Voz
   const { startListening, stopListening, isListening, error } = useVoiceRecognition(
@@ -129,4 +129,4 @@ const AtencionMedicaEnfermedadPanel = ({ content = '', onContentChange, onModalM
   );
 };
 
-export default AtencionMedicaEnfermedadPanel;
+export default AtencionMedicaAntecedentePanel;
