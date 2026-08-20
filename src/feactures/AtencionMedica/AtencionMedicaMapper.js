@@ -8,12 +8,39 @@ export const AtencionMedicaMapper = {
       ? sectionsData.triaje
       : (Array.isArray(patientData.triaje) ? patientData.triaje : []);
 
-    return {
+    // Función auxiliar para procesar colecciones y purgar elementos nulos o vacíos
+    const procesarColeccion = (lista, keyId, keyTexto) => {
+      if (!Array.isArray(lista)) return [];
+
+      return lista
+        .map((item) => {
+          const idVal = Number(item[keyId] ?? item.id) || 0;
+          
+          // 👈 FIX: Agregamos item.descripcionAlta y evaluamos dinámicamente item[`descripcion${...}`]
+          const textoRaw = item[keyTexto] 
+                        ?? item.descripcionAlta 
+                        ?? item.descripcion 
+                        ?? item.texto 
+                        ?? "";
+                        
+          const textoLimpio = typeof textoRaw === 'string' ? textoRaw.trim() : "";
+
+          return {
+            [keyId]: idVal,
+            [keyTexto]: idVal === 0 ? (textoLimpio || null) : null
+          };
+        })
+        .filter((item) => !(item[keyId] === 0 && !item[keyTexto]));
+    };
+return {
       idAtencion: patientData.idAtencion ? Number(patientData.idAtencion) : null,
-      idPaciente: Number(patientData.id || patientData.idPaciente) || 0,
+      idPaciente: Number(patientData.idPaciente || patientData.id) || 0,
       idCuentaAtencion: Number(patientData.idCuentaAtencion) || 1,
       idServicio: Number(patientData.idServicio) || 1,
-      idEspecialidad: Number(patientData.idEspecialidad) || 2, // 👈 Se agrega idEspecialidad
+      
+      // 👈 AGREGAR ESTA LÍNEA OBLIGATORIAMENTE:
+      idEspecialidad: Number(patientData.idEspecialidad || contextoUsuario.idEspecialidad) || 2,
+      
       idEstadoAtencion: Number(patientData.idEstadoAtencion) || 3,
       estadoFirma: patientData.estadoFirma || "PENDIENTE",
       origenRegistroUsuario: "MEDICO_WEB_APP",
@@ -21,29 +48,24 @@ export const AtencionMedicaMapper = {
       idEntidad: Number(contextoUsuario.idEntidad) || 2,
       idUsuarioRegistro: Number(contextoUsuario.idUsuario) || 12,
 
-      // 1. Llave plural exigida por la API: "triajes"
+      triajes: (sectionsData.triaje || []).map((t) => ({
+        idTriaje: Number(t.idTriaje || t.id) || 1,
+        valorTriaje: String(t.valorTriaje ?? t.valor ?? "")
+      })),
+
+      // Triajes
       triajes: listaTriajeOriginal.map((t) => ({
         idTriaje: Number(t.idTriaje || t.id) || 1,
         valorTriaje: String(t.valorTriaje ?? t.valor ?? "")
       })),
 
-      // 2. Antecedentes usando "nombreAntecedente"
-      antecedentes: (sectionsData.PanelAntecedentes || []).map((a, i) => ({
-        idAntecedente: Number(a.idAntecedente || a.id) || 0,
-        nombreAntecedente: a.nombreAntecedente || a.descripcion || a.texto || null
-      })),
-
-      // 3. Síntomas usando "nombreSintoma"
-      sintomas: (sectionsData.PanelSintomas || []).map((s, i) => ({
-        idSintoma: Number(s.idSintoma || s.id) || 0,
-        nombreSintoma: s.nombreSintoma || s.descripcion || s.texto || null
-      })),
-
-      // 4. Examen Físico usando "nombreExamenFisico"
-      examenFisico: (sectionsData.PanelExamenFisico || []).map((ef, i) => ({
-        idExamenFisico: Number(ef.idExamenFisico || ef.id) || 0,
-        nombreExamenFisico: ef.nombreExamenFisico || ef.descripcion || ef.texto || null
-      })),
+      // Listas sanitizadas
+      antecedentes: procesarColeccion(sectionsData.PanelAntecedentes, 'idAntecedente', 'nombreAntecedente'),
+      sintomas: procesarColeccion(sectionsData.PanelSintomas, 'idSintoma', 'nombreSintoma'),
+      examenFisico: procesarColeccion(sectionsData.PanelExamenFisico, 'idExamenFisico', 'nombreExamenFisico'),
+      
+      // 👈 FIX: Se invoca con 'descripcionAlta' para hacer match directo con tu estado de React
+      alta: procesarColeccion(sectionsData.PanelAlta, 'idAlta', 'nombreAlta'),
 
       // Diagnósticos
       diagnosticos: (sectionsData.PanelDiagnostico || []).map((d, index) => ({
@@ -73,12 +95,6 @@ export const AtencionMedicaMapper = {
         cantidadTotal: Number(m.cantidad || m.cantidadTotal) || 1,
         idDiagnostico: Number(m.idDiagnostico) || 1,
         indicaciones: m.indicaciones || m.descripcion || ""
-      })),
-
-      // 5. Alta usando "nombreAlta"
-      alta: (sectionsData.PanelAlta || []).map((alt, i) => ({
-        idAlta: Number(alt.idAlta || alt.id) || 0,
-        nombreAlta: alt.nombreAlta || alt.descripcion || alt.texto || null
       }))
     };
   }

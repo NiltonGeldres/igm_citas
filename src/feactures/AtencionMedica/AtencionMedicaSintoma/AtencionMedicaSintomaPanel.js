@@ -2,21 +2,50 @@
 import React from 'react';
 import Styles from '../../../Styles'; 
 import useVoiceRecognition from "../../../hooks/useVoiceRecognition"; 
-import { Mic, MicOff, HeartPulse } from 'lucide-react'; // Icono semántico ideal para sintomatología
+import { Mic, MicOff, HeartPulse } from 'lucide-react';
 
 /**
  * Componente optimizado para el registro de Síntomas Principales / Motivo de Consulta.
- * Sincroniza y persiste reactivamente en tiempo real con la DataPaciente global.
+ * Adaptado para gestionar una lista de objetos [{ idSintoma, nombreSintoma }].
  */
-const AtencionMedicaSintomasPanel = ({ content = '', onContentChange, onModalMessage }) => {
+const AtencionMedicaSintomasPanel = ({ content = [], onContentChange, onModalMessage }) => {
   const title = "Enfermedad Actual / Síntomas Principales / Motivo de Consulta";
 
-  // Inicialización del Hook de Voz con concatenación inteligente
+  // Asegurar que 'content' sea tratado como un arreglo
+  const listaSintomas = Array.isArray(content) ? content : [];
+
+  // Extraer el texto libre actual (aquel con idSintoma o id igual a 0)
+  const itemTextoLibre = listaSintomas.find(
+    (item) => Number(item.idSintoma ?? item.id) === 0
+  );
+
+  const textoActual = itemTextoLibre
+    ? (itemTextoLibre.nombreSintoma || itemTextoLibre.descripcion || "")
+    : (typeof content === 'string' ? content : "");
+
+  // Emitir la lista actualizada conservando registros con id > 0 (catálogo)
+  const actualizarTextoLibre = (nuevoTexto) => {
+    const soloCatalogo = listaSintomas.filter(
+      (item) => Number(item.idSintoma ?? item.id) > 0
+    );
+
+    let listaActualizada = [...soloCatalogo];
+
+    if (nuevoTexto.trim() !== '') {
+      listaActualizada.push({
+        idSintoma: 0,
+        nombreSintoma: nuevoTexto
+      });
+    }
+
+    onContentChange(listaActualizada);
+  };
+
+  // Inicialización del Hook de Voz
   const { startListening, stopListening, isListening, error } = useVoiceRecognition(
     (transcript) => {
-      // Une el dictado al texto previo para evitar sobreescrituras accidentales
-      const nuevoContenido = content ? `${content} ${transcript}` : transcript;
-      onContentChange(nuevoContenido);
+      const nuevoContenido = textoActual ? `${textoActual} ${transcript}` : transcript;
+      actualizarTextoLibre(nuevoContenido);
     },
     onModalMessage
   );
@@ -34,7 +63,7 @@ const AtencionMedicaSintomasPanel = ({ content = '', onContentChange, onModalMes
           {title}
         </h3>
         
-        {/* Botón de Dictado por Voz en la Cabecera */}
+        {/* Botón de Dictado por Voz */}
         <button
           type="button"
           onClick={isListening ? stopListening : startListening}
@@ -86,13 +115,13 @@ const AtencionMedicaSintomasPanel = ({ content = '', onContentChange, onModalMes
             fontFamily: 'inherit',
             transition: 'border-color 0.2s ease'
           }}
-          value={content}
-          onChange={(e) => onContentChange(e.target.value)}
+          value={textoActual}
+          onChange={(e) => actualizarTextoLibre(e.target.value)}
           placeholder="Escriba o dicte los signos y síntomas cardinales referidos por el paciente (ej: cefalea, alzas térmicas, dolor abdominal difuso...)"
           rows="5"
         />
 
-        {/* Indicador de extensión discreto */}
+        {/* Indicador de extensión */}
         <div style={{
           position: 'absolute',
           bottom: '10px',
@@ -105,7 +134,7 @@ const AtencionMedicaSintomasPanel = ({ content = '', onContentChange, onModalMes
         }}>
           <HeartPulse size={12} color="#64748b" />
           <span style={{ fontSize: '10px', color: '#64748b', fontWeight: '500' }}>
-            {content ? `${content.length} caracteres` : 'Vacío'}
+            {textoActual ? `${textoActual.length} caracteres` : 'Vacío'}
           </span>
         </div>
       </div>

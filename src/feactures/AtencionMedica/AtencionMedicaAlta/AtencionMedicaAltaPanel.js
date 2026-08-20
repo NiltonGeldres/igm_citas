@@ -2,20 +2,49 @@
 import React from 'react';
 import Styles from '../../../Styles'; 
 import useVoiceRecognition from "../../../hooks/useVoiceRecognition"; 
-import { Mic, MicOff, LogOut } from 'lucide-react'; // Icono semántico que representa el egreso/alta
+import { Mic, MicOff, LogOut } from 'lucide-react';
 
 /**
  * Componente unificado para el Plan de Alta Médica e Indicaciones de Egreso.
- * Persiste y comunica los cambios en tiempo real a DataPaciente a través de onContentChange.
+ * Adaptado para gestionar una lista de objetos [{ idAlta, descripcionAlta }].
  */
-const AtencionMedicaAltaPanel = ({ title = "Plan de Alta / Indicaciones Generales", content = '', onContentChange, onModalMessage }) => {
+const AtencionMedicaAltaPanel = ({ title = "Plan de Alta / Indicaciones Generales", content = [], onContentChange, onModalMessage }) => {
 
-  // Inicialización del Hook de Reconocimiento de Voz con concatenación inteligente
+  // Garantizar que 'content' sea procesado como un arreglo
+  const listaAlta = Array.isArray(content) ? content : [];
+
+  // Extraer el texto libre actual (aquel con idAlta o id igual a 0)
+  const itemTextoLibre = listaAlta.find(
+    (item) => Number(item.idAlta ?? item.id) === 0
+  );
+
+  const textoActual = itemTextoLibre
+    ? (itemTextoLibre.descripcionAlta || itemTextoLibre.descripcion || itemTextoLibre.nombreAlta || "")
+    : (typeof content === 'string' ? content : "");
+
+  // Emitir la lista actualizada reservando entradas de catálogo (id > 0)
+  const actualizarTextoLibre = (nuevoTexto) => {
+    const soloCatalogo = listaAlta.filter(
+      (item) => Number(item.idAlta ?? item.id) > 0
+    );
+
+    let listaActualizada = [...soloCatalogo];
+
+    if (nuevoTexto.trim() !== '') {
+      listaActualizada.push({
+        idAlta: 0,
+        descripcionAlta: nuevoTexto
+      });
+    }
+
+    onContentChange(listaActualizada);
+  };
+
+  // Inicialización del Hook de Reconocimiento de Voz
   const { startListening, stopListening, isListening, error } = useVoiceRecognition(
     (transcript) => {
-      // Agrega el fragmento dictado al final de lo ya redactado
-      const nuevoContenido = content ? `${content} ${transcript}` : transcript;
-      onContentChange(nuevoContenido);
+      const nuevoContenido = textoActual ? `${textoActual} ${transcript}` : transcript;
+      actualizarTextoLibre(nuevoContenido);
     },
     onModalMessage
   );
@@ -85,13 +114,13 @@ const AtencionMedicaAltaPanel = ({ title = "Plan de Alta / Indicaciones Generale
             fontFamily: 'inherit',
             transition: 'border-color 0.2s ease'
           }}
-          value={content}
-          onChange={(e) => onContentChange(e.target.value)}
-          placeholder={`Escriba o dicte los criterios de alta, signos de alarma, fecha de próximo control y recomendaciones generales para el paciente...`}
+          value={textoActual}
+          onChange={(e) => actualizarTextoLibre(e.target.value)}
+          placeholder="Escriba o dicte los criterios de alta, signos de alarma, fecha de próximo control y recomendaciones generales para el paciente..."
           rows="5"
         />
 
-        {/* Indicador de extensión e ícono en la esquina inferior */}
+        {/* Indicador de extensión e ícono */}
         <div style={{
           position: 'absolute',
           bottom: '10px',
@@ -104,7 +133,7 @@ const AtencionMedicaAltaPanel = ({ title = "Plan de Alta / Indicaciones Generale
         }}>
           <LogOut size={12} color="#64748b" />
           <span style={{ fontSize: '10px', color: '#64748b', fontWeight: '500' }}>
-            {content ? `${content.length} caracteres` : 'Vacío'}
+            {textoActual ? `${textoActual.length} caracteres` : 'Vacío'}
           </span>
         </div>
       </div>

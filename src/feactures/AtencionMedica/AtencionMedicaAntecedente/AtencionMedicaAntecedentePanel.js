@@ -2,21 +2,50 @@
 import React from 'react';
 import Styles from '../../../Styles'; 
 import useVoiceRecognition from "../../../hooks/useVoiceRecognition"; 
-import { Mic, MicOff, FileText } from 'lucide-react'; // Iconos modernos para la cabecera
+import { Mic, MicOff, FileText } from 'lucide-react';
 
 /**
- * Componente optimizado para la gestión de la Enfermedad Actual / Anamnesis.
- * Sincroniza en tiempo real con DataPaciente a través de onContentChange.
+ * Componente para la gestión de Antecedentes (Texto libre adaptado a estructura de lista con ID 0).
  */
-const AtencionMedicaAntecedentePanel = ({ content = '', onContentChange, onModalMessage }) => {
-  const title = "Antecedente";
+const AtencionMedicaAntecedentesPanel = ({ content = [], onContentChange, onModalMessage }) => {
+  const title = "Antecedentes";
+
+  // Asegurarnos de que 'content' sea un arreglo
+  const listaAntecedentes = Array.isArray(content) ? content : [];
+
+  // Extraer el texto libre actual (aquél que tenga id/idAntecedente igual a 0 o no tenga ID)
+  const itemTextoLibre = listaAntecedentes.find(
+    (item) => Number(item.idAntecedente ?? item.id) === 0
+  );
+
+  const textoActual = itemTextoLibre
+    ? (itemTextoLibre.nombreAntecedente || itemTextoLibre.descripcion || "")
+    : (typeof content === 'string' ? content : "");
+
+  // Función para emitir la lista actualizada manteniendo ítems de catálogo (id > 0)
+  const actualizarTextoLibre = (nuevoTexto) => {
+    // Filtrar elementos del catálogo si existieran en el estado
+    const soloCatalogo = listaAntecedentes.filter(
+      (item) => Number(item.idAntecedente ?? item.id) > 0
+    );
+
+    let listaActualizada = [...soloCatalogo];
+
+    if (nuevoTexto.trim() !== '') {
+      listaActualizada.push({
+        idAntecedente: 0,
+        nombreAntecedente: nuevoTexto
+      });
+    }
+
+    onContentChange(listaActualizada);
+  };
 
   // Inicialización del Hook de Reconocimiento de Voz
   const { startListening, stopListening, isListening, error } = useVoiceRecognition(
     (transcript) => {
-      // El transcript se añade al contenido existente para no chancar lo que el médico ya escribió
-      const nuevoContenido = content ? `${content} ${transcript}` : transcript;
-      onContentChange(nuevoContenido);
+      const nuevoContenido = textoActual ? `${textoActual} ${transcript}` : transcript;
+      actualizarTextoLibre(nuevoContenido);
     },
     onModalMessage
   );
@@ -34,7 +63,7 @@ const AtencionMedicaAntecedentePanel = ({ content = '', onContentChange, onModal
           {title}
         </h3>
         
-        {/* Botón de Dictado por Voz en la Cabecera */}
+        {/* Botón de Dictado por Voz */}
         <button
           type="button"
           onClick={isListening ? stopListening : startListening}
@@ -86,13 +115,13 @@ const AtencionMedicaAntecedentePanel = ({ content = '', onContentChange, onModal
             fontFamily: 'inherit',
             transition: 'border-color 0.2s ease'
           }}
-          value={content}
-          onChange={(e) => onContentChange(e.target.value)}
-          placeholder="Escriba o use el botón de dictado para detallar el relato cronológico, síntomas principales, tiempo de enfermedad y estado general del paciente..."
+          value={textoActual}
+          onChange={(e) => actualizarTextoLibre(e.target.value)}
+          placeholder="Escriba o use el botón de dictado para detallar los antecedentes del paciente..."
           rows="5"
         />
 
-        {/* Indicador visual discreto de escritura / escucha en la esquina inferior */}
+        {/* Indicador visual de caracteres */}
         <div style={{
           position: 'absolute',
           bottom: '10px',
@@ -105,12 +134,12 @@ const AtencionMedicaAntecedentePanel = ({ content = '', onContentChange, onModal
         }}>
           <FileText size={12} color="#64748b" />
           <span style={{ fontSize: '10px', color: '#64748b', fontWeight: '500' }}>
-            {content ? `${content.length} caracteres` : 'Vacío'}
+            {textoActual ? `${textoActual.length} caracteres` : 'Vacío'}
           </span>
         </div>
       </div>
 
-      {/* Manejo de Errores de Micrófono / Permisos */}
+      {/* Manejo de Errores de Micrófono */}
       {error && (
         <div style={{
           marginTop: '8px',
@@ -129,4 +158,4 @@ const AtencionMedicaAntecedentePanel = ({ content = '', onContentChange, onModal
   );
 };
 
-export default AtencionMedicaAntecedentePanel;
+export default AtencionMedicaAntecedentesPanel;

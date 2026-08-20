@@ -2,21 +2,50 @@
 import React from 'react';
 import Styles from '../../../Styles'; 
 import useVoiceRecognition from "../../../hooks/useVoiceRecognition"; 
-import { Mic, MicOff, Activity } from 'lucide-react'; // Icono técnico adecuado para el examen físico
+import { Mic, MicOff, Activity } from 'lucide-react';
 
 /**
  * Componente optimizado para el registro del Examen Físico.
- * Guarda de forma reactiva en tiempo real en la DataPaciente a través de onContentChange.
+ * Adaptado para gestionar una lista de objetos [{ idExamenFisico, nombreExamenFisico }].
  */
-const AtencionMedicaExamenFisicoPanel = ({ content = '', onContentChange, onModalMessage }) => {
+const AtencionMedicaExamenFisicoPanel = ({ content = [], onContentChange, onModalMessage }) => {
   const title = "Examen Físico Dirigido";
 
-  // Inicialización del Hook de Reconocimiento de Voz
+  // Asegurar que 'content' sea un arreglo
+  const listaExamenFisico = Array.isArray(content) ? content : [];
+
+  // Extraer el texto libre actual (aquel con idExamenFisico o id igual a 0)
+  const itemTextoLibre = listaExamenFisico.find(
+    (item) => Number(item.idExamenFisico ?? item.id) === 0
+  );
+
+  const textoActual = itemTextoLibre
+    ? (itemTextoLibre.nombreExamenFisico || itemTextoLibre.descripcion || "")
+    : (typeof content === 'string' ? content : "");
+
+  // Emitir la lista actualizada conservando registros con id > 0 (catálogo)
+  const actualizarTextoLibre = (nuevoTexto) => {
+    const soloCatalogo = listaExamenFisico.filter(
+      (item) => Number(item.idExamenFisico ?? item.id) > 0
+    );
+
+    let listaActualizada = [...soloCatalogo];
+
+    if (nuevoTexto.trim() !== '') {
+      listaActualizada.push({
+        idExamenFisico: 0,
+        nombreExamenFisico: nuevoTexto
+      });
+    }
+
+    onContentChange(listaActualizada);
+  };
+
+  // Inicialización del Hook de Voz
   const { startListening, stopListening, isListening, error } = useVoiceRecognition(
     (transcript) => {
-      // Concatenación limpia para preservar las notas previas del médico
-      const nuevoContenido = content ? `${content} ${transcript}` : transcript;
-      onContentChange(nuevoContenido);
+      const nuevoContenido = textoActual ? `${textoActual} ${transcript}` : transcript;
+      actualizarTextoLibre(nuevoContenido);
     },
     onModalMessage
   );
@@ -86,13 +115,13 @@ const AtencionMedicaExamenFisicoPanel = ({ content = '', onContentChange, onModa
             fontFamily: 'inherit',
             transition: 'border-color 0.2s ease'
           }}
-          value={content}
-          onChange={(e) => onContentChange(e.target.value)}
+          value={textoActual}
+          onChange={(e) => actualizarTextoLibre(e.target.value)}
           placeholder="Registre la evaluación de sistemas (cabeza, cuello, tórax, abdomen, extremidades), hallazgos patológicos relevantes o constantes vitales anotadas..."
           rows="5"
         />
 
-        {/* Indicador de extensión discreto */}
+        {/* Indicador de extensión */}
         <div style={{
           position: 'absolute',
           bottom: '10px',
@@ -105,12 +134,12 @@ const AtencionMedicaExamenFisicoPanel = ({ content = '', onContentChange, onModa
         }}>
           <Activity size={12} color="#64748b" />
           <span style={{ fontSize: '10px', color: '#64748b', fontWeight: '500' }}>
-            {content ? `${content.length} caracteres` : 'Vacío'}
+            {textoActual ? `${textoActual.length} caracteres` : 'Vacío'}
           </span>
         </div>
       </div>
 
-      {/* Alerta de Errores de Permisos / Hardware */}
+      {/* Alerta de Errores */}
       {error && (
         <div style={{
           marginTop: '8px',
