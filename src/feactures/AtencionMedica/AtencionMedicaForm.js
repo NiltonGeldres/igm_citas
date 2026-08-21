@@ -142,7 +142,7 @@ const [cargando, setCargando] = useState(false);
       setIsAgendaOpen(true);
     }
   }, [patientData.id]);
-
+/*
   const handleSelectPaciente = (pacienteSeleccionado) => {
 //    alert(JSON.stringify(pacienteSeleccionado))
     if (!pacienteSeleccionado) return;
@@ -167,6 +167,39 @@ const [cargando, setCargando] = useState(false);
 
     setIsAgendaOpen(false);
   };
+*/
+// AtencionMedicaContext.jsx o AtencionMedicaPage.jsx
+  const handleSelectPaciente = (pacienteSeleccionado) => {
+    if (!pacienteSeleccionado) return;
+
+   const accionGatillada = 
+      pacienteSeleccionado.accionAgenda || 
+      (pacienteSeleccionado.atendido === true ? 'ACTUALIZAR' : 'ATENDER');    
+
+      setPacienteActivo(pacienteSeleccionado);
+
+      setPatientData({
+        name: pacienteSeleccionado.nombres || '',
+        sex: pacienteSeleccionado.sexo || 'N/A',
+        age: pacienteSeleccionado.edad ? `${pacienteSeleccionado.edad} años` : 'N/A',
+        id: pacienteSeleccionado.id, // idPaciente
+        hc: pacienteSeleccionado.idCita || pacienteSeleccionado.numHistoria || pacienteSeleccionado.id,
+        
+        // 📍 Captura de Identificadores
+        idCuentaAtencion: pacienteSeleccionado.idCuentaAtencion || pacienteSeleccionado.idCita,
+        idServicio: pacienteSeleccionado.idServicio || 1,
+        
+        // 👈 idEspecialidad capturado directamente desde la API de Citas
+        idEspecialidad: pacienteSeleccionado.idEspecialidad || null, 
+
+        accionAgenda: accionGatillada
+    });
+
+
+    setIsAgendaOpen(false);
+  };
+
+
 
   const showModalMessage = (message) => {
     setModalMessage(message);
