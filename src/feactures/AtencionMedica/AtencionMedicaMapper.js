@@ -16,7 +16,6 @@ export const AtencionMedicaMapper = {
         .map((item) => {
           const idVal = Number(item[keyId] ?? item.id) || 0;
           
-          // 👈 FIX: Agregamos item.descripcionAlta y evaluamos dinámicamente item[`descripcion${...}`]
           const textoRaw = item[keyTexto] 
                         ?? item.descripcionAlta 
                         ?? item.descripcion 
@@ -32,15 +31,19 @@ export const AtencionMedicaMapper = {
         })
         .filter((item) => !(item[keyId] === 0 && !item[keyTexto]));
     };
-return {
+
+    return {
       idAtencion: patientData.idAtencion ? Number(patientData.idAtencion) : null,
-      idPaciente: Number(patientData.idPaciente || patientData.id) || 0,
+      
+      // 🎯 Prioriza idPaciente entregado por la API (Evita usar el ID de la Cita)
+      idPaciente: Number(patientData.idPaciente ?? patientData.id) || 0,
+      
+      // 🎯 Mapeo de Identificadores
       idCuentaAtencion: Number(patientData.idCuentaAtencion) || 1,
       idServicio: Number(patientData.idServicio) || 1,
+      idEspecialidad: Number(patientData.idEspecialidad ?? contextoUsuario.idEspecialidad) || 2,
       
-      // 👈 AGREGAR ESTA LÍNEA OBLIGATORIAMENTE:
-      idEspecialidad: Number(patientData.idEspecialidad || contextoUsuario.idEspecialidad) || 2,
-      
+      // 📍 Contexto y Estados
       idEstadoAtencion: Number(patientData.idEstadoAtencion) || 3,
       estadoFirma: patientData.estadoFirma || "PENDIENTE",
       origenRegistroUsuario: "MEDICO_WEB_APP",
@@ -48,33 +51,26 @@ return {
       idEntidad: Number(contextoUsuario.idEntidad) || 2,
       idUsuarioRegistro: Number(contextoUsuario.idUsuario) || 12,
 
-      triajes: (sectionsData.triaje || []).map((t) => ({
-        idTriaje: Number(t.idTriaje || t.id) || 1,
-        valorTriaje: String(t.valorTriaje ?? t.valor ?? "")
-      })),
-
-      // Triajes
+      // 📍 Triajes (Se eliminó la duplicación)
       triajes: listaTriajeOriginal.map((t) => ({
         idTriaje: Number(t.idTriaje || t.id) || 1,
         valorTriaje: String(t.valorTriaje ?? t.valor ?? "")
       })),
 
-      // Listas sanitizadas
+      // 📍 Listas sanitizadas (Antecedentes, Síntomas, Examen Físico, Alta)
       antecedentes: procesarColeccion(sectionsData.PanelAntecedentes, 'idAntecedente', 'nombreAntecedente'),
       sintomas: procesarColeccion(sectionsData.PanelSintomas, 'idSintoma', 'nombreSintoma'),
       examenFisico: procesarColeccion(sectionsData.PanelExamenFisico, 'idExamenFisico', 'nombreExamenFisico'),
-      
-      // 👈 FIX: Se invoca con 'descripcionAlta' para hacer match directo con tu estado de React
       alta: procesarColeccion(sectionsData.PanelAlta, 'idAlta', 'nombreAlta'),
 
-      // Diagnósticos
+      // 📍 Diagnósticos
       diagnosticos: (sectionsData.PanelDiagnostico || []).map((d, index) => ({
         idDiagnostico: Number(d.idDiagnostico || d.idCie10 || d.id) || 1,
         idDiagnosticoOrden: index + 1,
         idSubclasificacion: Number(d.idSubclasificacion || 1)
       })),
 
-      // Exámenes Auxiliares
+      // 📍 Exámenes Auxiliares
       examenesAuxiliares: (sectionsData.PanelPlanTrabajo || []).map((e, i) => ({
         idPuntoCarga: Number(e.idPuntoCarga) || 1,
         idProducto: Number(e.idProducto || e.idExamen || e.id) || (i + 1),
@@ -83,8 +79,8 @@ return {
         idDiagnostico: Number(e.idDiagnostico) || 1
       })),
 
-      // Medicación
-      medicacion: (sectionsData.PanelTratamientos || []).map((m, i) => ({
+      // 📍 Medicación (Evalúa PanelMedicacion o PanelTratamientos)
+      medicacion: (sectionsData.PanelMedicacion || sectionsData.PanelTratamientos || []).map((m, i) => ({
         idAlmacen: Number(m.idAlmacen) || 1,
         idProducto: Number(m.idProducto || m.idMedicamento || m.id) || (i + 1),
         cantidadDosis: Number(m.dosis || m.cantidadDosis) || 1,

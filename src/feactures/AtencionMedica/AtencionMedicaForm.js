@@ -191,6 +191,10 @@ const [cargando, setCargando] = useState(false);
         
         // 👈 idEspecialidad capturado directamente desde la API de Citas
         idEspecialidad: pacienteSeleccionado.idEspecialidad || null, 
+        idPaciente: pacienteSeleccionado.idPaciente, // 36
+        idCuentaAtencion: pacienteSeleccionado.idCuentaAtencion , 
+        idServicio: pacienteSeleccionado.idServicio || 1, // 1
+        idCita: pacienteSeleccionado.idCita, // 35
 
         accionAgenda: accionGatillada
     });
@@ -482,7 +486,10 @@ const ejecutarGuardadoYFirmaFinal = async () => {
                   {activeTab === 'medication' && (
                     <AtencionMedicaMedicamentoPanel
                       content={sectionsData.PanelTratamientos}
-                      onContentChange={(newList) => handleSectionContentChange('PanelTratamientos', newList)}
+  onContentChange={(newList) => {
+      handleSectionContentChange('PanelTratamientos', newList);
+      handleSectionContentChange('PanelMedicacion', newList);
+    }}
                       onModalMessage={showModalMessage}
                     />
                   )}
