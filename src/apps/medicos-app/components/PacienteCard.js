@@ -3,7 +3,7 @@ import { CheckCircle, Clock } from "lucide-react";
 
 export const PacienteCard = ({ paciente, onAtender }) => {
   // 💡 Evaluamos el flag que viene directamente de la API en la agenda
-  const esAtendido = paciente.atendido === true;
+  const esAtendido = paciente.estadoCita > 1 ;
 
   return (
     <div className="patient-card">
@@ -27,6 +27,7 @@ export const PacienteCard = ({ paciente, onAtender }) => {
       <button 
         className={`btn-atender ${esAtendido ? 'is-actualizar' : 'is-atender'}`} 
         onClick={onAtender}
+       disabled={!onAtender}        
       >
         {esAtendido ? 'ACTUALIZAR' : 'ATENDER'}
       </button>

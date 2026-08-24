@@ -51,7 +51,8 @@ export const AgendaPage = ({ onSelectPaciente, soloLectura = false }) => {
                       const pacienteLimpio = JSON.parse(JSON.stringify(p));
                       
                       // 💡 CAPTURA SIMÉTRICA: Deducimos la acción según el flag nativo de la API
-                      const determinarAccion = pacienteLimpio.atendido === true ? 'ACTUALIZAR' : 'ATENDER';
+                      const determinarAccion = pacienteLimpio.estadoCita === 1 ? 'ATENDER' : 'ACTUALIZAR';
+//                      const determinarAccion = pacienteLimpio.atendido === true ? 'ACTUALIZAR' : 'ATENDER';
                       
                       // Inyectamos la variable de control que el formulario ya está esperando escuchar
                       pacienteLimpio.accionAgenda = determinarAccion;
