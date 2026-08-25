@@ -1,12 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { Thermometer, Stethoscope, Lightbulb, Microscope, Pill, 
-  CheckCircle, PenTool, User, Cloud, RefreshCw, Calendar, Save, FileText, Layout
-} from 'lucide-react';
+import {  RefreshCw, Save} from 'lucide-react';
 
 import MessageModal from './common/MessageModal';
-import AtencionMedicaService from "./AtencionMedicaService";
-import { useDebounceSave } from './useDebounceSave'; 
 import { AgendaPage } from '../../apps/medicos-app/pages/AgendaPage';
 import AtencionMedicaMedicamentoPanel from './AtencionMedicaMedicamento/AtencionMedicaMedicamentoPanel';
 import AtencionMedicaAltaPanel from './AtencionMedicaAlta/AtencionMedicaAltaPanel'; 
@@ -16,12 +10,7 @@ import AtencionMedicaSintomaPanel from './AtencionMedicaSintoma/AtencionMedicaSi
 import AtencionMedicaDiagnosticoPanel from './AtencionMedicaDiagnostico/AtencionMedicaDiagnosticoPanel';
 import AtencionMedicaExamenPanel from './AtencionMedicaExamen/AtencionMedicaExamenPanel';
 import AtencionMedicaTriajePanel from './AtencionMedicaTriaje/AtencionMedicaTriajePanel'; 
-import AtencionMedicaFirmaPanel from './AtencionMedicaFirma/AtencionMedicaFirmaPanel';
-import { formatCapitalize } from './utils/textFormatter';
-import { AtencionMedicaTriajeService } from './AtencionMedicaTriaje/AtencionMedicaTriajeService';
 import ModalExitoFirma  from './AtencionMedicaFirma/ModalExitoFirma';
-import { getCatalogoInit } from './common/catalogoService';
-import { AtencionMedicaMapper } from './AtencionMedicaMapper';
 import './styles/medico-app-hce.css';
 import { useAtencionMedica } from './hooks/useAtencionMedica';
 import AtencionMedicaHeader from './components/AtencionMedicaHeader';
@@ -58,6 +47,200 @@ const {
   imprimirDocumentosPaciente,
   showModalMessage
 } = useAtencionMedica();
+  return (
+    <div className="main-layout-hce fullscreen-process-mode">
+          
+          {/* 1. SECCIÓN FIJA SUPERIOR */}
+
+          <AtencionMedicaHeader 
+            patientData={patientData}
+            estadoGuardado={estadoGuardado}
+            onOpenAgenda={() => setIsAgendaOpen(true)}
+
+            activeTab={activeTab}
+            setActiveTab={setActiveTab}
+          />          
+
+          {/* 2. ÁREA CENTRAL CON SCROLL INDEPENDIENTE */}
+          <div className="scrollable-content-container-hce">
+              {patientData.id ? (
+                <>
+                  {activeTab === 'triaje' && (
+                    cargandoTriaje ? (
+                      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '40px', color: '#64748b', fontSize: '13px', fontWeight: '500' }}>
+                        <RefreshCw size={16} className="spinner-sync" style={{ marginRight: '8px' }} />
+                        <span>Cargando Signos Vitales...</span>
+                      </div>
+                    ) : (
+                      <AtencionMedicaTriajePanel 
+                        idPacienteSeleccionado={patientData.id} 
+                        content={sectionsData.PanelTriaje || []} // 👈 CORREGIDO: Usar sectionsData.PanelTriaje
+                        onContentChange={handleTriajeChange}
+                        onModalMessage={showModalMessage}
+                      /> 
+                    )               
+                  )}
+
+                  {activeTab === 'diseaseAndExam' && (
+                    <>
+                      <AtencionMedicaAntecedentePanel
+                        content={sectionsData.PanelAntecedentes}
+                        onContentChange={(newContent) => handleSectionContentChange('PanelAntecedentes', newContent)}
+                        onModalMessage={showModalMessage}
+                      />
+                      <AtencionMedicaSintomaPanel
+                        content={sectionsData.PanelSintomas}
+                        onContentChange={(newContent) => handleSectionContentChange('PanelSintomas', newContent)}
+                        onModalMessage={showModalMessage}
+                      />
+                      <AtencionMedicaExamenFisicoPanel
+                        content={sectionsData.PanelExamenFisico}
+                        onContentChange={(newContent) => handleSectionContentChange('PanelExamenFisico', newContent)}
+                        onModalMessage={showModalMessage}
+                      />
+                    </>
+                  )}
+
+                  {activeTab === 'diagnosis' && (
+                    <AtencionMedicaDiagnosticoPanel
+                      content={sectionsData.PanelDiagnostico}
+                      onContentChange={(newList) => handleSectionContentChange('PanelDiagnostico', newList)}
+                      onModalMessage={showModalMessage}
+                    />
+                  )}
+
+                  {activeTab === 'exams' && (
+                    <AtencionMedicaExamenPanel
+                      content={sectionsData.PanelPlanTrabajo}
+                      onContentChange={(newList) => handleSectionContentChange('PanelPlanTrabajo', newList)}
+                      onModalMessage={showModalMessage}
+                      diagnosticosDisponibles={sectionsData.PanelDiagnostico}
+                    />
+                  )}
+
+                  {activeTab === 'medication' && (
+                    <AtencionMedicaMedicamentoPanel
+                      content={sectionsData.PanelTratamientos}
+                      onContentChange={(newList) => {
+                          handleSectionContentChange('PanelTratamientos', newList);
+                          handleSectionContentChange('PanelMedicacion', newList);
+                        }}
+                      onModalMessage={showModalMessage}
+                    />
+                  )}
+
+                  {activeTab === 'discharge' && (
+                    <AtencionMedicaAltaPanel
+                      title="Panel Alta"
+                      content={sectionsData.PanelAlta}
+                      onContentChange={(newContent) => handleSectionContentChange('PanelAlta', newContent)}
+                      onModalMessage={showModalMessage}
+                    />
+                  )}
+
+                  {activeTab === 'signature' && (
+                    <AtencionMedicaFirmaPanelV1
+                      subTabFirma={subTabFirma}
+                      setSubTabFirma={setSubTabFirma}
+                      sectionsData={sectionsData}
+                      ejecutarGuardadoYFirmaFinal={ejecutarGuardadoYFirmaFinal}
+                      imprimirFichaCompleta={imprimirFichaCompleta}
+                      imprimirDocumentosPaciente={imprimirDocumentosPaciente}
+                      modoImpresion={modoImpresion}
+                      fullMedicalRecord={fullMedicalRecord}
+                      showModalMessage={showModalMessage}
+                      patientData={patientData}
+                    />
+                  )}
+
+                </>
+              ) : (
+                <div className="hce-waiting-placeholder">
+                  <p>Por favor, despliegue la agenda para cargar la atención del paciente asignado.</p>
+                </div>
+              )}
+          </div>
+
+          {/* 3. BOTÓN GUARDAR FLOTANTE FIJO ESTILO FAB (Oculto en firma porque ya tiene su botón de acción arriba) */}
+          {activeTab !== 'signature' && patientData.id && (
+            <button 
+              type="button"
+              onClick={finalizarAtencionMedicaTotal}
+              className="hce-floating-action-button"
+              title="Finalizar y Guardar Atención"
+              aria-label="Finalizar y Guardar Atención"
+            >
+              <Save size={28} color="#ffffff" strokeWidth={2} />
+              <span className="fab-tooltip">Finalizar Atención</span>
+            </button>
+          )}
+
+          {/* 4. PANEL LATERAL DESPLEGABLE */}
+          {isAgendaOpen && (
+            <div className="agenda-offcanvas-overlay">
+              <div className="agenda-offcanvas-content">
+                <div className="agenda-offcanvas-header">
+                  <h3>Lista de Citas Médicas</h3>
+                  <button 
+                    type="button" 
+                    className="close-offcanvas-btn" 
+                    onClick={() => {
+                      if (patientData.id) setIsAgendaOpen(false);
+                      else showModalMessage("Debe seleccionar un paciente para comenzar.");
+                    }}
+                  >
+                    ✕
+                  </button>
+                </div>
+                <div className="agenda-offcanvas-scroll-zone">
+                  <AgendaPage onSelectPaciente={handleSelectPaciente} />
+                </div>
+              </div>
+            </div>
+          )}
+
+        {/* CSS Reactivo Estricto para Impresión Física en Papel */}
+        <style>{`
+          .print-hidden { display: block; }
+          @media print {
+            body * { visibility: hidden !important; }
+            
+            /* Impresión - Ficha Médica Completa */
+            #documento-clinico-pdf, #documento-clinico-pdf * {
+              visibility: ${modoImpresion === 'completo' ? 'visible' : 'hidden'} !important;
+            }
+            #documento-clinico-pdf {
+              position: absolute; left: 0; top: 0; width: 100%; display: ${modoImpresion === 'completo' ? 'block' : 'none'} !important;
+            }
+
+            /* Impresión - Cupones Desglosados */
+            #documentos-desglosados-paciente, #documentos-desglosados-paciente * {
+              visibility: ${modoImpresion === 'desglosado' ? 'visible' : 'hidden'} !important;
+            }
+            #documentos-desglosados-paciente {
+              position: absolute; left: 0; top: 0; width: 100%; display: ${modoImpresion === 'desglosado' ? 'block' : 'none'} !important;
+            }
+
+            .no-print { display: none !important; }
+            .print-hidden { display: none !important; }
+            @page { size: A4 portrait; margin: 10mm 15mm; }
+          }
+        `}</style>
+
+        <MessageModal message={modalMessage} onClose={closeModal} />
+
+        <ModalExitoFirma 
+          isOpen={mostrarModalExito} 
+          documentos={datosGuardadosExito?.documentos} 
+          onCerrar={handleFinalizarFlujoYRegresar} 
+        />
+
+    </div>
+  );
+}
+
+export default AtencionMedicaForm;
+
 
 /*
   const perfil = JSON.parse(sessionStorage.getItem('user_profile'));
@@ -318,199 +501,7 @@ const {
   };
 */
 
-  return (
-    <div className="main-layout-hce fullscreen-process-mode">
-          
-          {/* 1. SECCIÓN FIJA SUPERIOR */}
 
-          <AtencionMedicaHeader 
-            patientData={patientData}
-            estadoGuardado={estadoGuardado}
-            onOpenAgenda={() => setIsAgendaOpen(true)}
-
-            activeTab={activeTab}
-            setActiveTab={setActiveTab}
-          />          
-
-          {/* 2. ÁREA CENTRAL CON SCROLL INDEPENDIENTE */}
-          <div className="scrollable-content-container-hce">
-              {patientData.id ? (
-                <>
-                  {activeTab === 'triaje' && (
-                    cargandoTriaje ? (
-                      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '40px', color: '#64748b', fontSize: '13px', fontWeight: '500' }}>
-                        <RefreshCw size={16} className="spinner-sync" style={{ marginRight: '8px' }} />
-                        <span>Cargando Signos Vitales...</span>
-                      </div>
-                    ) : (
-                      <AtencionMedicaTriajePanel 
-                        idPacienteSeleccionado={patientData.id} 
-                        content={sectionsData.PanelTriaje || []} // 👈 CORREGIDO: Usar sectionsData.PanelTriaje
-                        onContentChange={handleTriajeChange}
-                        onModalMessage={showModalMessage}
-                      /> 
-                    )               
-                  )}
-
-                  {activeTab === 'diseaseAndExam' && (
-                    <>
-                      <AtencionMedicaAntecedentePanel
-                        content={sectionsData.PanelAntecedentes}
-                        onContentChange={(newContent) => handleSectionContentChange('PanelAntecedentes', newContent)}
-                        onModalMessage={showModalMessage}
-                      />
-                      <AtencionMedicaSintomaPanel
-                        content={sectionsData.PanelSintomas}
-                        onContentChange={(newContent) => handleSectionContentChange('PanelSintomas', newContent)}
-                        onModalMessage={showModalMessage}
-                      />
-                      <AtencionMedicaExamenFisicoPanel
-                        content={sectionsData.PanelExamenFisico}
-                        onContentChange={(newContent) => handleSectionContentChange('PanelExamenFisico', newContent)}
-                        onModalMessage={showModalMessage}
-                      />
-                    </>
-                  )}
-
-                  {activeTab === 'diagnosis' && (
-                    <AtencionMedicaDiagnosticoPanel
-                      content={sectionsData.PanelDiagnostico}
-                      onContentChange={(newList) => handleSectionContentChange('PanelDiagnostico', newList)}
-                      onModalMessage={showModalMessage}
-                    />
-                  )}
-
-                  {activeTab === 'exams' && (
-                    <AtencionMedicaExamenPanel
-                      content={sectionsData.PanelPlanTrabajo}
-                      onContentChange={(newList) => handleSectionContentChange('PanelPlanTrabajo', newList)}
-                      onModalMessage={showModalMessage}
-                      diagnosticosDisponibles={sectionsData.PanelDiagnostico}
-                    />
-                  )}
-
-                  {activeTab === 'medication' && (
-                    <AtencionMedicaMedicamentoPanel
-                      content={sectionsData.PanelTratamientos}
-                      onContentChange={(newList) => {
-                          handleSectionContentChange('PanelTratamientos', newList);
-                          handleSectionContentChange('PanelMedicacion', newList);
-                        }}
-                      onModalMessage={showModalMessage}
-                    />
-                  )}
-
-                  {activeTab === 'discharge' && (
-                    <AtencionMedicaAltaPanel
-                      title="Panel Alta"
-                      content={sectionsData.PanelAlta}
-                      onContentChange={(newContent) => handleSectionContentChange('PanelAlta', newContent)}
-                      onModalMessage={showModalMessage}
-                    />
-                  )}
-
-                  {activeTab === 'signature' && (
-                    <AtencionMedicaFirmaPanelV1
-                      subTabFirma={subTabFirma}
-                      setSubTabFirma={setSubTabFirma}
-                      sectionsData={sectionsData}
-                      ejecutarGuardadoYFirmaFinal={ejecutarGuardadoYFirmaFinal}
-                      imprimirFichaCompleta={imprimirFichaCompleta}
-                      imprimirDocumentosPaciente={imprimirDocumentosPaciente}
-                      modoImpresion={modoImpresion}
-                      fullMedicalRecord={fullMedicalRecord}
-                      showModalMessage={showModalMessage}
-                      patientData={patientData}
-                    />
-                  )}
-
-                </>
-              ) : (
-                <div className="hce-waiting-placeholder">
-                  <p>Por favor, despliegue la agenda para cargar la atención del paciente asignado.</p>
-                </div>
-              )}
-          </div>
-
-          {/* 3. BOTÓN GUARDAR FLOTANTE FIJO ESTILO FAB (Oculto en firma porque ya tiene su botón de acción arriba) */}
-          {activeTab !== 'signature' && patientData.id && (
-            <button 
-              type="button"
-              onClick={finalizarAtencionMedicaTotal}
-              className="hce-floating-action-button"
-              title="Finalizar y Guardar Atención"
-              aria-label="Finalizar y Guardar Atención"
-            >
-              <Save size={28} color="#ffffff" strokeWidth={2} />
-              <span className="fab-tooltip">Finalizar Atención</span>
-            </button>
-          )}
-
-          {/* 4. PANEL LATERAL DESPLEGABLE */}
-          {isAgendaOpen && (
-            <div className="agenda-offcanvas-overlay">
-              <div className="agenda-offcanvas-content">
-                <div className="agenda-offcanvas-header">
-                  <h3>Lista de Citas Médicas</h3>
-                  <button 
-                    type="button" 
-                    className="close-offcanvas-btn" 
-                    onClick={() => {
-                      if (patientData.id) setIsAgendaOpen(false);
-                      else showModalMessage("Debe seleccionar un paciente para comenzar.");
-                    }}
-                  >
-                    ✕
-                  </button>
-                </div>
-                <div className="agenda-offcanvas-scroll-zone">
-                  <AgendaPage onSelectPaciente={handleSelectPaciente} />
-                </div>
-              </div>
-            </div>
-          )}
-
-        {/* CSS Reactivo Estricto para Impresión Física en Papel */}
-        <style>{`
-          .print-hidden { display: block; }
-          @media print {
-            body * { visibility: hidden !important; }
-            
-            /* Impresión - Ficha Médica Completa */
-            #documento-clinico-pdf, #documento-clinico-pdf * {
-              visibility: ${modoImpresion === 'completo' ? 'visible' : 'hidden'} !important;
-            }
-            #documento-clinico-pdf {
-              position: absolute; left: 0; top: 0; width: 100%; display: ${modoImpresion === 'completo' ? 'block' : 'none'} !important;
-            }
-
-            /* Impresión - Cupones Desglosados */
-            #documentos-desglosados-paciente, #documentos-desglosados-paciente * {
-              visibility: ${modoImpresion === 'desglosado' ? 'visible' : 'hidden'} !important;
-            }
-            #documentos-desglosados-paciente {
-              position: absolute; left: 0; top: 0; width: 100%; display: ${modoImpresion === 'desglosado' ? 'block' : 'none'} !important;
-            }
-
-            .no-print { display: none !important; }
-            .print-hidden { display: none !important; }
-            @page { size: A4 portrait; margin: 10mm 15mm; }
-          }
-        `}</style>
-
-        <MessageModal message={modalMessage} onClose={closeModal} />
-
-        <ModalExitoFirma 
-          isOpen={mostrarModalExito} 
-          documentos={datosGuardadosExito?.documentos} 
-          onCerrar={handleFinalizarFlujoYRegresar} 
-        />
-
-    </div>
-  );
-}
-
-export default AtencionMedicaForm;
 
 /*
   const finalizarAtencionMedicaTotal = async () => {

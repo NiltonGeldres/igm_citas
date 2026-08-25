@@ -26,12 +26,15 @@ export const useAtencionMedica = () => {
   const [patientData, setPatientData] = useState(() => {
     if (location.state?.paciente) {
       const p = location.state.paciente;
+      console.log("location.state.paciente;    "+JSON.stringify(p));
       return {
         name: p.nombres,
         sex: p.sexo,
         age: p.edad ? `${p.edad} años` : 'Edad',
-        id: p.id,
-        hc: p.numHistoria || p.id,
+        id: p.idPaciente,
+        hc: p.numHistoria ,
+        idPaciente: p.idPaciente,
+        idCita: p.idCita,
         accionAgenda: location.state.accionAgenda || 'ATENDER'
       };
     }
@@ -142,7 +145,7 @@ export const useAtencionMedica = () => {
       idCita: pacienteSeleccionado.idCita,
       accionAgenda: accionGatillada
     });
-
+console.log("PATIENTDATA   "+JSON.stringify(patientData))
     setIsAgendaOpen(false);
   };
 
