@@ -1,9 +1,8 @@
-
 // src/components/AtencionMedica/AtencionMedicaPdfPanel.js
 import React from 'react';
 import Styles from "../../../Styles";
-import { FileText, Download, User, ClipboardList } from 'lucide-react';
-import { useAuth } from '../../../shared/context/AuthContext'; // Ajusta la ruta si es necesario
+import { ClipboardList } from 'lucide-react';
+import { useAuth } from '../../../shared/context/AuthContext';
 
 function AtencionMedicaFirmaPanel({ medicalRecordData }) {
   const { user } = useAuth();
@@ -22,7 +21,9 @@ function AtencionMedicaFirmaPanel({ medicalRecordData }) {
     );
   }
 
-  // Extracción según la estructura real de tu JSON
+  console.log("DATA a MOSTRAR " + JSON.stringify(medicalRecordData));
+
+  // Extracción según la estructura real del JSON
   const { patient = {}, attentionDetails = {} } = medicalRecordData;
   
   // Variables de cabecera
@@ -30,16 +31,16 @@ function AtencionMedicaFirmaPanel({ medicalRecordData }) {
   const nombreMedico = user?.nombresUsuario || 'Regalado Monteverde Miguel Angel';
 
   // =======================================================================
-  // MAPEO DIRECTO DE LLAVES REALES DEL BACKEND (SENSIBLE A MAYÚSCULAS)
+  // MAPEO DIRECTO DE LLAVES REALES DEL BACKEND
   // =======================================================================
-  const dataTriaje = patient.triaje; // Viene dentro de patient
-  const dataAntecedentes = attentionDetails.PanelAntecedentes;
-  const dataSintomas = attentionDetails.PanelSintomas;
-  const dataExamenFisico = attentionDetails.PanelExamenFisico;
-  const dataDiagnosticos = attentionDetails.PanelDiagnostico;
-  const dataExamenes = attentionDetails.PanelPlanTrabajo; // Llave real para Exámenes
-  const dataTratamientos = attentionDetails.PanelTratamientos; // Llave real para Medicación
-  const dataAlta = attentionDetails.PanelAlta;
+ const dataTriaje = attentionDetails.PanelTriaje || [];
+  const dataAntecedentes = attentionDetails.PanelAntecedentes || [];
+  const dataSintomas = attentionDetails.PanelSintomas || [];
+  const dataExamenFisico = attentionDetails.PanelExamenFisico || [];
+  const dataDiagnosticos = attentionDetails.PanelDiagnostico || [];
+  const dataExamenes = attentionDetails.PanelPlanTrabajo || [];
+  const dataTratamientos = attentionDetails.PanelTratamientos || [];
+  const dataAlta = attentionDetails.PanelAlta || [];
 
   // =======================================================================
   // RENDERIZADOR ESPECÍFICO PARA TRIAJE
@@ -62,25 +63,38 @@ function AtencionMedicaFirmaPanel({ medicalRecordData }) {
   };
 
   // =======================================================================
-  // RENDERIZADOR GENERAL PARA TEXTO PLANO
+  // RENDERIZADOR EXCLUSIVO PARA ARREGLOS DE OBJETOS
   // =======================================================================
-  const renderTextoPlano = (value) => {
-    if (!value || typeof value !== 'string' || value.trim() === "") {
-      return <p style={{ margin: '0 0 0 14px', fontSize: '13px', color: '#94a3b8', fontStyle: 'italic' }}>No refiere.</p>;
+  const renderListaEstructurada = (lista, campoMostrar) => {
+    if (!Array.isArray(lista) || lista.length === 0) {
+      return (
+        <p style={{ margin: '0 0 0 14px', fontSize: '13px', color: '#94a3b8', fontStyle: 'italic' }}>
+          No refiere.
+        </p>
+      );
     }
+
     return (
-      <p style={{ margin: '0 0 0 14px', fontSize: '13px', color: '#334155', lineHeight: '1.5', whiteSpace: 'pre-wrap' }}>
-        {value}
-      </p>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', paddingLeft: '14px' }}>
+        {lista.map((item, idx) => {
+          const valorTexto = item?.[campoMostrar];
+          if (!valorTexto) return null;
+
+          return (
+            <div key={item.id || idx} style={{ fontSize: '13px', color: '#334155', lineHeight: '1.5' }}>
+              • {valorTexto}
+            </div>
+          );
+        })}
+      </div>
     );
   };
 
   return (
     <div style={Styles.medicalSection}>
-      
-      {/* Botón de control superior (Oculto en la impresión) */}
       {/* REPORTE CLÍNICO IMPRESO */}
       <div id="documento-clinico-pdf" style={{ backgroundColor: '#ffffff', padding: '20px', borderRadius: '8px', border: '1px solid #e2e8f0', fontFamily: 'sans-serif' }}>
+        
         {/* Cabecera */}
         <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '2px solid #0066ff', paddingBottom: '12px', marginBottom: '20px' }}>
           <div>
@@ -113,9 +127,7 @@ function AtencionMedicaFirmaPanel({ medicalRecordData }) {
           </div>
         </div>
 
-        {/* ======================================================================= */}
-        {/* EL ORDEN SOLICITADO: Triaje, Antecedentes, Sintomas, Examenfisico, Diagnosticos, Examenes, Medicacion, Alta */}
-        {/* ======================================================================= */}
+        {/* CUERPO CLINICO */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           
           {/* 1. Triaje */}
@@ -137,7 +149,7 @@ function AtencionMedicaFirmaPanel({ medicalRecordData }) {
                 Antecedentes
               </h4>
             </div>
-            {renderTextoPlano(dataAntecedentes)}
+            {renderListaEstructurada(dataAntecedentes, 'nombreAntecedente')}
           </div>
 
           {/* 3. Síntomas */}
@@ -148,7 +160,7 @@ function AtencionMedicaFirmaPanel({ medicalRecordData }) {
                 Síntomas
               </h4>
             </div>
-            {renderTextoPlano(dataSintomas)}
+            {renderListaEstructurada(dataSintomas, 'nombreSintoma')}
           </div>
 
           {/* 4. Examen Físico */}
@@ -159,7 +171,7 @@ function AtencionMedicaFirmaPanel({ medicalRecordData }) {
                 Examen Físico
               </h4>
             </div>
-            {renderTextoPlano(dataExamenFisico)}
+            {renderListaEstructurada(dataExamenFisico, 'nombreExamenFisico')}
           </div>
 
           {/* 5. Diagnósticos */}
@@ -183,7 +195,7 @@ function AtencionMedicaFirmaPanel({ medicalRecordData }) {
             )}
           </div>
 
-          {/* 6. Exámenes (PanelPlanTrabajo) */}
+          {/* 6. Exámenes */}
           <div style={{ borderBottom: '1px solid #f1f5f9', paddingBottom: '12px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
               <ClipboardList size={13} color="#475569" />
@@ -204,7 +216,7 @@ function AtencionMedicaFirmaPanel({ medicalRecordData }) {
             )}
           </div>
 
-          {/* 7. Medicación (PanelTratamientos) */}
+          {/* 7. Medicación */}
           <div style={{ borderBottom: '1px solid #0066ff', paddingBottom: '12px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
               <ClipboardList size={13} color="#0066ff" />
@@ -238,7 +250,7 @@ function AtencionMedicaFirmaPanel({ medicalRecordData }) {
                 Alta
               </h4>
             </div>
-            {renderTextoPlano(dataAlta)}
+            {renderListaEstructurada(dataAlta, 'descripcionAlta')}
           </div>
 
         </div>

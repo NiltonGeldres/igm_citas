@@ -6,7 +6,7 @@ import { Trash2, Layers, CheckSquare, Square } from 'lucide-react';
 import { AtencionMedicaExamenService } from './AtencionMedicaExamenService';
 import { v4 as uuidv4 } from 'uuid';
 
-function AtencionMedicaExamen({ content = [], onContentChange, onModalMessage, diagnosticosDisponibles = [] }) {
+function AtencionMedicaExamenPanel({ content = [], onContentChange, onModalMessage, diagnosticosDisponibles = [] }) {
   const [mostrarBuscador, setMostrarBuscador] = useState(false);
   const [tipoBusqueda, setTipoBusqueda] = useState('INDIVIDUAL'); // 'INDIVIDUAL' o 'PAQUETE'
   const [dropdownAbiertoId, setDropdownAbiertoId] = useState(null); 
@@ -461,7 +461,7 @@ function AtencionMedicaExamen({ content = [], onContentChange, onModalMessage, d
   );
 }
 
-export default AtencionMedicaExamen;
+export default AtencionMedicaExamenPanel;
 
 /*
 // src/components/AtencionExamen/AtencionMedicaExamen.js

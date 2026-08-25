@@ -1,169 +1,340 @@
-import { useState, useEffect, useCallback } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
-import AtencionMedicaService from '../AtencionMedicaService';
-import AtencionMedicaMapper from '../AtencionMedicaMapper';
-import { useDebounceSave } from '../utils/useDebounceSave';
+import { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
+import AtencionMedicaService from "../AtencionMedicaService";
+import { AtencionMedicaTriajeService } from '../AtencionMedicaTriaje/AtencionMedicaTriajeService';
+import { AtencionMedicaMapper } from '../AtencionMedicaMapper';
 
-export const useAtencionMedica = (pacienteProp) => {
+export const useAtencionMedica = () => {
   const location = useLocation();
-  const navigate = useNavigate();
 
-  // 1. Datos de Sesión
-  const perfil = JSON.parse(sessionStorage.getItem('user_profile') || '{}');
-
-  // 2. Estados de UI y Navegación
+  // Estados de control y navegación UI
   const [activeTab, setActiveTab] = useState('triaje');
-  const [isAgendaOpen, setIsAgendaOpen] = useState(false);
-  const [cargando, setCargando] = useState(false);
-  
-  // Modales y Feedback
+  const [subTabFirma, setSubTabFirma] = useState('vista-ficha');
   const [modalMessage, setModalMessage] = useState('');
+  const [isAgendaOpen, setIsAgendaOpen] = useState(false);
+  const [modoImpresion, setModoImpresion] = useState('completo');
+  const [cargando, setCargando] = useState(false);
+  const [cargandoTriaje, setCargandoTriaje] = useState(false);
+  const estadoGuardado = "";
+
+  // Estados del flujo de éxito y firma
   const [datosGuardadosExito, setDatosGuardadosExito] = useState(null);
   const [mostrarModalExito, setMostrarModalExito] = useState(false);
+  const [pacienteActivo, setPacienteActivo] = useState(null);
 
-  // 3. Estados de la Atención Médica
+  // Estado del Paciente
   const [patientData, setPatientData] = useState(() => {
-    return pacienteProp || location.state?.paciente || null;
+    if (location.state?.paciente) {
+      const p = location.state.paciente;
+      return {
+        name: p.nombres,
+        sex: p.sexo,
+        age: p.edad ? `${p.edad} años` : 'Edad',
+        id: p.id,
+        hc: p.numHistoria || p.id,
+        accionAgenda: location.state.accionAgenda || 'ATENDER'
+      };
+    }
+    return { name: '', sex: '', age: 'Edad', id: '', hc: '', accionAgenda: 'ATENDER', triaje: [] };
   });
 
+  // 🎯 1. Estado unificado usando explícitamente PanelTriaje
   const [sectionsData, setSectionsData] = useState({
-    triaje: {},
-    sintomas: [],
-    diagnosticos: [],
-    examenes: [],
-    medicamentos: [],
-    alta: {},
-    firma: {}
+    PanelTriaje: [], // 👈 Nombre estandarizado
+    PanelAntecedentes: [],
+    PanelExamenFisico: [],
+    PanelSintomas: [],
+    PanelTratamientos: [],
+    PanelDiagnostico: [],
+    PanelPlanTrabajo: [],
+    PanelMedicacion: [],
+    PanelAlta: [],
   });
 
-  // ---------------------------------------------------------------------------
-  // EFECTOS DE CICLO DE VIDA
-  // ---------------------------------------------------------------------------
-
-  // A. Detectar paciente entrante por React Router (Navegación desde Agenda)
+  // Efecto para sincronizar el paciente activo desde location.state
   useEffect(() => {
     if (location.state?.paciente) {
-      setPatientData(location.state.paciente);
+      setPacienteActivo(location.state.paciente);
     }
   }, [location.state]);
 
-  // B. Abrir agenda lateral automáticamente si no hay un paciente seleccionado
+  // 🎯 2. Cargar datos de triaje y sincronizarlos DIRECTAMENTE en PanelTriaje
   useEffect(() => {
-    if (!patientData?.id) {
-      setIsAgendaOpen(true);
-    }
-  }, [patientData?.id]);
+    if (!patientData?.id) return;
 
-  // C. Cargar datos existentes si la cita está en estado 'ACTUALIZAR'
-  useEffect(() => {
-    const cargarAtencionExistente = async () => {
-      if (!patientData?.id || patientData.accionAgenda !== 'ACTUALIZAR') return;
-
-      setCargando(true);
+    const cargarDatosTriajeDelPaciente = async () => {
       try {
-        const response = await AtencionMedicaService.obtenerAtencionPorCita(patientData.id);
-        if (response) {
-          const datosMapeados = AtencionMedicaMapper.toFormState(response);
-          setSectionsData(datosMapeados);
-        }
+        setCargandoTriaje(true);
+        console.log(`📡 Consumiendo Triaje para Paciente ID: ${patientData.id} - Acción: ${patientData.accionAgenda}`);
+        
+        const signosVitalesProcesados = await AtencionMedicaTriajeService.obtenerTriajePorPaciente(
+          patientData.id,
+          patientData.accionAgenda
+        );
+
+        // Actualiza el paciente
+        setPatientData(prev => ({
+          ...prev,
+          triaje: signosVitalesProcesados
+        }));
+
+        // 👈 CLAVE: Sincroniza inmediatamente con sectionsData.PanelTriaje
+        setSectionsData(prev => ({
+          ...prev,
+          PanelTriaje: signosVitalesProcesados || []
+        }));
+
+        console.log(`📊 [Sincronización Directa] Signos vitales incrustados en sectionsData.PanelTriaje con éxito.`);
       } catch (error) {
-        console.error("Error al cargar la atención médica:", error);
-        setModalMessage("No se pudieron cargar los datos previos de la atención.");
+        console.error("❌ Falló la sincronización del componente de triajes:", error);
       } finally {
-        setCargando(false);
+        setCargandoTriaje(false);
       }
     };
 
-    cargarAtencionExistente();
+    cargarDatosTriajeDelPaciente();
   }, [patientData?.id, patientData?.accionAgenda]);
 
-  // ---------------------------------------------------------------------------
-  // MANEJADORES DE ESTADO Y EVENTOS
-  // ---------------------------------------------------------------------------
-
-  // Selección de paciente desde el Drawer/Offcanvas lateral
-  const handleSelectPaciente = useCallback((pacienteSeleccionado) => {
-    setPatientData(pacienteSeleccionado);
-    setIsAgendaOpen(false);
-  }, []);
-
-  // Modificación genérica de subsecciones (Triaje, Síntomas, etc.)
-  const handleSectionContentChange = useCallback((sectionName, newContent) => {
-    setSectionsData((prev) => ({
-      ...prev,
-      [sectionName]: newContent
-    }));
-  }, []);
-
-  // Lógica de Autoguardado (Persistencia Automática)
-  const fullMedicalRecord = {
-    paciente: patientData,
-    atencion: sectionsData,
-    medicoId: perfil?.idMedico
-  };
-
-  const ejecutarPersistenciaAutomatica = async (record) => {
-    if (!record.paciente?.id) return;
-    try {
-      await AtencionMedicaService.guardarBorrador(record);
-    } catch (error) {
-      console.warn("Error en autoguardado de borrador:", error);
+  // Abrir la agenda si no se ha seleccionado paciente
+  useEffect(() => {
+    if (!patientData.id) {
+      setIsAgendaOpen(true);
     }
+  }, [patientData.id]);
+
+  // Handler de Triaje estandarizado
+  const handleTriajeChange = (nuevosSignosVitales) => {
+    setSectionsData(prev => ({
+      ...prev,
+      PanelTriaje: nuevosSignosVitales
+    }));
   };
 
-  // Se activa el debounce save con la estructura compilada
-  const estadoGuardado = useDebounceSave(fullMedicalRecord, ejecutarPersistenciaAutomatica);
+  const showModalMessage = (message) => setModalMessage(message);
+  const closeModal = () => setModalMessage('');
 
-  // ---------------------------------------------------------------------------
-  // ACCIONES FINALES (GUARDADO Y FIRMA)
-  // ---------------------------------------------------------------------------
+  const handleSectionContentChange = (sectionName, newContent) => {
+    setSectionsData(prev => ({
+      ...prev,
+      [sectionName]: newContent,
+    }));
+  };
 
-  const ejecutarGuardadoYFirmaFinal = async () => {
-    if (!patientData?.id) return;
+  const handleSelectPaciente = (pacienteSeleccionado) => {
+    if (!pacienteSeleccionado) return;
 
-    setCargando(true);
+    const accionGatillada = 
+      pacienteSeleccionado.accionAgenda || 
+      (pacienteSeleccionado.atendido === true ? 'ACTUALIZAR' : 'ATENDER');    
+
+    setPacienteActivo(pacienteSeleccionado);
+
+    setPatientData({
+      name: pacienteSeleccionado.nombres || '',
+      sex: pacienteSeleccionado.sexo || 'N/A',
+      age: pacienteSeleccionado.edad ? `${pacienteSeleccionado.edad} años` : 'N/A',
+      id: pacienteSeleccionado.id,
+      hc: pacienteSeleccionado.idCita || pacienteSeleccionado.numHistoria || pacienteSeleccionado.id,
+      idCuentaAtencion: pacienteSeleccionado.idCuentaAtencion ,
+      idServicio: pacienteSeleccionado.idServicio ,
+      idEspecialidad: pacienteSeleccionado.idEspecialidad , 
+      idPaciente: pacienteSeleccionado.idPaciente,
+      idCita: pacienteSeleccionado.idCita,
+      accionAgenda: accionGatillada
+    });
+
+    setIsAgendaOpen(false);
+  };
+
+  // Objeto completo de la historia clínica
+  const fullMedicalRecord = {
+    patient: patientData, 
+    attentionDetails: {
+      ...sectionsData,
+      PanelDiagnostico: Array.isArray(sectionsData.PanelDiagnostico) ? sectionsData.PanelDiagnostico : []
+    },
+    timestamp: new Date().toISOString(),
+  };
+
+  const finalizarAtencionMedicaTotal = async () => {
+    if (!patientData.id) {
+      showModalMessage('Por favor, selecciona un paciente antes de cerrar la atención.');
+      return;
+    }
+
+    showModalMessage('Procesando el guardado clínico y aplicando rúbrica...');
+    
     try {
-      const payload = AtencionMedicaMapper.toApiPayload(fullMedicalRecord);
-      const res = await AtencionMedicaService.finalizarAtencion(payload);
-
-      setDatosGuardadosExito(res);
+      const response = await AtencionMedicaService.guardarYFirmarAtencion(fullMedicalRecord);
+      closeModal();
+      setDatosGuardadosExito(response.data); 
       setMostrarModalExito(true);
     } catch (error) {
-      console.error("Error al finalizar atención:", error);
-      setModalMessage("Ocurrió un error al intentar registrar y firmar la atención.");
-    } finally {
-      setCargando(false);
+      console.error(error);
+      showModalMessage(`Error al cerrar ciclo: ${error.message}`);
     }
   };
 
+  const validarCamposObligatorios = () => {
+    const errores = [];
+
+    // 1. Validar Triaje: Revisa que la lista exista y que NINGÚN campo esté sin valor ("")
+    const tieneTriajeIncompleto = sectionsData.PanelTriaje?.some(
+      (item) => !item.valor || String(item.valor).trim() === ""
+    );
+
+    if (!sectionsData.PanelTriaje || sectionsData.PanelTriaje.length === 0 || tieneTriajeIncompleto) {
+      errores.push("Triaje / Signos Vitales (Todos los campos deben tener un valor ingresado).");
+    }
+
+    // 2. Validar Antecedentes
+    if (!sectionsData.PanelAntecedentes || sectionsData.PanelAntecedentes.length === 0) {
+      errores.push("Antecedentes.");
+    }
+
+    // 3. Validar Síntomas
+    if (!sectionsData.PanelSintomas || sectionsData.PanelSintomas.length === 0) {
+      errores.push("Síntomas (Anamnesis).");
+    }
+
+    // 4. Validar Examen Físico
+    if (!sectionsData.PanelExamenFisico || sectionsData.PanelExamenFisico.length === 0) {
+      errores.push("Examen Físico.");
+    }
+
+    // 5. Validar Diagnósticos
+    if (!sectionsData.PanelDiagnostico || sectionsData.PanelDiagnostico.length === 0) {
+      errores.push("Diagnósticos (CIE-10).");
+    }
+
+    // 6. Validar Plan de Trabajo / Exámenes Auxiliares
+    if (!sectionsData.PanelPlanTrabajo || sectionsData.PanelPlanTrabajo.length === 0) {
+      errores.push("Exámenes Auxiliares / Plan de Trabajo.");
+    }
+
+    // 7. Validar Tratamientos / Medicación
+    if (!sectionsData.PanelTratamientos || sectionsData.PanelTratamientos.length === 0) {
+      errores.push("Medicación / Tratamientos.");
+    }
+
+    // 8. Validar Indicaciones de Alta
+    const altaDesc = sectionsData.PanelAlta?.[0]?.descripcionAlta?.trim() || sectionsData.PanelAlta?.[0]?.nombreAlta?.trim();
+    if (!sectionsData.PanelAlta || sectionsData.PanelAlta.length === 0 || !altaDesc) {
+      errores.push("Indicaciones de Alta.");
+    }
+
+    if (errores.length > 0) {
+      showModalMessage(
+        "⚠️ No se puede guardar. Complete los siguientes bloques obligatorios:\n\n• " + errores.join("\n• ")
+      );
+      return false;
+    }
+
+    return true;
+  };
+
+  const ejecutarGuardadoYFirmaFinal = async () => {
+    if (!patientData?.id) {
+      showModalMessage('Por favor, selecciona un paciente antes de procesar.');
+      return;
+    }
+
+    if (!validarCamposObligatorios()) {
+      return;
+    }
+
+    try {
+      const contextoUsuario = {
+        idMedico: sessionStorage.getItem('idMedico') || 2,
+        idEntidad: sessionStorage.getItem('idEntidad') || 2,
+        idUsuario: sessionStorage.getItem('idUsuario') || 12,
+      };
+
+      const payload = AtencionMedicaMapper.uiToApiRequest(patientData, sectionsData, contextoUsuario);
+
+      console.log("=== DATA/PAYLOAD VALIDADO QUE SE ENVÍA AL GUARDAR ===");
+      console.log(payload);
+      console.log("=== JSON STRINGIFY ===");
+      console.log(JSON.stringify(payload, null, 2));
+
+      const response = await AtencionMedicaService.guardarAtencionCompleta(payload);
+
+      if (response?.exito) {
+        console.log("Atención guardada exitosamente. ID:", response.idAtencion);
+      }
+
+    } catch (error) {
+      const apiErrors = error.response?.data?.errors;
+      const errorMsg = apiErrors ? JSON.stringify(apiErrors) : error.message;
+      showModalMessage(`Error al validar el registro: ${errorMsg}`);
+    }
+  };
+
+  // 🎯 3. Reseteo con la propiedad PanelTriaje
   const handleFinalizarFlujoYRegresar = () => {
     setMostrarModalExito(false);
-    setPatientData(null);
-    navigate('/med/agenda');
+    setDatosGuardadosExito(null);
+    setPacienteActivo(null);
+    setPatientData({ 
+      name: '',
+      sex: '',
+      age: 'Edad',
+      id: '',
+      hc: '',
+      accionAgenda: 'ATENDER'
+    });
+    setSectionsData({
+      PanelTriaje: [], // 👈 Restablecido a PanelTriaje
+      PanelAntecedentes: [],
+      PanelExamenFisico: [],
+      PanelSintomas: [],
+      PanelTratamientos: [],
+      PanelDiagnostico: [],
+      PanelPlanTrabajo: [],
+      PanelMedicacion: [],
+      PanelAlta: []
+    });
+    setIsAgendaOpen(true);
+  };
+
+  const imprimirFichaCompleta = () => {
+    setModoImpresion('completo');
+    setTimeout(() => { window.print(); }, 150);
+  };
+
+  const imprimirDocumentosPaciente = () => {
+    setModoImpresion('desglosado');
+    setTimeout(() => { window.print(); }, 150);
   };
 
   return {
-    // Estados
-    patientData,
-    sectionsData,
     activeTab,
-    isAgendaOpen,
-    cargando,
+    setActiveTab,
+    subTabFirma,
+    setSubTabFirma,
     modalMessage,
+    isAgendaOpen,
+    setIsAgendaOpen,
+    modoImpresion,
+    cargando,
+    cargandoTriaje,
+    estadoGuardado,
     datosGuardadosExito,
     mostrarModalExito,
-    estadoGuardado,
+    pacienteActivo,
+    patientData,
+    sectionsData,
+    fullMedicalRecord,
     
-    // Setters / Modificadores
-    setActiveTab,
-    setIsAgendaOpen,
-    setModalMessage,
-    setMostrarModalExito,
-    
-    // Acciones y Handlers
-    handleSelectPaciente,
+    handleTriajeChange,
+    showModalMessage,
+    closeModal,
     handleSectionContentChange,
+    handleSelectPaciente,
+    finalizarAtencionMedicaTotal,
     ejecutarGuardadoYFirmaFinal,
-    handleFinalizarFlujoYRegresar
+    handleFinalizarFlujoYRegresar,
+    imprimirFichaCompleta,
+    imprimirDocumentosPaciente
   };
 };

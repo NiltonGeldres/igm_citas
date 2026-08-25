@@ -6,7 +6,7 @@ import { Trash2 } from 'lucide-react';
 import { AtencionMedicaDiagnosticoService } from './AtencionMedicaDiagnosticoService';
 import { useAuth } from '../../../shared/context/AuthContext'; 
 
-function AtencionMedicaDiagnostico({ content = [], onContentChange, onModalMessage }) {
+function AtencionMedicaDiagnosticoPanel({ content = [], onContentChange, onModalMessage }) {
   const { catalogoGlobal } = useAuth(); // Accedemos al contexto
   const [mostrarBuscador, setMostrarBuscador] = useState(false);
   // Extraemos el catálogo de tipos de diagnóstico de forma segura
@@ -234,4 +234,4 @@ function AtencionMedicaDiagnostico({ content = [], onContentChange, onModalMessa
   );
 }
 
-export default AtencionMedicaDiagnostico;
+export default AtencionMedicaDiagnosticoPanel;
