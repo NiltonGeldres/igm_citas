@@ -2,8 +2,8 @@ import React from 'react';
 import { CheckCircle, Clock } from "lucide-react";
 
 export const PacienteCard = ({ paciente, onAtender }) => {
-  // 💡 Evaluamos el flag que viene directamente de la API en la agenda
-  const esAtendido = paciente.estadoCita > 1 ;
+  // 💡 El paciente se considera atendido si ya tiene un idAtencion asignado o su estado de cita es mayor a 1
+  const esAtendido = Number(paciente.idAtencion) > 0 || paciente.estadoCita > 1;
 
   return (
     <div className="patient-card">
@@ -14,7 +14,7 @@ export const PacienteCard = ({ paciente, onAtender }) => {
       <div className="divider" />
       <div className="info-col">
         <div className="name-row">
-          <span>{paciente.nombres}</span>
+          <span>{paciente.nombres} {paciente.apellidos || ''}</span>
           {paciente.pagado && <CheckCircle size={14} color="#198754" />}
         </div>
         <div className="service-row">
@@ -23,11 +23,10 @@ export const PacienteCard = ({ paciente, onAtender }) => {
         </div>
       </div>
 
-      {/* 💡 Cambia el texto dinámicamente y añade una clase condicional para los estilos */}
       <button 
         className={`btn-atender ${esAtendido ? 'is-actualizar' : 'is-atender'}`} 
         onClick={onAtender}
-       disabled={!onAtender}        
+        disabled={!onAtender}        
       >
         {esAtendido ? 'ACTUALIZAR' : 'ATENDER'}
       </button>

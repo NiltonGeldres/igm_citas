@@ -17,9 +17,33 @@ const LoadingSpinner = () => (
 export const AgendaPage = ({ onSelectPaciente, soloLectura = false }) => {
   const navigate = useNavigate();   
   const { user, loading: authLoading } = useAuth();
-  const [fecha, setFecha] = useState(new Date().toISOString().split('T')[0]);
   
-  const { citados, loading: agendaLoading } = useAgenda(user?.idMedico, fecha);
+  // 1. Fecha elegida en la interfaz
+  const [fechaTemp, setFechaTemp] = useState(new Date().toISOString().split('T')[0]);
+  
+  // 2. Fecha enviada a la API (se inicializa en null para no consultar automáticamente al montar si deseas, 
+  // o con la fecha actual si deseas la primera carga automática)
+  const [fechaConsulta, setFechaConsulta] = useState(fechaTemp);
+
+  // 3. Estado indicador de si la fecha visible actual fue buscada explícitamente
+  const [buscado, setBuscado] = useState(true);
+
+  const { citados, loading: agendaLoading } = useAgenda(user?.idMedico, fechaConsulta);
+
+  // Manejador del cambio de fecha desde el DateSelector
+  const handleDateChange = (nuevaFecha) => {
+    setFechaTemp(nuevaFecha);
+    setBuscado(false); // 💡 Desmarca la búsqueda al cambiar cualquier fecha
+  };
+
+  // Manejador del botón de búsqueda (Lupa)
+  const handleBuscarAgenda = () => {
+    setFechaConsulta(fechaTemp);
+    setBuscado(true); // 💡 Marca como confirmada la búsqueda para la fecha activa
+  };
+
+  // La lista solo es visible si se ha presionado el botón de búsqueda para la fecha seleccionada
+  const citadosVisibles = buscado ? (citados || []) : [];
 
   if (authLoading) return <LoadingSpinner />;
   if (!user) return <div style={{ padding: '2rem' }}>No has iniciado sesión.</div>;
@@ -27,47 +51,43 @@ export const AgendaPage = ({ onSelectPaciente, soloLectura = false }) => {
   return (
     <div className={onSelectPaciente ? "agenda-compact-embedded" : "agenda-page-main-wrapper"}>
       
-      <DateSelector fecha={fecha} setFecha={setFecha} />
+      <DateSelector 
+        fecha={fechaTemp} 
+        setFecha={handleDateChange} 
+        onSearch={handleBuscarAgenda}
+        loading={agendaLoading}
+      />
       
-      <div className="medico-main-content">
+      <div className="medico-main-content" style={{ marginTop: '1rem' }}>
         <AgendaStats 
-          total={citados?.length || 0} 
-          atendidos={citados?.filter(c => c.atendido).length || 0} 
+          total={citadosVisibles.length} 
+          atendidos={citadosVisibles.filter(c => Number(c.idAtencion) > 0 || c.atendido).length} 
         />
 
         {agendaLoading ? (
           <LoadingSpinner />
-        ) : citados?.length > 0 ? (
-          citados.map(p => (
+        ) : buscado && citadosVisibles.length > 0 ? (
+          citadosVisibles.map(p => (
             <PacienteCard 
-              key={p.id} 
+              key={p.id || p.idCita} 
               paciente={p}
-              /* 💡 Si es soloLectura, el botón no debe ejecutar acciones */
               onAtender={
                 soloLectura 
                   ? null 
                   : () => {
-                      // Clonamos el objeto de manera profunda para evitar mutaciones directas del estado
                       const pacienteLimpio = JSON.parse(JSON.stringify(p));
+                      const tieneAtencionRegistrada = Number(pacienteLimpio.idAtencion) > 0;
+                      const determinarAccion = tieneAtencionRegistrada ? 'ACTUALIZAR' : 'ATENDER';
                       
-                      // 💡 CAPTURA SIMÉTRICA: Deducimos la acción según el flag nativo de la API
-                      const determinarAccion = pacienteLimpio.estadoCita === 1 ? 'ATENDER' : 'ACTUALIZAR';
-//                      const determinarAccion = pacienteLimpio.atendido === true ? 'ACTUALIZAR' : 'ATENDER';
-                      
-                      // Inyectamos la variable de control que el formulario ya está esperando escuchar
                       pacienteLimpio.accionAgenda = determinarAccion;
 
                       if (onSelectPaciente) {
-                        // Flujo Offcanvas (HCE abierta): Envía el payload enriquecido al formulario directamente
-                        console.log(`🔀 [Offcanvas] Pasando paciente con acción: ${determinarAccion}`);
                         onSelectPaciente(pacienteLimpio);
                       } else {
-                        // Flujo Tradicional (Vista Agenda): Navega a la HCE inyectando el estado completo en el router
-                        console.log(`🚀 [Navegación] Redireccionando a HCE con acción: ${determinarAccion}`);
                         navigate('/med/atencion-medica', { 
                           state: { 
                             paciente: pacienteLimpio,
-                            accionAgenda: determinarAccion // Lo pasamos también a nivel de raíz del state por seguridad
+                            accionAgenda: determinarAccion 
                           } 
                         });
                       }
@@ -77,7 +97,11 @@ export const AgendaPage = ({ onSelectPaciente, soloLectura = false }) => {
           ))
         ) : (
           <div className="empty-state" style={{ textAlign: 'center', padding: '2rem' }}>
-            <p>No hay citas para esta fecha.</p>
+            <p>
+              {!buscado 
+                ? "Presione el botón de búsqueda para consultar las citas de esta fecha." 
+                : "No hay citas para esta fecha."}
+            </p>
           </div>
         )}
       </div>

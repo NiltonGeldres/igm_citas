@@ -4,7 +4,14 @@ import AtencionMedicaService from "../AtencionMedicaService";
 import { AtencionMedicaTriajeService } from '../AtencionMedicaTriaje/AtencionMedicaTriajeService';
 import { AtencionMedicaMapper } from '../AtencionMedicaMapper';
 
+// ... dentro de AtencionMedicaForm o useAtencionMedica hook
+
+
+
 export const useAtencionMedica = () => {
+  const [atencionCompleta, setAtencionCompleta] = useState(null);
+  const [loadingAtencion, setLoadingAtencion] = useState(false);
+
   const location = useLocation();
 
   // Estados de control y navegación UI
@@ -21,12 +28,25 @@ export const useAtencionMedica = () => {
   const [datosGuardadosExito, setDatosGuardadosExito] = useState(null);
   const [mostrarModalExito, setMostrarModalExito] = useState(false);
   const [pacienteActivo, setPacienteActivo] = useState(null);
+  // 1. ESTADO DEL PACIENTE (Inicialización directa sin location.state)
+  const [patientData, setPatientData] = useState({
+    name: '',
+    sex: '',
+    age: '',
+    id: '',
+    hc: '',
+    idPaciente: null,
+    idCita: null,
+    idAtencion: null,
+    accionAgenda: 'ATENDER',
+    triaje: []
+  });
 
+  /*
   // Estado del Paciente
   const [patientData, setPatientData] = useState(() => {
     if (location.state?.paciente) {
       const p = location.state.paciente;
-      console.log("location.state.paciente;    "+JSON.stringify(p));
       return {
         name: p.nombres,
         sex: p.sexo,
@@ -40,6 +60,7 @@ export const useAtencionMedica = () => {
     }
     return { name: '', sex: '', age: 'Edad', id: '', hc: '', accionAgenda: 'ATENDER', triaje: [] };
   });
+*/
 
   // 🎯 1. Estado unificado usando explícitamente PanelTriaje
   const [sectionsData, setSectionsData] = useState({
@@ -63,39 +84,38 @@ export const useAtencionMedica = () => {
 
   // 🎯 2. Cargar datos de triaje y sincronizarlos DIRECTAMENTE en PanelTriaje
   useEffect(() => {
-    if (!patientData?.id) return;
+      if (!patientData?.id) return;
+      console.log("INGRESO A CARGAR TRIAJES ")
+      const cargarDatosTriajeDelPaciente = async () => {
+        try {
+          setCargandoTriaje(true);
+          const signosVitalesProcesados = await AtencionMedicaTriajeService.obtenerTriajePorPaciente(
+            patientData.id,
+            patientData.accionAgenda
+          );
+          console.log("SIGNOS VITALES" +signosVitalesProcesados)
 
-    const cargarDatosTriajeDelPaciente = async () => {
-      try {
-        setCargandoTriaje(true);
-        console.log(`📡 Consumiendo Triaje para Paciente ID: ${patientData.id} - Acción: ${patientData.accionAgenda}`);
-        
-        const signosVitalesProcesados = await AtencionMedicaTriajeService.obtenerTriajePorPaciente(
-          patientData.id,
-          patientData.accionAgenda
-        );
+          // Actualiza el paciente
+          setPatientData(prev => ({
+            ...prev,
+            triaje: signosVitalesProcesados
+          }));
 
-        // Actualiza el paciente
-        setPatientData(prev => ({
-          ...prev,
-          triaje: signosVitalesProcesados
-        }));
+          // 👈 CLAVE: Sincroniza inmediatamente con sectionsData.PanelTriaje
+          setSectionsData(prev => ({
+            ...prev,
+            PanelTriaje: signosVitalesProcesados || []
+          }));
 
-        // 👈 CLAVE: Sincroniza inmediatamente con sectionsData.PanelTriaje
-        setSectionsData(prev => ({
-          ...prev,
-          PanelTriaje: signosVitalesProcesados || []
-        }));
+          console.log(`📊 [Sincronización Directa] Signos vitales incrustados en sectionsData.PanelTriaje con éxito.`);
+        } catch (error) {
+          console.error("❌ Falló la sincronización del componente de triajes:", error);
+        } finally {
+          setCargandoTriaje(false);
+        }
+      };
 
-        console.log(`📊 [Sincronización Directa] Signos vitales incrustados en sectionsData.PanelTriaje con éxito.`);
-      } catch (error) {
-        console.error("❌ Falló la sincronización del componente de triajes:", error);
-      } finally {
-        setCargandoTriaje(false);
-      }
-    };
-
-    cargarDatosTriajeDelPaciente();
+      cargarDatosTriajeDelPaciente();
   }, [patientData?.id, patientData?.accionAgenda]);
 
   // Abrir la agenda si no se ha seleccionado paciente
@@ -123,6 +143,64 @@ export const useAtencionMedica = () => {
     }));
   };
 
+  const handleSelectPaciente = async (pacienteSeleccionado) => {
+    if (!pacienteSeleccionado) return;
+
+    const idAtencionValido = Number(pacienteSeleccionado.idAtencion) > 0 ? Number(pacienteSeleccionado.idAtencion) : null;
+    
+    // 💡 Determinación estricta de la acción
+    const accionGatillada = idAtencionValido 
+      ? 'ACTUALIZAR' 
+      : (pacienteSeleccionado.accionAgenda || 'ATENDER');
+
+    // Mapeo estructurado de los datos de cabecera del paciente
+    const nuevoPatientData = {
+      name: pacienteSeleccionado.nombres || '',
+      sex: pacienteSeleccionado.sexo || 'N/A',
+      age: pacienteSeleccionado.edad ? `${pacienteSeleccionado.edad} años` : 'N/A',
+      id: pacienteSeleccionado.id,
+//      hc: pacienteSeleccionado.idCita || pacienteSeleccionado.numHistoria || pacienteSeleccionado.id,
+      idCuentaAtencion: pacienteSeleccionado.idCuentaAtencion,
+      idServicio: pacienteSeleccionado.idServicio,
+      idEspecialidad: pacienteSeleccionado.idEspecialidad, 
+      idPaciente: pacienteSeleccionado.idPaciente,
+      idCita: pacienteSeleccionado.idCita,
+      hc: pacienteSeleccionado.nroHistoriaClinica,
+      idAtencion: idAtencionValido,
+      accionAgenda: accionGatillada
+    };
+
+    setPacienteActivo(pacienteSeleccionado);
+    setPatientData(nuevoPatientData);
+    console.log("PATIENTDATA:", nuevoPatientData);
+
+    // 🚀 SINGLE FETCH: Carga centralizada solo si el paciente ya tiene un idAtencion registrado
+    if (idAtencionValido) {
+      try {
+        setLoadingAtencion(true);
+        console.log(`📡 [AtencionMedicaForm] Solicitando atención completa para idAtencion: ${idAtencionValido}`);
+        
+        const dataAtencion = await AtencionMedicaService.obtenerAtencionPorId(idAtencionValido);
+        // Guardamos la atención completa en el estado padre para distribuirla a los subcomponentes
+//        console.log("✅ [AtencionMedicaForm] Registro clínico recuperado:", dataAtencion);
+        console.log("✅ [AtencionMedicaForm] Registro clínico recuperado:", JSON.stringify(dataAtencion));
+        setAtencionCompleta(dataAtencion);
+        
+      } catch (error) {
+        console.error("❌ Error al obtener la atención completa:", error);
+        setAtencionCompleta(null);
+      } finally {
+        setLoadingAtencion(false);
+      }
+    } else {
+      // Si es una atención nueva, reseteamos el estado para que los subcomponentes usen sus plantillas base/catálogos
+      setAtencionCompleta(null);
+    }
+
+    setIsAgendaOpen(false);
+  };
+
+  /*
   const handleSelectPaciente = (pacienteSeleccionado) => {
     if (!pacienteSeleccionado) return;
 
@@ -148,7 +226,7 @@ export const useAtencionMedica = () => {
 console.log("PATIENTDATA   "+JSON.stringify(patientData))
     setIsAgendaOpen(false);
   };
-
+*/
   // Objeto completo de la historia clínica
   const fullMedicalRecord = {
     patient: patientData, 

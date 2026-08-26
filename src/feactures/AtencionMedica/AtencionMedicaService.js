@@ -2,16 +2,29 @@
 
 import header from "../../shared/utils/Header";
 import axios from "axios";
-
-// Asegúrate de que esta variable de entorno esté configurada correctamente
 const API_URL = process.env.REACT_APP_URL_API; 
-
-const SERVICE = "/atencionmedica"; 
-// Endpoint exacto solicitado para el proceso unificado de Guardado y Firma (Rúbrica)
-const ENDPOINT_GUARDAR_FIRMA = "/atencionMedicaGuardar"; 
 const usuario = sessionStorage.getItem('username');
 
+const SERVICE = "/atencionmedica"; 
 const SERVICE_BASE = "/api/v1/atenciones-medicas";
+const SERVICE_BASE_OBTENER = "/api/v1/atenciones-medicas/detalle";
+// Endpoint exacto solicitado para el proceso unificado de Guardado y Firma (Rúbrica)
+const ENDPOINT_GUARDAR_FIRMA = "/atencionMedicaGuardar"; 
+
+/**
+ * Consulta la atención médica completa por idAtencion.
+ * Petición HTTP única para recuperar todo el expediente clínico guardado.
+ */
+const obtenerAtencionPorId = (idAtencion) => {
+    return axios.get(
+        `${API_URL}${SERVICE_BASE_OBTENER}/${idAtencion}`,
+        { headers: header() }
+    ).then(response => response.data)
+     .catch(function (error) {
+        console.error("Error en obtenerAtencionPorId:", error.response?.data || error.toJSON());
+        throw error;
+    });
+};
 
 /**
  * Persiste la atención médica en BD pasando las validaciones @Valid de Spring Boot.
@@ -73,6 +86,7 @@ const getXUsuario = () => {
 };
 
 const AtencionMedicaService = {
+  obtenerAtencionPorId,    
   guardarAtencionCompleta,    
   getTodos,
   getXUsuario,

@@ -1,9 +1,29 @@
 import header from "../../../shared/utils/Header";
 import axios from "axios";
-import AuthService from "../../../master-data/services/auth.service";
+//import AuthService from "../../../master-data/services/auth.service";
+import { AtencionMedicaTriajeMapper } from "./AtencionMedicaTriajeMapper";
 
 const API_URL = process.env.REACT_APP_URL_API;
 const SERVICE_TRIAJE = "/atencion-medica/triaje";
+const ES_PRODUCCION = process.env.REACT_APP_NODE_ENV === 'production';
+
+// Mocks puros solo para entornos de desarrollo/pruebas si no hay caché ni datos
+const MOCK_DATOS_GLOBALES_TRIAJE = [
+  { idTriaje: 50, nombreTriaje: "Peso (kg)", prioridad: 1 },
+  { idTriaje: 51, nombreTriaje: "Talla (cm)", prioridad: 2 },
+  { idTriaje: 52, nombreTriaje: "Temperatura (°C)", prioridad: 3 },
+  { idTriaje: 53, nombreTriaje: "Presión Arterial (mmHg)", prioridad: 4 },
+  { idTriaje: 54, nombreTriaje: "Frecuencia Cardíaca (lpm)", prioridad: 5 }
+];
+
+const MOCK_TRIAJE_ATENCION_REGISTRADA = [
+  { idTriaje: 50, valorTriaje: "60", nombreTriaje: "Peso (kg)" },
+  { idTriaje: 51, valorTriaje: "165", nombreTriaje: "Talla (cm)" }
+];
+
+
+// Configuración de visualización por defecto para signos vitales estándar
+
 
 // Función auxiliar para extraer el catálogo de triajes del caché global de la API
 const obtenerCatalogoTriajesDesdeCache = () => {
@@ -21,12 +41,30 @@ const obtenerCatalogoTriajesDesdeCache = () => {
 
 export const AtencionMedicaTriajeService = {
   
+  obtenerTriajePorPaciente: (datosGlobalesParam = null) => {
+      // 1. Usa el parámetro si se recibe; de lo contrario lee el caché global
+      let catalogo = obtenerCatalogoTriajesDesdeCache() || datosGlobalesParam ;
+      // 2. Si no hay datos y NO es producción, aplica Fallback de Mock
+      if ((!Array.isArray(catalogo) || catalogo.length === 0) && !ES_PRODUCCION) {
+        catalogo = MOCK_DATOS_GLOBALES_TRIAJE;
+      }
+
+      if (!Array.isArray(catalogo) || catalogo.length === 0) return [];
+
+      // 3. Regla de Negocio: Filtrar prioridades <= 5
+      const prioritariosApi = catalogo.filter(item => item.prioridad && item.prioridad == 1);
+      const x =AtencionMedicaTriajeMapper.transformarApiALFront(prioritariosApi);
+      console.log("TRIAJES "+JSON.stringify(x));
+      return x;
+    },
+    
+
   /**
    * Obtiene los signos vitales según el flujo del negocio:
    * - Si no hay idAtencion (Primera vez / ATENDER): Genera la estructura inicial predeterminada desde el Catálogo Global.
    * - Si hay idAtencion y el estado es ACTUALIZAR o FIRMADO: Consulta el registro existente en el backend.
    */
-  obtenerTriajePorPaciente: async (idAtencion, accionAgenda = 'ATENDER') => {
+  obtenerTriajePorPaciente1: async (idAtencion, accionAgenda = 'ATENDER') => {
     try {
       // 1. Si es la primera vez (no tiene idAtencion y la acción es ATENDER), generamos el triaje base desde el catálogo
       if (accionAgenda === 'ATENDER' ) {
