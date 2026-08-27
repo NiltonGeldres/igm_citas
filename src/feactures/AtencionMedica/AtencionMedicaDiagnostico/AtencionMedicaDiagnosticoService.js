@@ -1,3 +1,59 @@
+import axios from "axios";
+import header from "../../../shared/utils/Header";
+import { AtencionMedicaDiagnosticoMapper } from './AtencionMedicaDiagnosticoMapper';
+
+const API_URL = process.env.REACT_APP_URL_API;
+const SERVICE_DIAGNOSTICO_BUSCAR = `${API_URL}/api/v1/catalogos/diagnosticos/buscar`;
+
+const PAGINACION_DEFAULT = {
+  PAGINA_ACTUAL: 1,
+  TAMANO_PAGINA: 10,
+};
+
+export const AtencionMedicaDiagnosticoService = {
+
+  // Carga inicial/vacía
+  obtenerDiagnosticosIniciales: () => [],
+
+  // Carga desde respuesta de la API
+  obtenerDiagnosticosRegistrados: (dataAtencionRegistrada) => {
+    return AtencionMedicaDiagnosticoMapper.apiToUiRecordList(dataAtencionRegistrada);
+  },
+
+  // Búsqueda en catálogo autocomplete
+  buscarDiagnosticosCatalogo: async (query) => {
+    const cleanQuery = (query || '').trim();
+    if (!cleanQuery) return [];
+
+    try {
+      const response = await axios.get(SERVICE_DIAGNOSTICO_BUSCAR, {
+        params: {
+          busqueda: cleanQuery,
+          limite: PAGINACION_DEFAULT.TAMANO_PAGINA,
+          pagina: PAGINACION_DEFAULT.PAGINA_ACTUAL
+        },
+        headers: header()
+      });
+
+      const resultadoJson = response.data;
+      if (resultadoJson && resultadoJson.estado === 'EXITO' && Array.isArray(resultadoJson.data)) {
+        return AtencionMedicaDiagnosticoMapper.apiToUiCatalogList(resultadoJson.data);
+      }
+
+      return [];
+    } catch (error) {
+      console.error('❌ Error al buscar diagnósticos en el catálogo:', error);
+      return [];
+    }
+  },
+
+  // Preparación de payload para envío
+  prepararParaGuardar: (panelDiagnosticos) => {
+    return AtencionMedicaDiagnosticoMapper.uiToApiDiagnosticos(panelDiagnosticos);
+  }
+};
+
+/*
 // src/components/AtencionMedicaDiagnostico/AtencionMedicaDiagnosticoService.js
 import axios from "axios";
 import header from "../../../shared/utils/Header";
@@ -99,3 +155,4 @@ export const AtencionMedicaDiagnosticoService = {
     }
   }
 };
+*/

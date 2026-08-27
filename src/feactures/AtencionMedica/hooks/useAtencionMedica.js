@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import AtencionMedicaService from "../AtencionMedicaService";
 import { AtencionMedicaTriajeService } from '../AtencionMedicaTriaje/AtencionMedicaTriajeService';
 import { AtencionMedicaMapper } from '../AtencionMedicaMapper';
+import { AtencionMedicaSectionsRegistry } from '../AtencionMedicaSectionsRegistry';
 
 export const useAtencionMedica = () => {
   const [atencionCompleta, setAtencionCompleta] = useState(null);
@@ -17,7 +18,6 @@ export const useAtencionMedica = () => {
   const [datosGuardadosExito, setDatosGuardadosExito] = useState(null);
   const [mostrarModalExito, setMostrarModalExito] = useState(false);
   const [pacienteActivo, setPacienteActivo] = useState(null);
-
   // ENTIDAD DE CABECERA Y CONTEXTO DEL PACIENTE (Sin arreglos clínicos)
   const [patientData, setPatientData] = useState({
     name: '',
@@ -30,7 +30,6 @@ export const useAtencionMedica = () => {
     idAtencion: null,
     accionAgenda: 'ATENDER'
   });
-
   // SECCIONES DE FORMULARIO CLÍNICO (El triaje pertenece exclusivamente a esta estructura)
   const [sectionsData, setSectionsData] = useState({
     PanelTriaje: [], 
@@ -97,7 +96,66 @@ export const useAtencionMedica = () => {
       setCargandoTriaje(false);
     }
   };
+const handleSelectPaciente = async (pacienteSeleccionado) => {
+  if (!pacienteSeleccionado) return;
 
+  const idAtencionValido = Number(pacienteSeleccionado.idAtencion) > 0 
+    ? Number(pacienteSeleccionado.idAtencion) 
+    : null;
+
+  const accionGatillada = idAtencionValido 
+    ? 'ACTUALIZAR' 
+    : (pacienteSeleccionado.accionAgenda || 'ATENDER');
+
+  const nuevoPatientData = {
+    name: pacienteSeleccionado.nombres || '',
+    sex: pacienteSeleccionado.sexo || 'N/A',
+    age: pacienteSeleccionado.edad ? `${pacienteSeleccionado.edad} años` : 'N/A',
+    id: pacienteSeleccionado.idPaciente,
+    idPaciente: pacienteSeleccionado.idPaciente,
+    idCuentaAtencion: pacienteSeleccionado.idCuentaAtencion,
+    idServicio: pacienteSeleccionado.idServicio,
+    idEspecialidad: pacienteSeleccionado.idEspecialidad, 
+    idCita: pacienteSeleccionado.idCita,
+    hc: pacienteSeleccionado.nroHistoriaClinica,
+    idAtencion: idAtencionValido,
+    accionAgenda: accionGatillada
+  };
+
+  setPacienteActivo(pacienteSeleccionado);
+  setPatientData(nuevoPatientData);
+
+  // CASO A: MODIFICACIÓN DE ATENCIÓN (ACTUALIZAR)
+  if (idAtencionValido) {
+    try {
+      setLoadingAtencion(true);
+      const dataAtencion = await AtencionMedicaService.obtenerAtencionPorId(idAtencionValido);
+      setAtencionCompleta(dataAtencion);
+
+      // Carga unificada de TODOS los paneles mediante el orquestador
+      const seccionesCargadas = AtencionMedicaSectionsRegistry.cargarPanelesDesdeApi(dataAtencion);
+      setSectionsData(seccionesCargadas);
+
+    } catch (error) {
+      console.error("❌ Error al obtener la atención completa:", error);
+      setAtencionCompleta(null);
+      // Fallback a paneles iniciales si falla la consulta
+      setSectionsData(AtencionMedicaSectionsRegistry.cargarPanelesIniciales());
+    } finally {
+      setLoadingAtencion(false);
+    }
+  } 
+  // CASO B: NUEVA ATENCIÓN (ATENDER)
+  else {
+    setAtencionCompleta(null);
+    // Carga inicial unificada de TODOS los paneles
+    setSectionsData(AtencionMedicaSectionsRegistry.cargarPanelesIniciales());
+  }
+
+  setIsAgendaOpen(false);
+};
+
+  /*
   const handleSelectPaciente = async (pacienteSeleccionado) => {
     if (!pacienteSeleccionado) return;
 
@@ -156,7 +214,7 @@ export const useAtencionMedica = () => {
 
     setIsAgendaOpen(false);
   };  
-
+*/
   const fullMedicalRecord = {
       patient: patientData, 
       attentionDetails: {

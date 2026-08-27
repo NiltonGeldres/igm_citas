@@ -11,7 +11,7 @@ function AtencionMedicaDiagnosticoPanel({ content = [], onContentChange, onModal
   const [mostrarBuscador, setMostrarBuscador] = useState(false);
   // Extraemos el catálogo de tipos de diagnóstico de forma segura
   const tiposDiagnostico = catalogoGlobal?.catalogoTipoDiagnostico || [];
-
+  console.log("CONTENIDO DIAGNOSTICO "+JSON.stringify(content))
 
   const fetchDiagnosisSuggestions = async (query) => {
     try {

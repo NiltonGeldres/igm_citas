@@ -1,5 +1,5 @@
 // src/services/AtencionMedicaAntecedentesService.js
-import { apiToUiAntecedentes, uiToApiAntecedentes } from '../mappers/antecedentesMapper';
+import { apiToUiAntecedentes, uiToApiAntecedentes } from "../AtencionMedicaAntecedente/AtencionMedicaAntecedentesMapper"
 
 export const AtencionMedicaAntecedentesService = {
   /**
