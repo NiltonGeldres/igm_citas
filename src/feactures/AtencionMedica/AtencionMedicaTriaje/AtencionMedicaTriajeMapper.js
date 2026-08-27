@@ -1,5 +1,79 @@
 import { v4 as uuidv4 } from 'uuid';
 
+export const AtencionMedicaTriajeMapper = {
+  
+  /**
+   * Transforma datos del Backend/Catálogo a la estructura del Frontend
+   * Únicamente datos puros de dominio: { id, nombre, valor, unidad, prioridad }
+   */
+  transformarApiALFront: (apiData) => {
+    if (!Array.isArray(apiData) || apiData.length === 0) {
+      return [];
+    }
+
+    return apiData.map(item => {
+      const idReal = item.idTriaje ?? item.idSignoVital ?? item.id;
+      const nombreReal = item.nombreTriaje ?? item.medida ?? item.nombremedida ?? item.nombre ?? '';
+      const unidadReal = item.um ?? item.unidad ?? '---';
+      const valorReal = item.valorTriaje ?? item.valor ?? '';
+
+      return {
+        id: idReal !== undefined && idReal !== null ? idReal : uuidv4(),
+        nombre: nombreReal,
+        valor: valorReal !== undefined && valorReal !== null ? String(valorReal) : '',
+        unidad: unidadReal,
+        prioridad: item.prioridad !== undefined ? Number(item.prioridad) : 0
+      };
+    }).sort((a, b) => {
+      if (b.prioridad !== a.prioridad) {
+        return b.prioridad - a.prioridad; // Muestra prioridad 1 arriba
+      }
+      return Number(a.id) - Number(b.id);
+    });
+  },
+
+  /**
+   * Mapea un ítem individual retornado por la búsqueda para AutoCompleteInput
+   */
+  mapItemApiToFront: (item) => {
+    if (!item) return null;
+
+    const idReal = item.idTriaje ?? item.idSignoVital ?? item.id;
+    const nombreReal = item.nombreTriaje ?? item.medida ?? item.nombre ?? '';
+    const unidadReal = item.um ?? item.unidad ?? '---';
+
+    return {
+      id: idReal !== undefined && idReal !== null ? idReal : uuidv4(),
+      label: nombreReal,
+      nombre: nombreReal,
+      valor: '',
+      unidad: unidadReal,
+      prioridad: item.prioridad !== undefined ? Number(item.prioridad) : 0
+    };
+  },
+
+  /**
+   * Mapea los datos modificados hacia el Payload JSON del Backend
+   */
+  transformarFrontAApi: (idCita, idPaciente, frontData) => {
+    if (!Array.isArray(frontData)) return [];
+
+    return frontData
+      .filter(item => item.valor !== undefined && item.valor !== null && String(item.valor).trim() !== '') 
+      .map(item => ({
+        idCita: idCita || null,
+        idPaciente: idPaciente || null,
+        idTriaje: typeof item.id === 'number' || !isNaN(Number(item.id)) ? Number(item.id) : null,
+        nombreTriaje: item.nombre,
+        valor: String(item.valor).trim(),
+        um: item.unidad,
+        prioridad: item.prioridad
+      }));
+  }
+};
+
+/*import { v4 as uuidv4 } from 'uuid';
+
 const CONFIG_PARAMETROS = {
   'temperatura': { unidad: '°C', placeholder: '36.5', prioridad: 1 },
   'presión arterial': { unidad: 'mmHg', placeholder: '120/80', prioridad: 2 },
@@ -71,3 +145,4 @@ export const AtencionMedicaTriajeMapper = {
       }));
   }
 };
+*/

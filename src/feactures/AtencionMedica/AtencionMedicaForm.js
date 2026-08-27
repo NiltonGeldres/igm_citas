@@ -1,3 +1,5 @@
+
+
 import {  RefreshCw, Save} from 'lucide-react';
 
 import MessageModal from './common/MessageModal';
@@ -66,20 +68,23 @@ const {
               {patientData.id ? (
                 <>
                   {activeTab === 'triaje' && (
-                    cargandoTriaje ? (
-                      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '40px', color: '#64748b', fontSize: '13px', fontWeight: '500' }}>
-                        <RefreshCw size={16} className="spinner-sync" style={{ marginRight: '8px' }} />
-                        <span>Cargando Signos Vitales...</span>
-                      </div>
-                    ) : (
-                      <AtencionMedicaTriajePanel 
-                        idPacienteSeleccionado={patientData.id} 
-                        content={sectionsData.PanelTriaje || []} // 👈 CORREGIDO: Usar sectionsData.PanelTriaje
-                        onContentChange={handleTriajeChange}
-                        onModalMessage={showModalMessage}
-                      /> 
-                    )               
-                  )}
+                      cargandoTriaje ? (
+                        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '40px', color: '#64748b', fontSize: '13px', fontWeight: '500' }}>
+                          <RefreshCw size={16} className="spinner-sync" style={{ marginRight: '8px' }} />
+                          <span>Cargando Signos Vitales...</span>
+                        </div>
+                      ) : (
+                        <AtencionMedicaTriajePanel 
+                          key={`triaje-${patientData.id}-${patientData.idCita || 'nuevo'}`}
+                          content={sectionsData.PanelTriaje || []}
+                          onContentChange={handleTriajeChange}
+                          onModalMessage={showModalMessage}
+                          idPacienteSeleccionado={patientData.id} 
+                        /> 
+                      )               
+                    )}
+
+                  
 
                   {activeTab === 'diseaseAndExam' && (
                     <>
@@ -160,6 +165,9 @@ const {
                 </div>
               )}
           </div>
+
+
+          
 
           {/* 3. BOTÓN GUARDAR FLOTANTE FIJO ESTILO FAB (Oculto en firma porque ya tiene su botón de acción arriba) */}
           {activeTab !== 'signature' && patientData.id && (

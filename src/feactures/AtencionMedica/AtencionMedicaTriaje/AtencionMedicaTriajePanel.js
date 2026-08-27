@@ -5,7 +5,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { Trash2, UserX, Search, X } from 'lucide-react';
 
 function AtencionMedicaTriajePanel({ content = [], onContentChange, onModalMessage, idPacienteSeleccionado }) {
-  console.log( "APCIENTE SELECCIONADO "+idPacienteSeleccionado )
+  console.log( "ID PACIENTE ENVIADO A PANEL TRIAJES "+idPacienteSeleccionado )
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
   const searchRef = useRef(null);
 
@@ -72,7 +72,7 @@ function AtencionMedicaTriajePanel({ content = [], onContentChange, onModalMessa
   // Ordenamos de forma ascendente según el orden clínico / prioridad establecido
   const contenidoOrdenado = [...content].sort((a, b) => a.prioridad - b.prioridad);
 
-  return (
+return (
     <div style={panelStyles.container}>
       
       {/* HEADER DEL PANEL */}
@@ -108,7 +108,7 @@ function AtencionMedicaTriajePanel({ content = [], onContentChange, onModalMessa
             <p style={panelStyles.emptyText}>No hay parámetros clínicos cargados. Use el buscador para añadir.</p>
           </div>
         ) : (
-          contenidoOrdenado.map((item) => (
+          contenidoOrdenado.map((item, index) => (
             <div key={item.id} style={panelStyles.row}>
               
               <div style={panelStyles.checkArea}>
@@ -128,8 +128,9 @@ function AtencionMedicaTriajePanel({ content = [], onContentChange, onModalMessa
                   <Trash2 size={14} />
                 </button>
                 
+                {/* Badge Correlativo Numérico Secuencial */}
                 <span style={panelStyles.priorityBadge}>
-                  {item.prioridad}
+                  {index + 1}
                 </span>
 
                 <div style={panelStyles.labelGroup}>
