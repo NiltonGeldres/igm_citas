@@ -155,66 +155,6 @@ const handleSelectPaciente = async (pacienteSeleccionado) => {
   setIsAgendaOpen(false);
 };
 
-  /*
-  const handleSelectPaciente = async (pacienteSeleccionado) => {
-    if (!pacienteSeleccionado) return;
-
-    const idAtencionValido = Number(pacienteSeleccionado.idAtencion) > 0 
-      ? Number(pacienteSeleccionado.idAtencion) 
-      : null;
-
-    const accionGatillada = idAtencionValido 
-      ? 'ACTUALIZAR' 
-      : (pacienteSeleccionado.accionAgenda || 'ATENDER');
-
-    const nuevoPatientData = {
-      name: pacienteSeleccionado.nombres || '',
-      sex: pacienteSeleccionado.sexo || 'N/A',
-      age: pacienteSeleccionado.edad ? `${pacienteSeleccionado.edad} años` : 'N/A',
-      id: pacienteSeleccionado.idPaciente,
-      idPaciente: pacienteSeleccionado.idPaciente,
-      idCuentaAtencion: pacienteSeleccionado.idCuentaAtencion,
-      idServicio: pacienteSeleccionado.idServicio,
-      idEspecialidad: pacienteSeleccionado.idEspecialidad, 
-      idCita: pacienteSeleccionado.idCita,
-      hc: pacienteSeleccionado.nroHistoriaClinica,
-      idAtencion: idAtencionValido,
-      accionAgenda: accionGatillada
-    };
-
-    setPacienteActivo(pacienteSeleccionado);
-    setPatientData(nuevoPatientData);
-
-    // CASO A: MODIFICACIÓN DE ATENCIÓN (ACTUALIZAR)
-    if (idAtencionValido) {
-      try {
-        setLoadingAtencion(true);
-        // 1. Cargar atención registrada
-        const dataAtencion = await AtencionMedicaService.obtenerAtencionPorId(idAtencionValido);
-        setAtencionCompleta(dataAtencion);
-        console.log("DATA PARA ACTUALIZAR   "+JSON.stringify(dataAtencion))
-        // 2. Extraer y poblar triaje desde la atención recuperada
-        cargarTriajeDirecto('ACTUALIZAR', dataAtencion);
-
-      } catch (error) {
-        console.error("❌ Error al obtener la atención completa:", error);
-        setAtencionCompleta(null);
-        // Fallback a triaje inicial si falla la consulta
-        cargarTriajeDirecto('ATENDER');
-      } finally {
-        setLoadingAtencion(false);
-      }
-    } 
-    // CASO B: NUEVA ATENCIÓN (ATENDER)
-    else {
-      setAtencionCompleta(null);
-      // Cargar triaje inicial basado en catálogo/caché
-      cargarTriajeDirecto('ATENDER');
-    }
-
-    setIsAgendaOpen(false);
-  };  
-*/
   const fullMedicalRecord = {
       patient: patientData, 
       attentionDetails: {
@@ -292,26 +232,23 @@ const handleSelectPaciente = async (pacienteSeleccionado) => {
 
     return true;
   };
-
+   // Guardar Atencion Medica
   const ejecutarGuardadoYFirmaFinal = async () => {
     if (!patientData?.id) {
       showModalMessage('Por favor, selecciona un paciente antes de procesar.');
       return;
     }
-
     if (!validarCamposObligatorios()) {
       return;
     }
-
     try {
       const contextoUsuario = {
         idMedico: sessionStorage.getItem('idMedico') || 2,
         idEntidad: sessionStorage.getItem('idEntidad') || 2,
         idUsuario: sessionStorage.getItem('idUsuario') || 12,
       };
-
+      console.log("JSON A ENVIAR  " +JSON.stringify(patientData));
       const payload = AtencionMedicaMapper.uiToApiRequest(patientData, sectionsData, contextoUsuario);
-
       const response = await AtencionMedicaService.guardarAtencionCompleta(payload);
 
       if (response?.exito) {
@@ -911,4 +848,65 @@ console.log("PATIENTDATA   "+JSON.stringify(patientData))
 
     setIsAgendaOpen(false);
   };
+*/
+
+  /*
+  const handleSelectPaciente = async (pacienteSeleccionado) => {
+    if (!pacienteSeleccionado) return;
+
+    const idAtencionValido = Number(pacienteSeleccionado.idAtencion) > 0 
+      ? Number(pacienteSeleccionado.idAtencion) 
+      : null;
+
+    const accionGatillada = idAtencionValido 
+      ? 'ACTUALIZAR' 
+      : (pacienteSeleccionado.accionAgenda || 'ATENDER');
+
+    const nuevoPatientData = {
+      name: pacienteSeleccionado.nombres || '',
+      sex: pacienteSeleccionado.sexo || 'N/A',
+      age: pacienteSeleccionado.edad ? `${pacienteSeleccionado.edad} años` : 'N/A',
+      id: pacienteSeleccionado.idPaciente,
+      idPaciente: pacienteSeleccionado.idPaciente,
+      idCuentaAtencion: pacienteSeleccionado.idCuentaAtencion,
+      idServicio: pacienteSeleccionado.idServicio,
+      idEspecialidad: pacienteSeleccionado.idEspecialidad, 
+      idCita: pacienteSeleccionado.idCita,
+      hc: pacienteSeleccionado.nroHistoriaClinica,
+      idAtencion: idAtencionValido,
+      accionAgenda: accionGatillada
+    };
+
+    setPacienteActivo(pacienteSeleccionado);
+    setPatientData(nuevoPatientData);
+
+    // CASO A: MODIFICACIÓN DE ATENCIÓN (ACTUALIZAR)
+    if (idAtencionValido) {
+      try {
+        setLoadingAtencion(true);
+        // 1. Cargar atención registrada
+        const dataAtencion = await AtencionMedicaService.obtenerAtencionPorId(idAtencionValido);
+        setAtencionCompleta(dataAtencion);
+        console.log("DATA PARA ACTUALIZAR   "+JSON.stringify(dataAtencion))
+        // 2. Extraer y poblar triaje desde la atención recuperada
+        cargarTriajeDirecto('ACTUALIZAR', dataAtencion);
+
+      } catch (error) {
+        console.error("❌ Error al obtener la atención completa:", error);
+        setAtencionCompleta(null);
+        // Fallback a triaje inicial si falla la consulta
+        cargarTriajeDirecto('ATENDER');
+      } finally {
+        setLoadingAtencion(false);
+      }
+    } 
+    // CASO B: NUEVA ATENCIÓN (ATENDER)
+    else {
+      setAtencionCompleta(null);
+      // Cargar triaje inicial basado en catálogo/caché
+      cargarTriajeDirecto('ATENDER');
+    }
+
+    setIsAgendaOpen(false);
+  };  
 */

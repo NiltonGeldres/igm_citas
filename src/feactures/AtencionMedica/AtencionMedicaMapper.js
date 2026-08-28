@@ -29,6 +29,7 @@ export const AtencionMedicaMapper = {
     return {
       idAtencion: patientData.idAtencion ? Number(patientData.idAtencion) : null,
       idPaciente: Number(patientData.idPaciente ?? patientData.id) || 0,
+      idCita: Number(patientData.idCita ?? patientData.idCita) || 0,
       idCuentaAtencion: Number(patientData.idCuentaAtencion ?? patientData.idCuenta) || 1,
       idServicio: Number(patientData.idServicio) || 1,
       idEspecialidad: Number(patientData.idEspecialidad ?? contextoUsuario.idEspecialidad) || 2,
