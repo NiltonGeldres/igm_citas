@@ -30,6 +30,7 @@ const obtenerAtencionPorId = (idAtencion) => {
  * Persiste la atención médica en BD pasando las validaciones @Valid de Spring Boot.
  */
 const guardarAtencionCompleta = (atencionMedicaRequest) => {
+    console.log("****   JSON A GUARDAR "+JSON.stringify(atencionMedicaRequest))
     return axios.post(
         `${API_URL}${SERVICE_BASE}/guardar`, 
         atencionMedicaRequest,

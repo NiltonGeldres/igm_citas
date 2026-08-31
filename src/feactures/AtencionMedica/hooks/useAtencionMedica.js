@@ -96,64 +96,64 @@ export const useAtencionMedica = () => {
       setCargandoTriaje(false);
     }
   };
-const handleSelectPaciente = async (pacienteSeleccionado) => {
-  if (!pacienteSeleccionado) return;
+  const handleSelectPaciente = async (pacienteSeleccionado) => {
+    if (!pacienteSeleccionado) return;
 
-  const idAtencionValido = Number(pacienteSeleccionado.idAtencion) > 0 
-    ? Number(pacienteSeleccionado.idAtencion) 
-    : null;
+    const idAtencionValido = Number(pacienteSeleccionado.idAtencion) > 0 
+      ? Number(pacienteSeleccionado.idAtencion) 
+      : null;
 
-  const accionGatillada = idAtencionValido 
-    ? 'ACTUALIZAR' 
-    : (pacienteSeleccionado.accionAgenda || 'ATENDER');
+    const accionGatillada = idAtencionValido 
+      ? 'ACTUALIZAR' 
+      : (pacienteSeleccionado.accionAgenda || 'ATENDER');
 
-  const nuevoPatientData = {
-    name: pacienteSeleccionado.nombres || '',
-    sex: pacienteSeleccionado.sexo || 'N/A',
-    age: pacienteSeleccionado.edad ? `${pacienteSeleccionado.edad} años` : 'N/A',
-    id: pacienteSeleccionado.idPaciente,
-    idPaciente: pacienteSeleccionado.idPaciente,
-    idCuentaAtencion: pacienteSeleccionado.idCuentaAtencion,
-    idServicio: pacienteSeleccionado.idServicio,
-    idEspecialidad: pacienteSeleccionado.idEspecialidad, 
-    idCita: pacienteSeleccionado.idCita,
-    hc: pacienteSeleccionado.nroHistoriaClinica,
-    idAtencion: idAtencionValido,
-    accionAgenda: accionGatillada
-  };
+    const nuevoPatientData = {
+      name: pacienteSeleccionado.nombres || '',
+      sex: pacienteSeleccionado.sexo || 'N/A',
+      age: pacienteSeleccionado.edad ? `${pacienteSeleccionado.edad} años` : 'N/A',
+      id: pacienteSeleccionado.idPaciente,
+      idPaciente: pacienteSeleccionado.idPaciente,
+      idCuentaAtencion: pacienteSeleccionado.idCuentaAtencion,
+      idServicio: pacienteSeleccionado.idServicio,
+      idEspecialidad: pacienteSeleccionado.idEspecialidad, 
+      idCita: pacienteSeleccionado.idCita,
+      hc: pacienteSeleccionado.nroHistoriaClinica,
+      idAtencion: idAtencionValido,
+      accionAgenda: accionGatillada
+    };
 
-  setPacienteActivo(pacienteSeleccionado);
-  setPatientData(nuevoPatientData);
+    setPacienteActivo(pacienteSeleccionado);
+    setPatientData(nuevoPatientData);
 
-  // CASO A: MODIFICACIÓN DE ATENCIÓN (ACTUALIZAR)
-  if (idAtencionValido) {
-    try {
-      setLoadingAtencion(true);
-      const dataAtencion = await AtencionMedicaService.obtenerAtencionPorId(idAtencionValido);
-      setAtencionCompleta(dataAtencion);
+    // CASO A: MODIFICACIÓN DE ATENCIÓN (ACTUALIZAR)
+    if (idAtencionValido) {
+      try {
+        setLoadingAtencion(true);
+        const dataAtencion = await AtencionMedicaService.obtenerAtencionPorId(idAtencionValido);
+        setAtencionCompleta(dataAtencion);
+        console.log("DATOS ATENCION:  "+JSON.stringify(dataAtencion))
+        // Carga unificada de TODOS los paneles mediante el orquestador
+        const seccionesCargadas = AtencionMedicaSectionsRegistry.cargarPanelesDesdeApi(dataAtencion);
+        setSectionsData(seccionesCargadas);
 
-      // Carga unificada de TODOS los paneles mediante el orquestador
-      const seccionesCargadas = AtencionMedicaSectionsRegistry.cargarPanelesDesdeApi(dataAtencion);
-      setSectionsData(seccionesCargadas);
-
-    } catch (error) {
-      console.error("❌ Error al obtener la atención completa:", error);
+      } catch (error) {
+        console.error("❌ Error al obtener la atención completa:", error);
+        setAtencionCompleta(null);
+        // Fallback a paneles iniciales si falla la consulta
+        setSectionsData(AtencionMedicaSectionsRegistry.cargarPanelesIniciales());
+      } finally {
+        setLoadingAtencion(false);
+      }
+    } 
+    // CASO B: NUEVA ATENCIÓN (ATENDER)
+    else {
       setAtencionCompleta(null);
-      // Fallback a paneles iniciales si falla la consulta
+      // Carga inicial unificada de TODOS los paneles
       setSectionsData(AtencionMedicaSectionsRegistry.cargarPanelesIniciales());
-    } finally {
-      setLoadingAtencion(false);
     }
-  } 
-  // CASO B: NUEVA ATENCIÓN (ATENDER)
-  else {
-    setAtencionCompleta(null);
-    // Carga inicial unificada de TODOS los paneles
-    setSectionsData(AtencionMedicaSectionsRegistry.cargarPanelesIniciales());
-  }
 
-  setIsAgendaOpen(false);
-};
+    setIsAgendaOpen(false);
+  };
 
   const fullMedicalRecord = {
       patient: patientData, 

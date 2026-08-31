@@ -13,7 +13,7 @@ function AtencionMedicaExamenPanel({ content = [], onContentChange, onModalMessa
   const [paquetesDisponibles, setPaquetesDisponibles] = useState([]);
   const [cargandoPaquete, setCargandoPaquete] = useState(false);
 
-  // 1. Cargar paquetes al montar el componente (usando setPaquetesDisponibles)
+  // 1. Cargar paquetes al montar el componente
   useEffect(() => {
     const cargarPaquetes = async () => {
       try {
@@ -26,7 +26,7 @@ function AtencionMedicaExamenPanel({ content = [], onContentChange, onModalMessa
     cargarPaquetes();
   }, []);
 
-  // 2. Función para el AutoCompleteInput (pasa directamente la promesa del servicio)
+  // 2. Función para el AutoCompleteInput
   const fetchExamSuggestions = async (query) => {
     try {
       return await AtencionMedicaExamenService.buscarExamenesCatalogo(query);
@@ -38,22 +38,29 @@ function AtencionMedicaExamenPanel({ content = [], onContentChange, onModalMessa
 
   // 3. AGREGAR EXAMEN INDIVIDUAL
   const handleAddExam = (examItem) => {
-    const existingExam = content.find(item => item.codigoExamen === examItem.codigoExamen);
+    // Normalización de ID de producto y campos devueltos por el endpoint del catálogo
+    const idProdReal = examItem.idProducto || examItem.id;
+    const codigoReal = examItem.codigo || examItem.codigoExamen || 'S/C';
+    const nombreReal = examItem.nombre || examItem.examen || examItem.label;
+
+    const existingExam = content.find(item => 
+      String(item.idProducto) === String(idProdReal)
+    );
 
     if (existingExam) {
       if (onModalMessage) {
-        onModalMessage(`El examen "${examItem.label || examItem.examen}" ya se encuentra en el plan de trabajo.`);
+        onModalMessage(`El examen "${nombreReal}" ya se encuentra en el plan de trabajo.`);
       }
       return;
     }
 
     const nuevoExamen = {
-      id: uuidv4(),
-      label: examItem.label || examItem.examen,
-      examen: examItem.examen || examItem.label,
-      codigoExamen: examItem.codigoExamen || 'S/C',
-      tipoExamen: examItem.tipoExamen || '1',
-      diagnosticosAsociados: [] 
+      id: uuidv4(),             // ID local para la key de React
+      idProducto: idProdReal,   // ID numérico para la API
+      codigoExamen: codigoReal, // Código MINSA / CPT para mostrar en la UI
+      label: nombreReal,        // Nombre del examen para mostrar en UI
+      idDiagnostico: null,      // ID numérico del Diagnóstico (1 a 1 según requerimiento de API)
+      codigoCIE: ''             // Código CIE para apoyo visual en UI
     };
 
     onContentChange([...content, nuevoExamen]);
@@ -84,16 +91,20 @@ function AtencionMedicaExamenPanel({ content = [], onContentChange, onModalMessa
       const listaActualizada = [...content];
 
       examenesDelPaquete.forEach(examItem => {
-        const yaExiste = listaActualizada.some(item => item.codigoExamen === examItem.codigoExamen);
+        const idProdReal = examItem.idProducto || examItem.id;
+        const codigoReal = examItem.codigo || examItem.codigoExamen || 'S/C';
+        const nombreReal = examItem.nombre || examItem.examen || examItem.label;
+
+        const yaExiste = listaActualizada.some(item => String(item.idProducto) === String(idProdReal));
         
         if (!yaExiste) {
           listaActualizada.push({
             id: uuidv4(),
-            label: examItem.label || examItem.examen,
-            examen: examItem.examen || examItem.label,
-            codigoExamen: examItem.codigoExamen || 'S/C',
-            tipoExamen: examItem.tipoExamen || '1',
-            diagnosticosAsociados: []
+            idProducto: idProdReal,
+            codigoExamen: codigoReal,
+            label: nombreReal,
+            idDiagnostico: null,
+            codigoCIE: ''
           });
           nuevosExamenesAgregados++;
         }
@@ -110,22 +121,29 @@ function AtencionMedicaExamenPanel({ content = [], onContentChange, onModalMessa
       if (onModalMessage) onModalMessage('Error al obtener el detalle del paquete seleccionado.');
     } finally {
       setCargandoPaquete(false);
-      e.target.value = ""; // Resetear select
+      e.target.value = "";
     }
   };
 
-  const handleToggleDiagnostico = (examId, codigoCIE) => {
+  // 5. SELECCIONAR DIAGNÓSTICO (Relación 1 a 1)
+  const handleSelectDiagnostico = (examId, diagObj) => {
     const listaActualizada = content.map(item => {
       if (item.id === examId) {
-        const yaAsociado = item.diagnosticosAsociados.includes(codigoCIE);
-        const nuevosDx = yaAsociado
-          ? item.diagnosticosAsociados.filter(code => code !== codigoCIE) 
-          : [...item.diagnosticosAsociados, codigoCIE]; 
-        return { ...item, diagnosticosAsociados: nuevosDx };
+        // Si vuelve a presionar el mismo diagnóstico, lo desvincula
+        if (item.idDiagnostico === diagObj.idDiagnostico) {
+          return { ...item, idDiagnostico: null, codigoCIE: '' };
+        }
+        // Asigna el nuevo idDiagnostico y código CIE
+        return { 
+          ...item, 
+          idDiagnostico: diagObj.idDiagnostico || diagObj.id, 
+          codigoCIE: diagObj.codigoCIE || diagObj.codigo 
+        };
       }
       return item;
     });
     onContentChange(listaActualizada);
+    setDropdownAbiertoId(null); // Cerrar dropdown tras seleccionar
   };
 
   const handleDeleteExam = (id) => {
@@ -136,12 +154,7 @@ function AtencionMedicaExamenPanel({ content = [], onContentChange, onModalMessa
   return (
     <div style={Styles.medicalSection}>
       {/* Cabecera del Panel */}
-      <div style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: '16px'
-      }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
         <h3 style={{ ...Styles.sectionTitle, margin: 0, fontSize: '16px', color: '#1e293b', fontWeight: '600' }}>
           Plan de Trabajo / Exámenes
         </h3>
@@ -274,7 +287,7 @@ function AtencionMedicaExamenPanel({ content = [], onContentChange, onModalMessa
           backgroundColor: '#ffffff'
         }}>
           {content.map((item, index) => {
-            const tieneDxIncompleto = item.diagnosticosAsociados.length === 0;
+            const tieneDxIncompleto = !item.idDiagnostico;
 
             return (
               <div 
@@ -327,7 +340,7 @@ function AtencionMedicaExamenPanel({ content = [], onContentChange, onModalMessa
                   
                   {/* FILA 1: Descripción Completa */}
                   <div style={{ fontSize: '14px', color: '#334155', fontWeight: '500', lineHeight: '1.3' }}>
-                    {item.label || item.examen}
+                    {item.label}
                   </div>
                   
                   {/* FILA 2: Metadata y Vinculación */}
@@ -345,7 +358,7 @@ function AtencionMedicaExamenPanel({ content = [], onContentChange, onModalMessa
                       Cod: {item.codigoExamen}
                     </span>
 
-                    {/* Desplegable de Diagnósticos */}
+                    {/* Desplegable de Selección de Diagnóstico (1 a 1) */}
                     <div style={{ position: 'relative' }}>
                       <button
                         type="button"
@@ -366,8 +379,8 @@ function AtencionMedicaExamenPanel({ content = [], onContentChange, onModalMessa
                       >
                         <Layers size={12} />
                         {tieneDxIncompleto 
-                          ? 'Vincular Diagnósticos (0)' 
-                          : `Dx Vinculados (${item.diagnosticosAsociados.length})`}
+                          ? 'Vincular Diagnóstico (Requerido)' 
+                          : `Dx Vinculado: [${item.codigoCIE}]`}
                       </button>
 
                       {dropdownAbiertoId === item.id && (
@@ -381,12 +394,12 @@ function AtencionMedicaExamenPanel({ content = [], onContentChange, onModalMessa
                           borderRadius: '8px',
                           boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
                           padding: '8px',
-                          width: '260px',
+                          width: '280px',
                           maxHeight: '180px',
                           overflowY: 'auto'
                         }}>
                           <div style={{ fontSize: '10px', color: '#64748b', fontWeight: '600', marginBottom: '6px', paddingBottom: '4px', borderBottom: '1px solid #f1f5f9' }}>
-                            Seleccione los diagnósticos asociados:
+                            Seleccione el diagnóstico asociado:
                           </div>
                           {diagnosticosDisponibles.length === 0 ? (
                             <div style={{ fontSize: '11px', color: '#94a3b8', padding: '6px', textAlign: 'center' }}>
@@ -394,12 +407,14 @@ function AtencionMedicaExamenPanel({ content = [], onContentChange, onModalMessa
                             </div>
                           ) : (
                             diagnosticosDisponibles.map((diag) => {
-                              const codigo = diag.codigoCIE || 'S/C';
-                              const seleccionado = item.diagnosticosAsociados.includes(codigo);
+                              const diagId = diag.idDiagnostico || diag.id;
+                              const codigo = diag.codigoCIE || diag.codigo || 'S/C';
+                              const seleccionado = String(item.idDiagnostico) === String(diagId);
+
                               return (
                                 <div
-                                  key={diag.id || codigo}
-                                  onClick={() => handleToggleDiagnostico(item.id, codigo)}
+                                  key={diagId}
+                                  onClick={() => handleSelectDiagnostico(item.id, diag)}
                                   style={{
                                     display: 'flex',
                                     alignItems: 'center',
@@ -415,7 +430,7 @@ function AtencionMedicaExamenPanel({ content = [], onContentChange, onModalMessa
                                   {seleccionado ? <CheckSquare size={13} color="#2563eb" /> : <Square size={13} color="#94a3b8" />}
                                   <span style={{ fontWeight: '600', color: '#1e3a8a' }}>[{codigo}]</span>
                                   <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                                    {diag.label || diag.diagnostico}
+                                    {diag.label || diag.diagnostico || diag.descripcion}
                                   </span>
                                 </div>
                               );
@@ -425,30 +440,27 @@ function AtencionMedicaExamenPanel({ content = [], onContentChange, onModalMessa
                       )}
                     </div>
 
-                    {/* Badges de Diagnósticos Vinculados */}
-                    <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
-                      {item.diagnosticosAsociados.map(code => (
-                        <span 
-                          key={code}
-                          onClick={() => handleToggleDiagnostico(item.id, code)}
-                          title="Eliminar vinculación"
-                          style={{
-                            backgroundColor: '#eff6ff',
-                            color: '#2563eb',
-                            border: '1px solid #bfdbfe',
-                            borderRadius: '4px',
-                            padding: '1px 5px',
-                            fontSize: '11px',
-                            fontWeight: '600',
-                            cursor: 'pointer',
-                            display: 'inline-flex',
-                            alignItems: 'center'
-                          }}
-                        >
-                          {code} <span style={{ marginLeft: '4px', color: '#ef4444', fontWeight: '400' }}>×</span>
-                        </span>
-                      ))}
-                    </div>
+                    {/* Badge del Diagnóstico Vinculado */}
+                    {item.idDiagnostico && (
+                      <span 
+                        onClick={() => handleSelectDiagnostico(item.id, { idDiagnostico: item.idDiagnostico })}
+                        title="Eliminar vinculación"
+                        style={{
+                          backgroundColor: '#eff6ff',
+                          color: '#2563eb',
+                          border: '1px solid #bfdbfe',
+                          borderRadius: '4px',
+                          padding: '1px 6px',
+                          fontSize: '11px',
+                          fontWeight: '600',
+                          cursor: 'pointer',
+                          display: 'inline-flex',
+                          alignItems: 'center'
+                        }}
+                      >
+                        {item.codigoCIE} <span style={{ marginLeft: '4px', color: '#ef4444' }}>×</span>
+                      </span>
+                    )}
 
                   </div>
                 </div>

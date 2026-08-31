@@ -1,6 +1,9 @@
 export const AtencionMedicaMapper = {
+
+
   uiToApiRequest: (patientData = {}, sectionsData = {}, contextoUsuario = {}) => {
-    
+    console.log("DATOS DEL PACIENTE"+patientData)
+    console.log("DETALLE ATENCION"+sectionsData)
     // Función auxiliar para procesar colecciones (Antecedentes, Síntomas, Examen Físico, Alta)
     const procesarColeccion = (lista, keyId, keyTexto) => {
       if (!Array.isArray(lista)) return [];

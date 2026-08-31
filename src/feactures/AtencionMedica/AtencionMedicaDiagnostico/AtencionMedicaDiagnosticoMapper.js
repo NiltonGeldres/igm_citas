@@ -9,7 +9,6 @@ export const AtencionMedicaDiagnosticoMapper = {
    */
   apiToUiItem: (item) => {
     if (!item) return null;
-      console.log("MAPPER CONTENIDO DIAGNOSTICO ITEM  "+JSON.stringify(item))
 
     return {
       // Garantizamos id único y legible para React
@@ -36,7 +35,6 @@ export const AtencionMedicaDiagnosticoMapper = {
     const lista = Array.isArray(dataAtencion) 
       ? dataAtencion 
       : (dataAtencion?.diagnosticos || []);
-      console.log("MAPPER CONTENIDO DIAGNOSTICO "+JSON.stringify(lista))
 
     return lista.map(AtencionMedicaDiagnosticoMapper.apiToUiItem).filter(Boolean);
   },

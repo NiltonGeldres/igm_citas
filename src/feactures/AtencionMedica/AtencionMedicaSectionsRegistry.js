@@ -5,6 +5,7 @@ import { AtencionMedicaAntecedentesService } from './AtencionMedicaAntecedente/A
 import { AtencionMedicaSintomaService } from './AtencionMedicaSintoma/AtencionMedicaSintomaService';
 import { AtencionMedicaExamenFisicoService } from './AtencionMedicaExamenFisico/AtencionMedicaExamenFisicoService';
 import { AtencionMedicaDiagnosticoService } from './AtencionMedicaDiagnostico/AtencionMedicaDiagnosticoService';
+import { AtencionMedicaExamenService } from './AtencionMedicaExamen/AtencionMedicaExamenService';
 
 
 export const AtencionMedicaSectionsRegistry = {
@@ -12,14 +13,15 @@ export const AtencionMedicaSectionsRegistry = {
    * Carga inicial limpia para NUEVA ATENCIÓN
    */
   cargarPanelesIniciales: () => {
+    console.log("cargarPanelesIniciales")
     return {
+      PanelExamenesAuxiliares: AtencionMedicaExamenService.obtenerExamenesIniciales(),  
       PanelTriaje: AtencionMedicaTriajeService.obtenerTriajeInicial(),
       PanelAntecedentes: AtencionMedicaAntecedentesService.obtenerAntecedentesIniciales(),
       PanelSintomas: AtencionMedicaSintomaService.obtenerSintomasIniciales(),
       PanelExamenFisico: AtencionMedicaExamenFisicoService.obtenerExamenFisicoInicial(),
       PanelDiagnostico: AtencionMedicaDiagnosticoService.obtenerDiagnosticosIniciales(),
       PanelMedicacion: [],
-      PanelExamenesAuxiliares: [],
       PanelAlta: []
     };
   },
@@ -37,7 +39,7 @@ export const AtencionMedicaSectionsRegistry = {
       PanelExamenFisico: AtencionMedicaExamenFisicoService.obtenerExamenFisicoRegistrado(dataAtencion),
       PanelDiagnostico: AtencionMedicaDiagnosticoService.obtenerDiagnosticosRegistrados(dataAtencion),
       PanelMedicacion: dataAtencion.medicacion || [],
-      PanelExamenesAuxiliares: dataAtencion.examenesAuxiliares || [],
+      PanelExamenesAuxiliares: AtencionMedicaExamenService.obtenerExamenesRegistrados(dataAtencion) ,
       PanelAlta: dataAtencion.alta || []
     };
   }

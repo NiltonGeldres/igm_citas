@@ -5,7 +5,6 @@ import { v4 as uuidv4 } from 'uuid';
 import { Trash2, UserX, Search, X } from 'lucide-react';
 
 function AtencionMedicaTriajePanel({ content = [], onContentChange, onModalMessage, idPacienteSeleccionado }) {
-  console.log( "ID PACIENTE ENVIADO A PANEL TRIAJES "+idPacienteSeleccionado )
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
   const searchRef = useRef(null);
 
