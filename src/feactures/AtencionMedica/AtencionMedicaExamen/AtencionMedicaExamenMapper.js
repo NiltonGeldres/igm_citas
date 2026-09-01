@@ -12,6 +12,7 @@ export const AtencionMedicaExamenMapper = {
    * Convierte la lista plana de "examenesAuxiliares" recibida desde la API al formato de UI.
    * Agrupa registros por `idProducto` reconsolidando los diagnósticos asociados.
    */
+ /* 
   apiToUiExamenes(examenesApi = [], listaDiagnosticosDisponibles = []) {
     if (!Array.isArray(examenesApi) || examenesApi.length === 0) return [];
 
@@ -25,9 +26,12 @@ export const AtencionMedicaExamenMapper = {
       let dxCodigo = null;
       if (item.idDiagnostico) {
         const dxEncontrado = listaDiagnosticosDisponibles.find(
-          (d) => String(d.idDiagnostico || d.id) === String(item.idDiagnostico)
+          (d) => String(d.id) === String(item.idDiagnostico)
         );
-        dxCodigo = dxEncontrado ? (dxEncontrado.codigoCIE || dxEncontrado.codigo) : String(item.idDiagnostico);
+  //      dxCodigo = dxEncontrado ? (dxEncontrado.codigoCIE || dxEncontrado.codigo) : String(item.idDiagnostico);
+        console.log("dxEncontrado   "+JSON.stringify(dxEncontrado))
+        dxCodigo = dxEncontrado ? (dxEncontrado.id || dxEncontrado.codigo) : String(item.idDiagnostico);
+        console.log("dxCodigo  "+JSON.stringify(dxCodigo))
       }
 
       if (!agrupadosMap.has(idProd)) {
@@ -45,6 +49,73 @@ export const AtencionMedicaExamenMapper = {
         const existente = agrupadosMap.get(idProd);
         if (dxCodigo && !existente.diagnosticosAsociados.includes(dxCodigo)) {
           existente.diagnosticosAsociados.push(dxCodigo);
+        }
+      }
+    });
+
+    return Array.from(agrupadosMap.values());
+  },
+
+ */
+
+  apiToUiExamenes(examenesApi = [], listaDiagnosticosDisponibles = []) {
+    if (!Array.isArray(examenesApi) || examenesApi.length === 0) return [];
+
+    const agrupadosMap = new Map();
+
+    examenesApi.forEach((item) => {
+      const idProd = item.idProducto || item.id;
+      const nombreFormateado = formatTitleCase(
+        item.label || item.examen || item.nombreProducto ||  ''
+      );
+
+      // 1. Extraer el ID numérico del diagnóstico (prioriza diagnosticosAsociados[0] y luego idDiagnostico)
+      const idDxRelacion = Array.isArray(item.diagnosticosAsociados) && item.diagnosticosAsociados.length > 0
+        ? item.diagnosticosAsociados[0]
+        : (item.idDiagnostico || null);
+
+      // 2. COMPARACIÓN: Buscar en la lista de diagnósticos usando EXCLUSIVAMENTE el ID
+      let dxEncontrado = null;
+      if (idDxRelacion) {
+        dxEncontrado = listaDiagnosticosDisponibles.find(
+          (d) => String(d.idDiagnostico || d.id) === String(idDxRelacion)
+        );
+      }
+
+      // 3. RENDERIZADO UI: Extraer el codigoCIE del diagnóstico encontrado para la vista
+      const codigoCIEParaUI = dxEncontrado 
+        ? (dxEncontrado.codigoCIE || dxEncontrado.codigo) 
+        : (item.codigoCIE || '');
+
+      const idDxFinal = dxEncontrado 
+        ? (dxEncontrado.idDiagnostico || dxEncontrado.id) 
+        : idDxRelacion;
+
+      // 4. Construcción del contrato para el Panel
+      if (!agrupadosMap.has(idProd)) {
+        agrupadosMap.set(idProd, {
+          id: idProd,
+          idProducto: idProd,
+          label: nombreFormateado,
+          examen: nombreFormateado,
+          codigoExamen: item.codigoExamen || item.codigoProducto || item.codigo || 'S/C',
+          tipoExamen: String(item.tipoExamen || item.idPuntoCarga || '1'),
+          cantidad: item.cantidad || 1,
+          observacion: item.observacion || '',
+          
+          // Datos de Vinculación y Renderizado
+          idDiagnostico: idDxFinal ? Number(idDxFinal) : null, // ID para la relación/lógica
+          codigoCIE: codigoCIEParaUI,                          // Código CIE para pintar en el badge
+          diagnosticosAsociados: idDxFinal ? [Number(idDxFinal)] : []
+        });
+      } else {
+        const existente = agrupadosMap.get(idProd);
+        if (idDxFinal && !existente.diagnosticosAsociados.includes(Number(idDxFinal))) {
+          existente.diagnosticosAsociados.push(Number(idDxFinal));
+        }
+        if (!existente.idDiagnostico && idDxFinal) {
+          existente.idDiagnostico = Number(idDxFinal);
+          existente.codigoCIE = codigoCIEParaUI;
         }
       }
     });

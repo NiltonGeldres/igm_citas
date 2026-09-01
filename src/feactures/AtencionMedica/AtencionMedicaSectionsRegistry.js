@@ -15,12 +15,12 @@ export const AtencionMedicaSectionsRegistry = {
   cargarPanelesIniciales: () => {
     console.log("cargarPanelesIniciales")
     return {
-      PanelExamenesAuxiliares: AtencionMedicaExamenService.obtenerExamenesIniciales(),  
       PanelTriaje: AtencionMedicaTriajeService.obtenerTriajeInicial(),
       PanelAntecedentes: AtencionMedicaAntecedentesService.obtenerAntecedentesIniciales(),
       PanelSintomas: AtencionMedicaSintomaService.obtenerSintomasIniciales(),
       PanelExamenFisico: AtencionMedicaExamenFisicoService.obtenerExamenFisicoInicial(),
       PanelDiagnostico: AtencionMedicaDiagnosticoService.obtenerDiagnosticosIniciales(),
+      PanelPlanTrabajo: AtencionMedicaExamenService.obtenerExamenesIniciales(),  
       PanelMedicacion: [],
       PanelAlta: []
     };
@@ -29,7 +29,7 @@ export const AtencionMedicaSectionsRegistry = {
   /**
    * Carga mapeada para ACTUALIZAR ATENCIÓN
    */
-  cargarPanelesDesdeApi: (dataAtencion) => {
+/*  cargarPanelesDesdeApi: (dataAtencion) => {
     if (!dataAtencion) return AtencionMedicaSectionsRegistry.cargarPanelesIniciales();
 
     return {
@@ -38,9 +38,31 @@ export const AtencionMedicaSectionsRegistry = {
       PanelSintomas: AtencionMedicaSintomaService.obtenerSintomasRegistrados(dataAtencion),
       PanelExamenFisico: AtencionMedicaExamenFisicoService.obtenerExamenFisicoRegistrado(dataAtencion),
       PanelDiagnostico: AtencionMedicaDiagnosticoService.obtenerDiagnosticosRegistrados(dataAtencion),
+      PanelPlanTrabajo: AtencionMedicaExamenService.obtenerExamenesRegistrados(dataAtencion) ,
       PanelMedicacion: dataAtencion.medicacion || [],
-      PanelExamenesAuxiliares: AtencionMedicaExamenService.obtenerExamenesRegistrados(dataAtencion) ,
       PanelAlta: dataAtencion.alta || []
     };
-  }
+  }*/
+  cargarPanelesDesdeApi: (dataAtencion) => {
+    if (!dataAtencion) return AtencionMedicaSectionsRegistry.cargarPanelesIniciales();
+
+    // 1. Extraer y procesar PRIMERO los diagnósticos que YA vienen en la respuesta (dataAtencion)
+    const diagnosticosProcesados = AtencionMedicaDiagnosticoService.obtenerDiagnosticosRegistrados(dataAtencion);
+
+    return {
+      PanelTriaje: AtencionMedicaTriajeService.obtenerTriajeRegistrado(dataAtencion),
+      PanelAntecedentes: AtencionMedicaAntecedentesService.obtenerAntecedentesRegistrados(dataAtencion),
+      PanelSintomas: AtencionMedicaSintomaService.obtenerSintomasRegistrados(dataAtencion),
+      PanelExamenFisico: AtencionMedicaExamenFisicoService.obtenerExamenFisicoRegistrado(dataAtencion),
+      
+      // Panel de diagnósticos procesado
+      PanelDiagnostico: diagnosticosProcesados,
+
+      // 2. Le pasas 'diagnosticosProcesados' a Exámenes para que pueda hacer el enlace
+      PanelPlanTrabajo: AtencionMedicaExamenService.obtenerExamenesRegistrados(dataAtencion, diagnosticosProcesados), 
+
+      PanelMedicacion: dataAtencion.medicacion || [],
+      PanelAlta: dataAtencion.alta || []
+    };
+  } 
 };
