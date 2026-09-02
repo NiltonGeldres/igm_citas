@@ -14,8 +14,9 @@ function AtencionMedicaFirmaPanelV1({
   showModalMessage,
   patientData = {}
 }) {
+  
   const totalDocumentos =
-    (sectionsData.PanelTratamientos?.length || 0) +
+    (sectionsData.PanelMedicacion?.length || 0) +
     (sectionsData.PanelPlanTrabajo?.length || 0);
 
   return (
@@ -167,7 +168,7 @@ function AtencionMedicaFirmaPanelV1({
     <div id="documentos-desglosados-paciente" className={modoImpresion === 'desglosado' ? '' : 'print-hidden'} style={{ fontFamily: 'sans-serif' }}>
       
       {/* RECETA FARMACIA */}
-      {sectionsData.PanelTratamientos?.length > 0 && (
+      {sectionsData.PanelMedicacion?.length > 0 && (
         <div style={{ backgroundColor: '#ffffff', border: '2px dashed #cbd5e1', borderRadius: '6px', padding: '20px', marginBottom: '20px', pageBreakInside: 'avoid', boxShadow: '0 1px 2px rgba(0,0,0,0.02)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #e2e8f0', paddingBottom: '6px', marginBottom: '10px' }}>
             <h3 style={{ margin: 0, fontSize: '15px', color: '#0f172a' }}>📋 RECETA MÉDICA (FARMACIA)</h3>
@@ -184,7 +185,7 @@ function AtencionMedicaFirmaPanelV1({
               </tr>
             </thead>
             <tbody>
-              {sectionsData.PanelTratamientos.map((item, idx) => (
+              {sectionsData.PanelMedicacion.map((item, idx) => (
                 <tr key={idx} style={{ borderBottom: '1px solid #f1f5f9' }}>
                   <td style={{ padding: '6px', color: '#1e293b' }}>💊 <strong>{item.descripcion}</strong></td>
                   <td style={{ padding: '6px', textAlign: 'center', fontWeight: '700', color: '#16a34a', fontSize: '14px' }}>{item.cantidad} u.</td>
@@ -200,7 +201,7 @@ function AtencionMedicaFirmaPanelV1({
       )}
 
       {/* INDICACIONES PACIENTE */}
-      {sectionsData.PanelTratamientos?.length > 0 && (
+      {sectionsData.PanelMedicacion?.length > 0 && (
         <div style={{ backgroundColor: '#ffffff', border: '2px dashed #cbd5e1', borderRadius: '6px', padding: '20px', marginBottom: '20px', pageBreakInside: 'avoid', boxShadow: '0 1px 2px rgba(0,0,0,0.02)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #e2e8f0', paddingBottom: '6px', marginBottom: '10px' }}>
             <h3 style={{ margin: 0, fontSize: '15px', color: '#0f172a' }}>📌 INDICACIONES DE USO (PACIENTE)</h3>
@@ -220,7 +221,7 @@ function AtencionMedicaFirmaPanelV1({
               </tr>
             </thead>
             <tbody>
-              {sectionsData.PanelTratamientos.map((item, idx) => (
+              {sectionsData.PanelMedicacion.map((item, idx) => (
                 <tr key={idx} style={{ borderBottom: '1px solid #f1f5f9' }}>
                   <td style={{ padding: '6px', fontWeight: '600', color: '#1e293b' }}>{item.descripcion}</td>
                   <td style={{ padding: '6px', color: '#334155' }}>{item.via || 'Oral'}</td>

@@ -1,16 +1,14 @@
-// src/components/Medicacion/AtencionMedicaMedicamentoDetalleModal.js
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../../shared/context/AuthContext'; 
 
 function AtencionMedicaMedicamentoDetalleModal({ medication, onClose, onSave, showMessage }) {
-  const { catalogoGlobal } = useAuth(); // Accedemos al contexto
+  const { catalogoGlobal } = useAuth();
   const [dosis, setDosis] = useState('');
   const [frecuencia, setFrecuencia] = useState('');
   const [periodo, setPeriodo] = useState('');
   const [cantidad, setCantidad] = useState('');
-  const [via, setVia] = useState('');
+  const [idVia, setIdVia] = useState(''); // 👈 Guarda el ID de la Vía
   
-  // Extraemos el catálogo de vías de administración de forma segura
   const viasAdministracion = catalogoGlobal?.catalogoViasAdministracion || [];
 
   useEffect(() => {
@@ -19,12 +17,13 @@ function AtencionMedicaMedicamentoDetalleModal({ medication, onClose, onSave, sh
       setFrecuencia(medication.frecuencia !== undefined ? String(medication.frecuencia) : '');
       setPeriodo(medication.periodo !== undefined ? String(medication.periodo) : '');
       setCantidad(medication.cantidad !== undefined ? String(medication.cantidad) : '');
-      setVia(medication.via !== undefined ? String(medication.via) : '');
+      // Asigna el ID si ya existe o busca el ID a partir del texto
+      setIdVia(medication.idViaAdministracion || medication.idVia || medication.via || '');
     }
   }, [medication]);
 
   const handleSave = () => {
-    if (!dosis || !frecuencia || !periodo || !cantidad || !via) {
+    if (!dosis || !frecuencia || !periodo || !cantidad || !idVia) {
       if (showMessage) showMessage('Por favor, completa todos los campos requeridos para la receta.');
       return;
     }
@@ -33,6 +32,7 @@ function AtencionMedicaMedicamentoDetalleModal({ medication, onClose, onSave, sh
     const parsedFrecuencia = parseInt(frecuencia, 10);
     const parsedPeriodo = parseInt(periodo, 10);
     const parsedCantidad = parseInt(cantidad, 10);
+    const parsedIdVia = parseInt(idVia, 10);
 
     if (isNaN(parsedDosis) || parsedDosis <= 0) {
       if (showMessage) showMessage('La dosis debe ser un número válido.');
@@ -51,23 +51,29 @@ function AtencionMedicaMedicamentoDetalleModal({ medication, onClose, onSave, sh
       return;
     }
 
+    // Buscar el objeto de la vía seleccionada para obtener también el nombre
+    const viaObjeto = viasAdministracion.find(
+      (v) => String(v.idViaAdministracion) === String(idVia)
+    );
+
     onSave({
-      ...medication,
+      ...medication, 
+      idProducto: medication.idProducto || medication.id,
       dosis: parsedDosis.toString(),
       frecuencia: parsedFrecuencia,
       periodo: parsedPeriodo,
       cantidad: parsedCantidad,
-      via: via.toString().trim(),
+      idViaAdministracion: parsedIdVia, 
+      via: viaObjeto ? viaObjeto.nombreViaAdministracion.trim() : 'Oral' // Texto legible para UI
     });
   };
 
   if (!medication) return null;
 
-  // ESTILOS EN LÍNEA ADAPTADOS DE FORMA ESTRICTA A LA ESTÉTICA DE "MICLINICA"
   const modalStyles = {
     overlay: {
       position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-      backgroundColor: 'rgba(15, 23, 42, 0.4)', // Sombra esbelta slate-900
+      backgroundColor: 'rgba(15, 23, 42, 0.4)',
       display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 9999,
       backdropFilter: 'blur(2px)'
     },
@@ -77,7 +83,7 @@ function AtencionMedicaMedicamentoDetalleModal({ medication, onClose, onSave, sh
       border: '1px solid #e2e8f0'
     },
     header: {
-      backgroundColor: '#0066ff', padding: '14px 16px', // Azul MiClinica
+      backgroundColor: '#0066ff', padding: '14px 16px',
       color: '#ffffff', fontSize: '15px', fontWeight: '600'
     },
     body: { padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px' },
@@ -98,25 +104,23 @@ function AtencionMedicaMedicamentoDetalleModal({ medication, onClose, onSave, sh
   return (
     <div style={modalStyles.overlay}>
       <div style={modalStyles.content}>
-        {/* Cabecera Azul Homologada */}
         <div style={modalStyles.header}>
           Configurar Receta: {medication.descripcion}
         </div>
 
-        {/* Cuerpo con Inputs y Selects estilizados */}
         <div style={modalStyles.body}>
           <label style={modalStyles.label}>
             Vía de Administración
             <select
-              value={via}
-              onChange={(e) => setVia(e.target.value)}
+              value={idVia}
+              onChange={(e) => setIdVia(e.target.value)}
               style={modalStyles.select}
             >
               <option value="">-- Seleccione Vía de Administración --</option>
               {viasAdministracion.map((itemVia) => (
                 <option 
                   key={itemVia.idViaAdministracion} 
-                  value={itemVia.nombreViaAdministracion.trim()}
+                  value={itemVia.idViaAdministracion} // 👈 El valor es el ID numérico
                 >
                   {itemVia.nombreViaAdministracion} ({itemVia.grupoClasificacion})
                 </option>
@@ -173,7 +177,6 @@ function AtencionMedicaMedicamentoDetalleModal({ medication, onClose, onSave, sh
           </div>
         </div>
 
-        {/* Botones Redondeados */}
         <div style={modalStyles.actions}>
           <button type="button" style={modalStyles.btnCancel} onClick={onClose}>Cancelar</button>
           <button type="button" style={modalStyles.btnSave} onClick={handleSave}>Guardar Receta</button>

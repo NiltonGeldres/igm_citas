@@ -125,12 +125,14 @@ const {
 
                   {activeTab === 'medication' && (
                     <AtencionMedicaMedicamentoPanel
-                      content={sectionsData.PanelTratamientos}
+                      content={sectionsData.PanelMedicacion}
                       onContentChange={(newList) => {
-                          handleSectionContentChange('PanelTratamientos', newList);
+//                          handleSectionContentChange('PanelTratamientos', newList);
                           handleSectionContentChange('PanelMedicacion', newList);
                         }}
                       onModalMessage={showModalMessage}
+                      diagnosticosDisponibles={sectionsData.PanelDiagnostico}
+
                     />
                   )}
 

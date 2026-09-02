@@ -50,6 +50,34 @@ const MOCK_CATALOGO_BUSQUEDA = [
 // ⚙️ FUNCIONES AUXILIARES
 // =========================================================================
 
+/**
+   * Mapea y enlaza la medicación registrada con los diagnósticos procesados
+   */
+  /*const obtenerMedicamentosRegistrados = (dataAtencion = {}, listaDiagnosticos = []) => {
+    // Si viene recetaMedica o medicacion en dataAtencion
+    const listaRaw = dataAtencion.recetaMedica || dataAtencion.medicacion || [];
+    if (!Array.isArray(listaRaw)) return [];
+
+    // Se mapea asegurando que cada ítem conserve/enlace su idDiagnostico
+    return listaRaw.map((item) => {
+      // Buscar si el diagnóstico existe en la lista procesada
+      const dxEncontrado = listaDiagnosticos.find(
+        (d) => String(d.id || d.idDiagnostico) === String(item.idDiagnostico || item.idDiagnosticoAsociado)
+      );
+
+      return {
+        ...item,
+        idDiagnostico: dxEncontrado ? (dxEncontrado.id || dxEncontrado.idDiagnostico) : (item.idDiagnostico || null)
+      };
+    });
+  };
+*/
+  const obtenerMedicamentosRegistrados = (dataAtencion = {}, listaDiagnosticos = []) => {
+    const listaRaw = dataAtencion.recetaMedica || dataAtencion.medicacion || [];
+    return AtencionMedicaMedicamentoMapper.apiToUiRegisteredList(listaRaw, listaDiagnosticos);
+  };
+
+
 const obtenerCatalogoPaquetesDesdeCache = () => {
   try {
     const stored = sessionStorage.getItem('catalogo_global');
@@ -66,6 +94,10 @@ const obtenerCatalogoPaquetesDesdeCache = () => {
 // =========================================================================
 // 📦 PROCESO 1: PAQUETES DE MEDICACIÓN (CON CACHÉ)
 // =========================================================================
+
+const obtenerMedicamentosIniciales= () => {
+    return []; // Retorna lista vacía preparada para recibir los objetos con idProducto real
+};
 
 const obtenerListaPaquetes = async () => {
   const isProduction = process.env.REACT_APP_NODE_ENV === 'production';
@@ -169,6 +201,7 @@ const buscarMedicamentosCatalogo = async (query, idEntidadOverride) => {
       const resultadoJson = response.data;
       if (resultadoJson && resultadoJson.estado === 'EXITO' && Array.isArray(resultadoJson.data)) {
         resultado = AtencionMedicaMedicamentoMapper.apiToUiCatalogList(resultadoJson.data);
+
       }
     } catch (error) {
       if (error.response && error.response.status === 403) {
@@ -203,7 +236,11 @@ const limpiarCacheLocal = () => {
   cacheDetallePaquetes.clear();
 };
 
+
+
 export const AtencionMedicaMedicamentoService = {
+  obtenerMedicamentosIniciales,
+  obtenerMedicamentosRegistrados , 
   obtenerListaPaquetes,
   obtenerProductosPorPaquete,
   buscarMedicamentosCatalogo,

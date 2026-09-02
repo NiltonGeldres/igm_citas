@@ -6,7 +6,8 @@ import { AtencionMedicaSintomaService } from './AtencionMedicaSintoma/AtencionMe
 import { AtencionMedicaExamenFisicoService } from './AtencionMedicaExamenFisico/AtencionMedicaExamenFisicoService';
 import { AtencionMedicaDiagnosticoService } from './AtencionMedicaDiagnostico/AtencionMedicaDiagnosticoService';
 import { AtencionMedicaExamenService } from './AtencionMedicaExamen/AtencionMedicaExamenService';
-
+import { AtencionMedicaMedicamentoService } from './AtencionMedicaMedicamento/AtencionMedicaMedicamentoService';
+import { AtencionMedicaAltaService } from './AtencionMedicaAlta/AtencionMedicaAltaService';
 
 export const AtencionMedicaSectionsRegistry = {
   /**
@@ -21,8 +22,8 @@ export const AtencionMedicaSectionsRegistry = {
       PanelExamenFisico: AtencionMedicaExamenFisicoService.obtenerExamenFisicoInicial(),
       PanelDiagnostico: AtencionMedicaDiagnosticoService.obtenerDiagnosticosIniciales(),
       PanelPlanTrabajo: AtencionMedicaExamenService.obtenerExamenesIniciales(),  
-      PanelMedicacion: [],
-      PanelAlta: []
+      PanelMedicacion: AtencionMedicaMedicamentoService.obtenerMedicamentosIniciales(), 
+      PanelAlta: AtencionMedicaAltaService.obtenerAltaInicial()      
     };
   },
 
@@ -61,8 +62,9 @@ export const AtencionMedicaSectionsRegistry = {
       // 2. Le pasas 'diagnosticosProcesados' a Exámenes para que pueda hacer el enlace
       PanelPlanTrabajo: AtencionMedicaExamenService.obtenerExamenesRegistrados(dataAtencion, diagnosticosProcesados), 
 
-      PanelMedicacion: dataAtencion.medicacion || [],
-      PanelAlta: dataAtencion.alta || []
+      PanelMedicacion: AtencionMedicaMedicamentoService.obtenerMedicamentosRegistrados(dataAtencion, diagnosticosProcesados),
+      //PanelMedicacion: dataAtencion.medicacion || [],
+      PanelAlta: AtencionMedicaAltaService.obtenerAltaRegistrada(dataAtencion)      
     };
   } 
 };

@@ -39,7 +39,7 @@ function AtencionMedicaFirmaPanel({ medicalRecordData }) {
   const dataExamenFisico = attentionDetails.PanelExamenFisico || [];
   const dataDiagnosticos = attentionDetails.PanelDiagnostico || [];
   const dataExamenes = attentionDetails.PanelPlanTrabajo || [];
-  const dataTratamientos = attentionDetails.PanelTratamientos || [];
+  const dataMedicacion = attentionDetails.PanelMedicacion || [];
   const dataAlta = attentionDetails.PanelAlta || [];
 
   // =======================================================================
@@ -224,11 +224,11 @@ function AtencionMedicaFirmaPanel({ medicalRecordData }) {
                 Medicación
               </h4>
             </div>
-            {!dataTratamientos || dataTratamientos.length === 0 ? (
+            {!dataMedicacion || dataMedicacion.length === 0 ? (
               <p style={{ margin: '0 0 0 14px', fontSize: '13px', color: '#94a3b8', fontStyle: 'italic' }}>No refiere.</p>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '5px', paddingLeft: '14px' }}>
-                {dataTratamientos.map((item, idx) => (
+                {dataMedicacion.map((item, idx) => (
                   <div key={item.id || idx} style={{ fontSize: '13px', color: '#1e293b', lineHeight: '1.4' }}>
                     • <span style={{ fontWeight: '600' }}>{item.descripcion}</span>
                     {item.via && ` - Vía: ${item.via}`}

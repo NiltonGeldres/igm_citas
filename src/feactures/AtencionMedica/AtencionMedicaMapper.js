@@ -72,9 +72,9 @@ export const AtencionMedicaMapper = {
       })),
 
       // 📍 Medicación
-      medicacion: (sectionsData.PanelMedicacion || sectionsData.PanelTratamientos || []).map((m, i) => ({
+      medicacion: (sectionsData.PanelMedicacion || []).map((m, i) => ({
         idAlmacen: Number(m.idAlmacen) || 1,
-        idProducto: Number(m.idProducto || m.idMedicamento || m.id) || (i + 1),
+        idProducto: Number(m.idProducto ) ,
         cantidadDosis: Number(m.dosis || m.cantidadDosis) || 1,
         idUmDosis: Number(m.idUmDosis) || 1,
         idFrecuenciaDosis: Number(m.frecuencia || m.idFrecuenciaDosis) || 1,
