@@ -16,7 +16,7 @@ const TABS = [
   { id: 'exams', label: 'Orden', icon: Microscope },
   { id: 'medication', label: 'Receta', icon: Pill },
   { id: 'discharge', label: 'Alta', icon: CheckCircle },
-  { id: 'signature', label: 'Firma ', icon: PenTool },
+  { id: 'signature', label: 'Finalizar ', icon: PenTool },
 ];
 
 export const TabNavigation = ({ activeTab, onSelectTab, isDisabled = false }) => {
