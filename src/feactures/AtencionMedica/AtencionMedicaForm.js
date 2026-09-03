@@ -1,5 +1,5 @@
 
-
+import { useState } from 'react';
 import {  RefreshCw, Save} from 'lucide-react';
 
 import MessageModal from './common/MessageModal';
@@ -19,6 +19,7 @@ import AtencionMedicaHeader from './components/AtencionMedicaHeader';
 import AtencionMedicaFirmaPanelV1 from './AtencionMedicaFirma/AtencionMedicaFirmaPanelV1';
 
 function AtencionMedicaForm() {
+// 1. Estados para controlar el flujo de firma y JSON del backend
 
 const {
   activeTab,
@@ -37,6 +38,10 @@ const {
   // 📍 Variables agregadas para resolver los errores de ESLint:
   estadoGuardado,
   cargandoTriaje,
+// 🟢 RETORNAR LOS ESTADOS NUEVOS AQUÍ:
+    estadoAtencion,
+    urlJsonFirmadoBackend,
+
   handleTriajeChange,
   finalizarAtencionMedicaTotal,
   // --------------------------------------------------------
@@ -145,20 +150,21 @@ const {
                     />
                   )}
 
-                  {activeTab === 'signature' && (
-                    <AtencionMedicaFirmaPanelV1
-                      subTabFirma={subTabFirma}
-                      setSubTabFirma={setSubTabFirma}
-                      sectionsData={sectionsData}
-                      ejecutarGuardadoYFirmaFinal={ejecutarGuardadoYFirmaFinal}
-                      imprimirFichaCompleta={imprimirFichaCompleta}
-                      imprimirDocumentosPaciente={imprimirDocumentosPaciente}
-                      modoImpresion={modoImpresion}
-                      fullMedicalRecord={fullMedicalRecord}
-                      showModalMessage={showModalMessage}
-                      patientData={patientData}
-                    />
-                  )}
+{activeTab === 'signature' && (
+  <AtencionMedicaFirmaPanelV1
+    sectionsData={sectionsData}
+    ejecutarGuardadoYFirmaFinal={ejecutarGuardadoYFirmaFinal}
+    imprimirFichaCompleta={imprimirFichaCompleta}
+    imprimirDocumentosPaciente={imprimirDocumentosPaciente}
+    modoImpresion={modoImpresion}
+    fullMedicalRecord={fullMedicalRecord}
+    showModalMessage={showModalMessage}
+    patientData={patientData}
+    // Estados conectados a tu backend
+    atencionFirmada={estadoAtencion === 'FIRMADO'}
+    jsonFirmadoUrl={urlJsonFirmadoBackend}
+  />
+)}
 
                 </>
               ) : (

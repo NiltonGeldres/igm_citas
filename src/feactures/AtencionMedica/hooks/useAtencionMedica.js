@@ -18,6 +18,10 @@ export const useAtencionMedica = () => {
   const [datosGuardadosExito, setDatosGuardadosExito] = useState(null);
   const [mostrarModalExito, setMostrarModalExito] = useState(false);
   const [pacienteActivo, setPacienteActivo] = useState(null);
+
+  const [estadoAtencion, setEstadoAtencion] = useState('BORRADOR'); // 'BORRADOR' | 'FIRMADO'
+  const [urlJsonFirmadoBackend, setUrlJsonFirmadoBackend] = useState(null);
+
   // ENTIDAD DE CABECERA Y CONTEXTO DEL PACIENTE (Sin arreglos clínicos)
   const [patientData, setPatientData] = useState({
     name: '',
@@ -234,6 +238,40 @@ export const useAtencionMedica = () => {
     return true;
   };
    // Guardar Atencion Medica
+// 🟢 ACTUALIZACIÓN DEL GUARDADO Y FIRMA
+  const ejecutarGuardadoYFirmaFinal = async () => {
+    if (!patientData?.id) {
+      showModalMessage('Por favor, selecciona un paciente antes de procesar.');
+      return;
+    }
+    if (!validarCamposObligatorios()) {
+      return;
+    }
+    try {
+      const contextoUsuario = {
+        idMedico: sessionStorage.getItem('idMedico') || 2,
+        idEntidad: sessionStorage.getItem('idEntidad') || 2,
+        idUsuario: sessionStorage.getItem('idUsuario') || 12,
+      };
+
+      const payload = AtencionMedicaMapper.uiToApiRequest(patientData, sectionsData, contextoUsuario);
+      const response = await AtencionMedicaService.guardarAtencionCompleta(payload);
+
+      if (response?.exito) {
+        // 🟢 MARCAMOS COMO FIRMADO Y GUARDAMOS LA URL DEL JSON O LA RESPUESTA
+        setEstadoAtencion('FIRMADO');
+        setUrlJsonFirmadoBackend(response?.urlJsonFirmado || response?.rutaJson || null);
+        console.log("Atención guardada exitosamente. ID:", response.idAtencion);
+      }
+
+    } catch (error) {
+      const apiErrors = error.response?.data?.errors;
+      const errorMsg = apiErrors ? JSON.stringify(apiErrors) : error.message;
+      showModalMessage(`Error al validar el registro: ${errorMsg}`);
+    }
+  };
+
+/*   
   const ejecutarGuardadoYFirmaFinal = async () => {
     if (!patientData?.id) {
       showModalMessage('Por favor, selecciona un paciente antes de procesar.');
@@ -262,7 +300,7 @@ export const useAtencionMedica = () => {
       showModalMessage(`Error al validar el registro: ${errorMsg}`);
     }
   };
-
+*/
   const handleFinalizarFlujoYRegresar = () => {
     setMostrarModalExito(false);
     setDatosGuardadosExito(null);
@@ -320,7 +358,10 @@ export const useAtencionMedica = () => {
     patientData,
     sectionsData,
     fullMedicalRecord,
-    
+// 🟢 RETORNAR LOS ESTADOS NUEVOS AQUÍ:
+    estadoAtencion,
+    urlJsonFirmadoBackend,
+        
     handleTriajeChange,
     showModalMessage,
     closeModal,
@@ -331,5 +372,6 @@ export const useAtencionMedica = () => {
     handleFinalizarFlujoYRegresar,
     imprimirFichaCompleta,
     imprimirDocumentosPaciente
+    
   };
 };

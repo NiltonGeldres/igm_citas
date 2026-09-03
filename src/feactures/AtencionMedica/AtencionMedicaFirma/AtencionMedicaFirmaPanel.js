@@ -27,8 +27,8 @@ function AtencionMedicaFirmaPanel({ medicalRecordData }) {
   const { patient = {}, attentionDetails = {} } = medicalRecordData;
   
   // Variables de cabecera
-  const entidadNombre = user?.nombreEntidad || 'CLINICA REGALADO SAC';
-  const nombreMedico = user?.nombresUsuario || 'Regalado Monteverde Miguel Angel';
+  const entidadNombre = user?.nombreEntidad || '--';
+  const nombreMedico = user?.nombresUsuario || '--';
 
   // =======================================================================
   // MAPEO DIRECTO DE LLAVES REALES DEL BACKEND
@@ -52,10 +52,10 @@ function AtencionMedicaFirmaPanel({ medicalRecordData }) {
     return (
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '10px', paddingLeft: '14px' }}>
         {triajeArray.map((item, idx) => (
-          <div key={item.id || idx} style={{ fontSize: '13px', color: '#1e293b', backgroundColor: '#f8fafc', padding: '6px 10px', borderRadius: '4px', border: '1px solid #e2e8f0' }}>
+          <div key={item.id || idx} style={{ fontSize: '12px', padding: '0px 0px', borderRadius: '4px', border: '0px solid #e2e8f0' }}>
             <span style={{ color: '#475569', fontWeight: '500' }}>{item.nombre}:</span>{' '}
             <span style={{ fontWeight: '700', color: '#0f172a' }}>{item.valor}</span>{' '}
-            <span style={{ fontSize: '11px', color: '#64748b' }}>{item.unidad}</span>
+            <span style={{ fontSize: '11px', color: '#64748b' }}>{item.unidad}</span> 
           </div>
         ))}
       </div>
@@ -96,9 +96,9 @@ function AtencionMedicaFirmaPanel({ medicalRecordData }) {
       <div id="documento-clinico-pdf" style={{ backgroundColor: '#ffffff', padding: '20px', borderRadius: '8px', border: '1px solid #e2e8f0', fontFamily: 'sans-serif' }}>
         
         {/* Cabecera */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '2px solid #0066ff', paddingBottom: '12px', marginBottom: '20px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '2px solid #050505', paddingBottom: '12px', marginBottom: '20px' }}>
           <div>
-            <h1 style={{ margin: 0, fontSize: '20px', color: '#0066ff', fontWeight: 'bold', textTransform: 'uppercase' }}>
+            <h1 style={{ margin: 0, fontSize: '12px', color: '#050505', fontWeight: 'bold', textTransform: 'uppercase' }}>
               🏥 {entidadNombre}
             </h1>
             <p style={{ margin: '2px 0 0 0', fontSize: '11px', color: '#64748b', fontWeight: '500' }}>
@@ -134,7 +134,7 @@ function AtencionMedicaFirmaPanel({ medicalRecordData }) {
           <div style={{ borderBottom: '1px solid #f1f5f9', paddingBottom: '12px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
               <ClipboardList size={13} color="#475569" />
-              <h4 style={{ margin: 0, fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', color: '#475569' }}>
+              <h4 style={{ margin: 0, fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', color: '#050505' }}>
                 Triaje / Signos Vitales
               </h4>
             </div>
@@ -145,7 +145,7 @@ function AtencionMedicaFirmaPanel({ medicalRecordData }) {
           <div style={{ borderBottom: '1px solid #f1f5f9', paddingBottom: '12px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
               <ClipboardList size={13} color="#475569" />
-              <h4 style={{ margin: 0, fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', color: '#475569' }}>
+              <h4 style={{ margin: 0, fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', color: '#050505' }}>
                 Antecedentes
               </h4>
             </div>
@@ -156,7 +156,7 @@ function AtencionMedicaFirmaPanel({ medicalRecordData }) {
           <div style={{ borderBottom: '1px solid #f1f5f9', paddingBottom: '12px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
               <ClipboardList size={13} color="#475569" />
-              <h4 style={{ margin: 0, fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', color: '#475569' }}>
+              <h4 style={{ margin: 0, fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', color: '#050505' }}>
                 Síntomas
               </h4>
             </div>
@@ -167,7 +167,7 @@ function AtencionMedicaFirmaPanel({ medicalRecordData }) {
           <div style={{ borderBottom: '1px solid #f1f5f9', paddingBottom: '12px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
               <ClipboardList size={13} color="#475569" />
-              <h4 style={{ margin: 0, fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', color: '#475569' }}>
+              <h4 style={{ margin: 0, fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', color: '#050505' }}>
                 Examen Físico
               </h4>
             </div>
@@ -178,7 +178,7 @@ function AtencionMedicaFirmaPanel({ medicalRecordData }) {
           <div style={{ borderBottom: '1px solid #f1f5f9', paddingBottom: '12px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
               <ClipboardList size={13} color="#475569" />
-              <h4 style={{ margin: 0, fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', color: '#475569' }}>
+              <h4 style={{ margin: 0, fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', color: '#050505' }}>
                 Diagnósticos
               </h4>
             </div>
@@ -188,7 +188,7 @@ function AtencionMedicaFirmaPanel({ medicalRecordData }) {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '5px', paddingLeft: '14px' }}>
                 {dataDiagnosticos.map((item, idx) => (
                   <div key={item.id || idx} style={{ fontSize: '13px', color: '#1e293b' }}>
-                    • <span style={{ fontWeight: '600' }}>{item.diagnostico}</span> {item.codigoCIE && `[CIE-10: ${item.codigoCIE}]`} - <span style={{ fontStyle: 'italic', color: '#64748b' }}>{item.clasificacion}</span>
+                    • <span >{item.diagnostico}</span> {item.codigoCIE && `[CIE-10: ${item.codigoCIE}]`} - <span style={{ fontStyle: 'italic', color: '#64748b' }}>{item.clasificacion}</span>
                   </div>
                 ))}
               </div>
@@ -199,7 +199,7 @@ function AtencionMedicaFirmaPanel({ medicalRecordData }) {
           <div style={{ borderBottom: '1px solid #f1f5f9', paddingBottom: '12px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
               <ClipboardList size={13} color="#475569" />
-              <h4 style={{ margin: 0, fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', color: '#475569' }}>
+              <h4 style={{ margin: 0, fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', color: '#050505' }}>
                 Exámenes
               </h4>
             </div>
@@ -209,7 +209,7 @@ function AtencionMedicaFirmaPanel({ medicalRecordData }) {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '5px', paddingLeft: '14px' }}>
                 {dataExamenes.map((item, idx) => (
                   <div key={item.id || idx} style={{ fontSize: '13px', color: '#1e293b' }}>
-                    • <span style={{ fontWeight: '600' }}>{item.examen}</span> {item.codigoProcedimiento && `(CPT: ${item.codigoProcedimiento})`}
+                    • <span >{item.examen}</span> {item.codigoProcedimiento && `(CPT: ${item.codigoProcedimiento})`}
                   </div>
                 ))}
               </div>
@@ -217,10 +217,10 @@ function AtencionMedicaFirmaPanel({ medicalRecordData }) {
           </div>
 
           {/* 7. Medicación */}
-          <div style={{ borderBottom: '1px solid #0066ff', paddingBottom: '12px' }}>
+          <div style={{ borderBottom: '1px solid #f1f5f9', paddingBottom: '12px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
-              <ClipboardList size={13} color="#0066ff" />
-              <h4 style={{ margin: 0, fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', color: '#0066ff' }}>
+              <ClipboardList size={13} color="#050505" />
+              <h4 style={{ margin: 0, fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', color: '#050505' }}>
                 Medicación
               </h4>
             </div>
@@ -230,7 +230,7 @@ function AtencionMedicaFirmaPanel({ medicalRecordData }) {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '5px', paddingLeft: '14px' }}>
                 {dataMedicacion.map((item, idx) => (
                   <div key={item.id || idx} style={{ fontSize: '13px', color: '#1e293b', lineHeight: '1.4' }}>
-                    • <span style={{ fontWeight: '600' }}>{item.descripcion}</span>
+                    • <span >{item.descripcion}</span>
                     {item.via && ` - Vía: ${item.via}`}
                     {item.dosis && ` (Dosis: ${item.dosis})`}
                     {item.frecuencia && ` cada ${item.frecuencia} horas`}
@@ -246,7 +246,7 @@ function AtencionMedicaFirmaPanel({ medicalRecordData }) {
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
               <ClipboardList size={13} color="#475569" />
-              <h4 style={{ margin: 0, fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', color: '#475569' }}>
+              <h4 style={{ margin: 0, fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', color: '#050505' }}>
                 Alta
               </h4>
             </div>
