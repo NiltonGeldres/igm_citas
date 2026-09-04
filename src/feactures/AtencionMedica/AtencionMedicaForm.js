@@ -43,12 +43,12 @@ const {
     urlJsonFirmadoBackend,
 
   handleTriajeChange,
-  finalizarAtencionMedicaTotal,
+  guardarAtencionBorrador,
   // --------------------------------------------------------
   closeModal,
   handleSectionContentChange,
   handleSelectPaciente,
-  ejecutarGuardadoYFirmaFinal,
+//  ejecutarGuardadoYFirmaFinal,
   handleFinalizarFlujoYRegresar,
   imprimirFichaCompleta,
   imprimirDocumentosPaciente,
@@ -150,21 +150,21 @@ const {
                     />
                   )}
 
-{activeTab === 'signature' && (
-  <AtencionMedicaFirmaPanelV1
-    sectionsData={sectionsData}
-    ejecutarGuardadoYFirmaFinal={ejecutarGuardadoYFirmaFinal}
-    imprimirFichaCompleta={imprimirFichaCompleta}
-    imprimirDocumentosPaciente={imprimirDocumentosPaciente}
-    modoImpresion={modoImpresion}
-    fullMedicalRecord={fullMedicalRecord}
-    showModalMessage={showModalMessage}
-    patientData={patientData}
-    // Estados conectados a tu backend
-    atencionFirmada={estadoAtencion === 'FIRMADO'}
-    jsonFirmadoUrl={urlJsonFirmadoBackend}
-  />
-)}
+            {activeTab === 'signature' && (
+              <AtencionMedicaFirmaPanelV1
+                sectionsData={sectionsData}
+                //ejecutarGuardadoYFirmaFinal={ejecutarGuardadoYFirmaFinal}
+                imprimirFichaCompleta={imprimirFichaCompleta}
+                imprimirDocumentosPaciente={imprimirDocumentosPaciente}
+                modoImpresion={modoImpresion}
+                fullMedicalRecord={fullMedicalRecord}
+                showModalMessage={showModalMessage}
+                patientData={patientData}
+                // Estados conectados a tu backend
+                atencionFirmada={estadoAtencion === 'FIRMADO'}
+                jsonFirmadoUrl={urlJsonFirmadoBackend}
+              />
+            )}
 
                 </>
               ) : (
@@ -181,7 +181,7 @@ const {
           {activeTab !== 'signature' && patientData.id && (
             <button 
               type="button"
-              onClick={finalizarAtencionMedicaTotal}
+              onClick={guardarAtencionBorrador}
               className="hce-floating-action-button"
               title="Finalizar y Guardar Atención"
               aria-label="Finalizar y Guardar Atención"

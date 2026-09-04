@@ -41,7 +41,7 @@ function AtencionMedicaFirmaPanelV1({
   const listaMedicamentos = sourceDetails.PanelMedicacion || [];
   const listaAlta = sourceDetails.PanelAlta || [];
 
-  const handleFirmarAccion = async () => {
+  const handleGenerarPdfAccion = async () => {
     try {
       setLoadingFirma(true);
       await ejecutarGuardadoYFirmaFinal();
@@ -248,7 +248,7 @@ function AtencionMedicaFirmaPanelV1({
           {/* Botón Principal para la Generación del PDF y Cierre */}
           <button
             type="button"
-            onClick={handleFirmarAccion}
+            onClick={handleGenerarPdfAccion}
             disabled={loadingFirma}
             style={{
               width: '100%',
