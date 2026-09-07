@@ -14,6 +14,7 @@ const ENDPOINT_GENERAR_PDF_BORRADOR ="/preparar-pdf";
 
 
 const crearAtencionBorrador = (atencionMedicaRequest) => {
+    console.log("atencionMedicaRequest  "+JSON.stringify(atencionMedicaRequest))    
     return axios.post(
         `${API_URL}${SERVICE_BASE}/guardar-borrador`, 
         atencionMedicaRequest,
@@ -30,6 +31,7 @@ const crearAtencionBorrador = (atencionMedicaRequest) => {
  * Se usa cuando ya existe un idAtencion asignado (Auto-save o actualización manual).
  */
 const actualizarAtencionBorrador = (idAtencion, atencionMedicaRequest) => {
+    console.log("ACTUALIZAR   atencion  "+JSON.stringify(atencionMedicaRequest))    
     return axios.put(
         `${API_URL}${SERVICE_BASE}/actualizar-borrador/${idAtencion}`, 
         atencionMedicaRequest,
@@ -40,6 +42,24 @@ const actualizarAtencionBorrador = (idAtencion, atencionMedicaRequest) => {
         throw error; 
     });
 };
+
+/**
+ * 2. ETAPA "EN_EDICION" - ACTUALIZAR ATENCIÓN EXISTENTE (PUT)
+ * Se usa cuando ya existe un idAtencion asignado (Auto-save o actualización manual).
+ */
+    const prepararPdfAtencion = (atencionMedicaRequest) => {
+        console.log("PREPARAR PDF ATENCION ", JSON.stringify(atencionMedicaRequest));  
+        
+        return axios.post(
+            `${API_URL}${SERVICE_BASE}/preparar-pdf`, 
+            atencionMedicaRequest,
+            { headers: header() }
+        ).then(response => response.data)
+        .catch(function (error) {
+            console.error("Error en prepararPdfAtencion:", error.response?.data || error.toJSON());
+            throw error; 
+        });
+    };
 
 /**
  * 3. ETAPA "PDF_BORRADOR" - VALIDAR Y PREPARAR PDF (POST)
@@ -151,6 +171,7 @@ const getXUsuario = () => {
 const AtencionMedicaService = {
   crearAtencionBorrador,
   actualizarAtencionBorrador,
+  prepararPdfAtencion,  
   generarPdfBorradorAtencion,
   firmarAtencionDigital,  
   obtenerAtencionPorId,    

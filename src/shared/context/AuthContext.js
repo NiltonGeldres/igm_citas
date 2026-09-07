@@ -125,7 +125,7 @@ export const AuthProvider = ({ children }) => {
             nombresUsuario: resData.nombresUsuario,
             nombreEntidad: resData.nombreEntidad,
             email: resData.email,
-            idEntidad: resData.idEntidad // Incluido por si necesitas pasar la entidad al catálogo
+            //idEntidad: resData.idEntidad // Incluido por si necesitas pasar la entidad al catálogo
           };        
         
           setUser(perfilConDatosGlobales);

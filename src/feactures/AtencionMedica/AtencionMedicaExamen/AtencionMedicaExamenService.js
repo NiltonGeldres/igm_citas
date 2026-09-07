@@ -55,7 +55,6 @@ export const AtencionMedicaExamenService = {
     if (!dataAtencion || !Array.isArray(dataAtencion.examenesAuxiliares)) {
       return [];
     }
-    console.log("LABORATORIO mapper "+JSON.stringify(AtencionMedicaExamenMapper.apiToUiExamenes(dataAtencion.examenesAuxiliares, listaDiagnosticos)))
     return AtencionMedicaExamenMapper.apiToUiExamenes(dataAtencion.examenesAuxiliares, listaDiagnosticos);
   },
 

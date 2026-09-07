@@ -2,8 +2,6 @@ export const AtencionMedicaMapper = {
 
 
   uiToApiRequest: (patientData = {}, sectionsData = {}, contextoUsuario = {}) => {
-    console.log("DATOS DEL PACIENTE"+patientData)
-    console.log("DETALLE ATENCION"+sectionsData)
     // Función auxiliar para procesar colecciones (Antecedentes, Síntomas, Examen Físico, Alta)
     const procesarColeccion = (lista, keyId, keyTexto) => {
       if (!Array.isArray(lista)) return [];
@@ -34,14 +32,14 @@ export const AtencionMedicaMapper = {
       idPaciente: Number(patientData.idPaciente ?? patientData.id) || 0,
       idCita: Number(patientData.idCita ?? patientData.idCita) || 0,
       idCuentaAtencion: Number(patientData.idCuentaAtencion ?? patientData.idCuenta) || 1,
-      idServicio: Number(patientData.idServicio) || 1,
+      idServicio: Number(patientData.idServicio) || 0,
       idEspecialidad: Number(patientData.idEspecialidad ?? contextoUsuario.idEspecialidad) || 2,
       idEstadoAtencion: Number(patientData.idEstadoAtencion) || 3,
       estadoFirma: patientData.estadoFirma || "PENDIENTE",
       origenRegistroUsuario: "MEDICO_WEB_APP",
-      idMedicoIngreso: Number(contextoUsuario.idMedico) || 2,
-      idEntidad: Number(contextoUsuario.idEntidad) || 2,
-      idUsuarioRegistro: Number(contextoUsuario.idUsuario) || 12,
+      idMedicoIngreso: Number(contextoUsuario.idMedico) || 0,
+      idEntidad: Number(contextoUsuario.idEntidad) || 0,
+      idUsuarioRegistro: Number(contextoUsuario.idUsuario) || 0,
 
       // 📍 Triajes (Lectura directa desde PanelTriaje)
       triajes: (sectionsData.PanelTriaje || []).map((t) => ({

@@ -16,7 +16,6 @@ function AtencionMedicaMedicamentoPanel({ content = [], onContentChange,  onModa
   const [medicamentoActualParaEditar, setMedicamentoActualParaEditar] = useState(null);
   const [paquetesDisponibles, setPaquetesDisponibles] = useState([]);
   const [dropdownAbiertoId, setDropdownAbiertoId] = useState(null);
-  console.log("INGRESO A APANEL MEEDICACION CONTENT "+JSON.stringify(content))
   // 🔄 CAMBIO 1: Carga de lista de paquetes alineada a la nueva función del servicio
   useEffect(() => {
     const cargarPaquetes = async () => {

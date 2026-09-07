@@ -35,12 +35,11 @@ const {
   patientData,
   sectionsData,
   fullMedicalRecord,
-  // 📍 Variables agregadas para resolver los errores de ESLint:
   estadoGuardado,
   cargandoTriaje,
-// 🟢 RETORNAR LOS ESTADOS NUEVOS AQUÍ:
-    estadoAtencion,
-    urlJsonFirmadoBackend,
+  estadoFirma,
+  urlJsonFirmadoBackend,
+  rutaPdfFirmado,
 
   handleTriajeChange,
   guardarAtencionBorrador,
@@ -48,6 +47,7 @@ const {
   closeModal,
   handleSectionContentChange,
   handleSelectPaciente,
+  crearPdfBorrador , 
 //  ejecutarGuardadoYFirmaFinal,
   handleFinalizarFlujoYRegresar,
   imprimirFichaCompleta,
@@ -154,15 +154,17 @@ const {
               <AtencionMedicaFirmaPanelV1
                 sectionsData={sectionsData}
                 //ejecutarGuardadoYFirmaFinal={ejecutarGuardadoYFirmaFinal}
+                crearPdfBorrador={crearPdfBorrador}
                 imprimirFichaCompleta={imprimirFichaCompleta}
                 imprimirDocumentosPaciente={imprimirDocumentosPaciente}
                 modoImpresion={modoImpresion}
-                fullMedicalRecord={fullMedicalRecord}
+//                fullMedicalRecord={fullMedicalRecord}
                 showModalMessage={showModalMessage}
-                patientData={patientData}
+//                patientData={patientData}
                 // Estados conectados a tu backend
-                atencionFirmada={estadoAtencion === 'FIRMADO'}
+                estadoFirma={estadoFirma}
                 jsonFirmadoUrl={urlJsonFirmadoBackend}
+                rutaPdfFirmado={rutaPdfFirmado}                
               />
             )}
 
