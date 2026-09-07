@@ -1,4 +1,4 @@
-// src/features/AtencionMedica/components/AtencionMedicaPdfPanel.js
+/*// src/features/AtencionMedica/components/AtencionMedicaPdfPanel.js
 import React, { useState } from 'react';
 import { FileText, Download, CheckCircle2, AlertCircle, User, Activity, Stethoscope, Pill, TestTube } from 'lucide-react';
 
@@ -23,7 +23,7 @@ function AtencionMedicaPdfPanel({ medicalRecordData }) {
   return (
     <div style={styles.container}>
       
-      {/* HEADER DE ACCIONES */}
+      {// HEADER DE ACCIONES /}
       <div style={styles.actionHeader}>
         <div>
           <h3 style={styles.title}>Vista Previa y Cierre de Consulta</h3>
@@ -45,10 +45,10 @@ function AtencionMedicaPdfPanel({ medicalRecordData }) {
         </button>
       </div>
 
-      {/* HOJA DE VISTA PREVIA (SIMULACIÓN DE HISTORIA CLÍNICA PDF) */}
+      {// HOJA DE VISTA PREVIA (SIMULACIÓN DE HISTORIA CLÍNICA PDF) /}
       <div style={styles.paperContainer}>
         
-        {/* ENCABEZADO DEL DOCUMENTO */}
+        {// ENCABEZADO DEL DOCUMENTO /}
         <div style={styles.docHeader}>
           <div>
             <h2 style={styles.docTitle}>INFORME DE ATENCIÓN MÉDICA</h2>
@@ -62,7 +62,7 @@ function AtencionMedicaPdfPanel({ medicalRecordData }) {
 
         <hr style={styles.divider} />
 
-        {/* 1. SECCIÓN PACIENTE */}
+        {// 1. SECCIÓN PACIENTE /}
         <div style={styles.section}>
           <div style={styles.sectionHeader}>
             <User size={16} color="#0d6efd" />
@@ -74,7 +74,7 @@ function AtencionMedicaPdfPanel({ medicalRecordData }) {
           </div>
         </div>
 
-        {/* 2. SIGNOS VITALES / TRIAJE */}
+        {// 2. SIGNOS VITALES / TRIAJE /}
         <div style={styles.section}>
           <div style={styles.sectionHeader}>
             <Activity size={16} color="#0d6efd" />
@@ -94,7 +94,7 @@ function AtencionMedicaPdfPanel({ medicalRecordData }) {
           )}
         </div>
 
-        {/* 3. ANAMNESIS Y EXAMEN FÍSICO */}
+        {// 3. ANAMNESIS Y EXAMEN FÍSICO /}
         <div style={styles.section}>
           <div style={styles.sectionHeader}>
             <Stethoscope size={16} color="#0d6efd" />
@@ -114,7 +114,7 @@ function AtencionMedicaPdfPanel({ medicalRecordData }) {
           </div>
         </div>
 
-        {/* 4. DIAGNÓSTICOS */}
+        {/ 4. DIAGNÓSTICOS /}
         <div style={styles.section}>
           <div style={styles.sectionHeader}>
             <FileText size={16} color="#0d6efd" />
@@ -133,7 +133,7 @@ function AtencionMedicaPdfPanel({ medicalRecordData }) {
           )}
         </div>
 
-        {/* 5. PLAN DE TRABAJO Y EXÁMENES */}
+        {// 5. PLAN DE TRABAJO Y EXÁMENES /}
         <div style={styles.section}>
           <div style={styles.sectionHeader}>
             <TestTube size={16} color="#0d6efd" />
@@ -152,7 +152,7 @@ function AtencionMedicaPdfPanel({ medicalRecordData }) {
           )}
         </div>
 
-        {/* 6. MEDICAClÓN / TRATAMIENTO */}
+        {/ 6. MEDICAClÓN / TRATAMIENTO /}
         <div style={styles.section}>
           <div style={styles.sectionHeader}>
             <Pill size={16} color="#0d6efd" />
@@ -207,3 +207,4 @@ const styles = {
 };
 
 export default AtencionMedicaPdfPanel;
+*/

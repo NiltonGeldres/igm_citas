@@ -1,68 +1,94 @@
 import React from 'react';
-import { CheckCircle, Download, Printer, Microscope, Pill } from 'lucide-react';
+import { CheckCircle, Microscope, Pill, FileText } from 'lucide-react';
 
 export function BarraHerramientasFirma({ 
-  jsonFirmadoUrl, 
-  imprimirDocumentosPaciente, 
   vistaDocumento, 
   setVistaDocumento 
 }) {
-  return (
-    <>
-      <div className="no-print" style={{ backgroundColor: '#ffffff', border: '1px solid #cbd5e1', borderLeft: '5px solid #16a34a', padding: '12px 18px', borderRadius: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <CheckCircle size={22} color="#16a34a" />
-          <div>
-            <h4 style={{ margin: 0, fontSize: '14px', color: '#0f172a', fontWeight: '700' }}>
-              Atención Médica Guardada y Documento Generado
-            </h4>
-            <p style={{ margin: '2px 0 0 0', fontSize: '11px', color: '#475569' }}>
-              Consulte el PDF borrador antes de proceder con el firmado final.
-            </p>
-          </div>
-        </div>
+  const DOCUMENT_TABS = [
+    { id: 'hc', label: 'HC', icon: FileText, title: 'Historia Clínica (PDF)' },
+    { id: 'ordenes', label: 'Órdenes', icon: Microscope, title: 'Órdenes Médicas' },
+    { id: 'receta', label: 'Receta', icon: Pill, title: 'Receta Médica' }
+  ];
 
-        <div style={{ display: 'flex', gap: '8px' }}>
-          {jsonFirmadoUrl && (
-            <a href={jsonFirmadoUrl} target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', gap: '6px', backgroundColor: '#ffffff', color: '#334155', border: '1px solid #cbd5e1', borderRadius: '6px', padding: '6px 12px', fontSize: '12px', fontWeight: '600', textDecoration: 'none' }}>
-              <Download size={14} /> JSON Firmado
-            </a>
-          )}
-          <button type="button" onClick={imprimirDocumentosPaciente} style={{ display: 'flex', alignItems: 'center', gap: '6px', backgroundColor: '#0f172a', color: '#ffffff', border: 'none', borderRadius: '6px', padding: '6px 14px', fontSize: '12px', fontWeight: '600', cursor: 'pointer' }}>
-            <Printer size={14} /> Imprimir Documentos
-          </button>
-        </div>
+  return (
+    <div 
+      className="no-print" 
+      style={{ 
+        display: 'flex', 
+        alignItems: 'center', 
+        justifyContent: 'space-between',
+        padding: '6px 12px',
+        gap: '12px'
+      }}
+    >
+      {/* LADO IZQUIERDO: Mensaje informativo */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
+        <CheckCircle size={18} color="#16a34a" style={{ flexShrink: 0 }} />
+        <span style={{ fontSize: '12px', color: '#334155', fontWeight: '600' }}>
+          Atención Médica Guardada y Documento Generado.
+        </span>
       </div>
 
-      <div className="no-print" style={{ display: 'flex', gap: '12px', borderBottom: '1px solid #e2e8f0', paddingBottom: '8px' }}>
-        {[
-          { id: 'hc', type: 'text', content: 'HC', title: 'Historia Clínica (PDF GCS)' },
-          { id: 'ordenes', type: 'icon', icon: Microscope, title: 'Órdenes Médicas' },
-          { id: 'receta', type: 'icon', icon: Pill, title: 'Receta Medicamentos' }
-        ].map((item) => {
+      {/* LADO DERECHO: Barra estilo Visor de PDF (Fondo oscuro e íconos limpios) */}
+      <div 
+        style={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          gap: '4px', 
+          backgroundColor: '#323639', // Gris oscuro del visor PDF
+          padding: '4px 8px',
+          borderRadius: '6px',
+          flexShrink: 0 
+        }}
+      >
+        {DOCUMENT_TABS.map((item) => {
           const isSelected = vistaDocumento === item.id;
           const Icono = item.icon;
+
           return (
-            <span
+            <button
               key={item.id}
+              type="button"
               onClick={() => setVistaDocumento(item.id)}
               title={item.title}
               style={{
-                width: '32px', height: '32px', borderRadius: '8px',
-                backgroundColor: isSelected ? '#1d4ed8' : '#3b82f6',
-                display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-                cursor: 'pointer', opacity: isSelected ? 1 : 0.7, transition: 'all 0.15s ease'
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: '32px',
+                height: '32px',
+                border: 'none',
+                borderRadius: '50%', // Forma circular tipo botón de acción
+                backgroundColor: isSelected ? 'rgba(255, 255, 255, 0.2)' : 'transparent',
+                color: isSelected ? '#ffffff' : '#9ca3af',
+                cursor: 'pointer',
+                transition: 'background-color 0.15s ease, color 0.15s ease',
+                outline: 'none',
+                padding: 0
+              }}
+              onMouseEnter={(e) => {
+                if (!isSelected) {
+                  e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+                  e.currentTarget.style.color = '#f3f4f6';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!isSelected) {
+                  e.currentTarget.style.backgroundColor = 'transparent';
+                  e.currentTarget.style.color = '#9ca3af';
+                }
               }}
             >
-              {item.type === 'text' ? (
-                <span style={{ color: '#ffffff', fontSize: '11px', fontWeight: '800' }}>{item.content}</span>
+              {item.id === 'hc' ? (
+                <span style={{ fontSize: '11px', fontWeight: '800', lineHeight: 1 }}>HC</span>
               ) : (
-                <Icono size={18} color="#ffffff" />
+                <Icono size={18} />
               )}
-            </span>
+            </button>
           );
         })}
       </div>
-    </>
+    </div>
   );
 }

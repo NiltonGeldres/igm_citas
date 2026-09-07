@@ -1,150 +1,136 @@
 import React from 'react';
-import { User, Calendar, RefreshCw, Cloud } from 'lucide-react';
+import { User, RefreshCw, Cloud, Calendar } from 'lucide-react';
 import { formatCapitalize } from '../utils/textFormatter';
-import TabNavigation from './TabNavigation'; // Revisa la ruta según la carpeta final
+import TabNavigation from './TabNavigation';
 
-function AtencionMedicaHeader({ patientData, estadoGuardado, onOpenAgenda,  activeTab, setActiveTab }) {
+function AtencionMedicaHeader({ patientData, estadoGuardado, onOpenAgenda, activeTab, setActiveTab }) {
   return (
-    <div className="fixed-header-wrapper-hce">
-      <div className="patient-summary-card-hce">
-        {patientData.id ? (
-          <div className="patient-title-row-hce">
-            <div className="patient-avatar-inline-hce">
-              <User size={20} color="#0070da" strokeWidth={2.5} />
+    <div className="fixed-header-wrapper-hce" style={{ padding: '8px 12px 0 12px' }}>
+      {/* TARJETA UNIFICADA: Agrupa Datos del Paciente + Tabs en un solo bloque con el mismo ancho y borde */}
+      <div 
+        style={{ 
+          backgroundColor: '#ffffff', 
+          borderRadius: '12px', 
+          border: '1px solid #e2e8f0', 
+          boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
+          overflow: 'hidden'
+        }}
+      >
+        {/* SECCIÓN SUPERIOR: Resumen del Paciente */}
+        <div style={{ padding: '10px 14px 8px 14px' }}>
+          {patientData.id ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+              
+              {/* Fila 1: Botón Cambiar + Nombre + Estado Sync */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', width: '100%' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0, flex: 1 }}>
+                  
+                  {/* Botón interactivo de usuario */}
+                  <button
+                    type="button"
+                    onClick={onOpenAgenda}
+                    title="Cambiar paciente"
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      width: '28px',
+                      height: '28px',
+                      borderRadius: '50%',
+                      backgroundColor: '#eff6ff',
+                      border: '1px solid #bfdbfe',
+                      cursor: 'pointer',
+                      flexShrink: 0,
+                      padding: 0
+                    }}
+                  >
+                    <User size={16} color="#0284c7" strokeWidth={2.5} />
+                  </button>
+
+                  {/* Nombre destacado */}
+                  <h2 
+                    style={{ 
+                      margin: 0, 
+                      fontSize: '15Spx', 
+                      color: '#0f172a', 
+                      fontWeight: '750',
+                      lineHeight: '1.2',
+                      display: '-webkit-box',
+                      WebkitLineClamp: 2,
+                      WebkitBoxOrient: 'vertical',
+                      overflow: 'hidden',
+                      wordBreak: 'break-word'
+                    }}
+                    title={patientData.name}
+                  >
+                    {formatCapitalize(patientData.name)}
+                  </h2>
+                </div>
+
+                {/* Indicador de Estado de Sincronización */}
+                <div className={`status-cloud-indicator sync-${estadoGuardado}`} style={{ flexShrink: 0 }}>
+                  {estadoGuardado === 'saving' && <RefreshCw size={13} className="spinner-sync" color="#2563eb" />}
+                  {estadoGuardado === 'saved' && <Cloud size={13} color="#16a34a" />}
+                  {estadoGuardado === 'idle' && <Cloud size={13} color="#64748b" />}
+                  {estadoGuardado === 'error' && <Cloud size={13} color="#dc2626" />}
+                </div>
+              </div>
+
+              {/* Fila 2: Etiquetas de información demográfica */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', color: '#475569', paddingLeft: '36px' }}>
+                <span style={{ backgroundColor: '#f1f5f9', padding: '2px 6px', borderRadius: '4px', fontSize: '10px' }}>
+                  <strong>Sexo:</strong> {patientData.sex ? formatCapitalize(patientData.sex) : 'N/A'}
+                </span>
+                <span style={{ backgroundColor: '#f1f5f9', padding: '2px 6px', borderRadius: '4px', fontSize: '10px' }}>
+                  <strong>Edad:</strong> {patientData.age ? patientData.age : 'N/A'}
+                </span>
+                <span style={{ backgroundColor: '#eff6ff', color: '#1d4ed8', padding: '2px 6px', borderRadius: '4px', fontSize: '10px', fontWeight: '700' }}>
+                  HC: {patientData.hc || '---'}
+                </span>
+              </div>
+
             </div>
-            <h2 className="patient-summary-name-hce">
-              {formatCapitalize(patientData.name)}
-            </h2>
-
-            <button 
-              type="button" 
-              className="btn-change-patient-trigger"
-              onClick={onOpenAgenda}
-            >
-              <Calendar size={14} style={{ marginRight: '4px' }} />
-              Cambiar
-            </button>
-
-            <div className={`status-cloud-indicator sync-${estadoGuardado}`}>
-              {estadoGuardado === 'saving' && <RefreshCw size={14} className="spinner-sync" />}
-              {estadoGuardado === 'saved' && <Cloud size={14} className="cloud-success" />}
-              {estadoGuardado === 'idle' && <Cloud size={14} className="cloud-idle" />}
-              {estadoGuardado === 'error' && <Cloud size={14} className="cloud-error" />}
-              <span className="sync-text-label">
-                {estadoGuardado === 'saving' && 'Guardando...'}
-                {estadoGuardado === 'saved' && 'Sincronizado'}
-                {estadoGuardado === 'idle' && 'HCE Sincronizada'}
-                {estadoGuardado === 'error' && 'Error de red'}
-              </span>
-            </div>                  
-          </div>
-        ) : (
-          <div className="patient-title-row-hce empty-patient-header-state">
-            <h2 className="patient-summary-name-hce" style={{ color: '#64748b' }}>
-              Ningún paciente seleccionado
-            </h2>
-            <button 
-              type="button" 
-              className="btn-open-agenda-main"
-              onClick={onOpenAgenda}
-            >
-              <Calendar size={14} style={{ marginRight: '4px' }} />
-              Cargar Lista de Citas
-            </button>
-          </div>
-        )}
-        
-        <div className="patient-metrics-row-hce">
-          <div className="patient-metric-block-hce">
-            <span className="patient-metric-label-hce">Sexo</span>
-            <span className="patient-metric-value-hce">
-              {patientData.sex ? formatCapitalize(patientData.sex) : 'N/A'}
-            </span>
-          </div>
-          <div className="patient-metric-block-hce">
-            <span className="patient-metric-label-hce">Edad</span>
-            <span className="patient-metric-value-hce">
-              {patientData.age ? patientData.age : 'Edad'}
-            </span>
-          </div>
-          <div className="patient-metric-block-hce">
-            <span className="patient-metric-label-hce">N° Historia</span>
-            <span className="patient-metric-value-hce hc-highlight">
-              {patientData.hc || '---'}
-            </span>
-          </div>
+          ) : (
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <h2 style={{ margin: 0, fontSize: '13px', color: '#64748b', fontWeight: '500' }}>
+                Ningún paciente seleccionado
+              </h2>
+              <button 
+                type="button" 
+                onClick={onOpenAgenda}
+                style={{ 
+                  display: 'inline-flex', 
+                  alignItems: 'center', 
+                  gap: '4px', 
+                  padding: '4px 10px', 
+                  borderRadius: '5px', 
+                  backgroundColor: '#2563eb', 
+                  border: 'none', 
+                  color: '#ffffff', 
+                  fontSize: '11px', 
+                  fontWeight: '600', 
+                  cursor: 'pointer' 
+                }}
+              >
+                <Calendar size={13} />
+                Lista de Citas
+              </button>
+            </div>
+          )}
         </div>
+
+        {/* LÍNEA DIVISORIA DE MÓDULO */}
+        <div style={{ borderTop: '1px solid #f1f5f9' }} />
+
+        {/* SECCIÓN INFERIOR: Pestañas con exactamente el mismo ancho */}
+        <TabNavigation
+          activeTab={activeTab}
+          onSelectTab={setActiveTab}
+          isDisabled={!patientData?.id}
+        />
       </div>
-
-    {/* NAVEGACIÓN INDEPENDIZADA */}
-      <TabNavigation
-        activeTab={activeTab}
-        onSelectTab={setActiveTab}
-        isDisabled={!patientData?.id}
-      />
-
-
     </div>
   );
 }
 
 export default AtencionMedicaHeader;
-
-
-/**
- 
-      <div className="hce-tabs-navigation-container">
-        <div className="hce-tabs-track">
-          {menuItems.map((item) => {
-            const IconComponent = item.icon;
-            const isActive = activeTab === item.id;
-            return (
-              <button
-                key={item.id}
-                disabled={!patientData.id}
-                onClick={() => setActiveTab(item.id)}
-                className={`hce-tab-item ${isActive ? 'is-active' : ''}`}
-                style={{ opacity: patientData.id ? 1 : 0.5 }}
-              >
-                <IconComponent size={16} className="hce-tab-icon" />
-                <span className="hce-tab-text">{item.label}</span>
-              </button>
-            );
-          })}
-        </div>
-      </div>
- * 
- */
-
-/*
-// src/feactures/AtencionMedica/components/AtencionMedicaHeader.js
-import React from 'react';
-import AtencionMedicaPacienteDatos from '../AtencionMedicaPacienteDatos/AtencionMedicaPacienteDatos';
-
-export const AtencionMedicaHeader = ({ paciente, onEditClick }) => {
-  // Validación de seguridad para evitar errores de renderizado
-  if (!paciente) return null;
-
-  // Normalización para que coincida con lo que espera AtencionMedicaPacienteDatos (name, id, age, sex)
-  const normalizedPatientData = {
-    name: paciente.name || paciente.nombres || paciente.nombre || 'Paciente Sin Nombre',
-    id: paciente.id || paciente.numHistoria || paciente.hc || 'N/A',
-    age: paciente.age || paciente.edad || 'N/A',
-    sex: paciente.sex || paciente.sexo || 'N/A'
-  };
-
-  return (
-    <div className="hce-header-wrapper">
-      <AtencionMedicaPacienteDatos 
-        patientData={normalizedPatientData} 
-        onEditClick={onEditClick} 
-      />
-      
-      <div className="hce-badge-accion" style={{ marginTop: '0.5rem' }}>
-        <span className={`badge ${paciente.accionAgenda === 'ACTUALIZAR' ? 'badge-warning' : 'badge-primary'}`}>
-          {paciente.accionAgenda === 'ACTUALIZAR' ? 'Modo: Edición de Atención' : 'Modo: Nueva Atención'}
-        </span>
-      </div>
-    </div>
-  );
-};*/

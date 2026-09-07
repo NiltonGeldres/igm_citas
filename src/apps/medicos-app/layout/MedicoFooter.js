@@ -8,8 +8,11 @@ export const MedicoFooter = () => {
 const menuItems = [
   { id: 'prog', label: 'Programación', icon: CalendarDays, path: '/med/scheduling' },
   { id: 'fact', label: 'Facturación', icon: CreditCard, path: '/med/billing' },
-  { id: 'agenda', label: 'Agenda', icon: ClipboardList, path: '/med/agenda' },
-  { id: 'atencion-medica', label: 'Atención', icon: Stethoscope, path: '/med/atencion-medica', ocultarEnFooter: true },];
+//  { id: 'agenda', label: 'Agenda', icon: ClipboardList, path: '/med/agenda' },
+//  { id: 'atencion-medica', label: 'Atención', icon: Stethoscope, path: '/med/atencion-medica', ocultarEnFooter: true },
+  { id: 'atencion-medica', label: 'Atención', icon: Stethoscope, path: '/med/atencion-medica'},
+  { id: 'firma', label: 'Firmar', icon: ClipboardList, path: '/med/firma' },
+];
 
 
   return (
