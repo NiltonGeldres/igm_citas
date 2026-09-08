@@ -1,57 +1,82 @@
-export const ListaAtencionesLote = ({ 
-  pasoActual, 
-  atenciones, 
-  atencionSeleccionada, 
-  alSeleccionarAtencion, 
-  alAccionarBotonPaso 
+export const ListaAtencionesLote = ({
+  pasoActual,
+  atenciones,
+  atencionSeleccionada,
+  alSeleccionarAtencion,
+  alAccionarBotonPaso
 }) => {
   return (
-    <div className="fd-panel-list">
-      <div className="fd-panel-header">
-        <span className="fd-panel-title">
-          {pasoActual === 1 && 'ATENCIONES DISPONIBLES'}
-          {pasoActual === 2 && 'ESTADO DE LA CARPETA SALIDA'}
-          {pasoActual === 3 && 'CONFIRMACIÓN DE LOTE FIRMADO'}
+    <div style={{
+      backgroundColor: '#1b2433',
+      border: '1px solid #2d3848',
+      borderRadius: '8px',
+      padding: '16px',
+      height: '100%',
+      boxSizing: 'border-box',
+      display: 'flex',
+      flexDirection: 'column',
+      width: '100%'
+    }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+        <span style={{ fontSize: '12px', fontWeight: 'bold', color: '#ffffff' }}>
+          {pasoActual === 1 && 'PENDIENTE_DE_FIRMA'}
+          {pasoActual === 2 && 'CARPETA SALIDA'}
+          {pasoActual === 3 && 'LOTE CONFIRMADO'}
         </span>
-        <span className="fd-count-tag">
-          {atenciones.filter(a => a.estado === 'DESCARGADO' || a.estado === 'FIRMADO').length} Listos
+        <span style={{ backgroundColor: '#b45309', color: '#fef3c7', padding: '2px 8px', borderRadius: '4px', fontSize: '10px', fontWeight: 'bold', textAlign: 'right' }}>
+          Lotes<br />3 / 15 Max
         </span>
       </div>
 
       <button
         type="button"
         onClick={alAccionarBotonPaso}
-        className={`fd-action-btn paso-${pasoActual}`}
+        style={{
+          width: '100%',
+          backgroundColor: '#00a3e0',
+          color: '#ffffff',
+          border: 'none',
+          borderRadius: '6px',
+          padding: '10px',
+          fontWeight: 'bold',
+          fontSize: '12px',
+          cursor: 'pointer',
+          marginBottom: '14px',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          gap: '6px'
+        }}
       >
-        {pasoActual === 1 && '📥 Descargar PDFs a C:\\ReFirma\\Entrada'}
-        {pasoActual === 2 && '💻 Cargar / Abrir ReFirma PC'}
-        {pasoActual === 3 && '🚀 Confirmar Guardado'}
+        📥 PASO 1: Descargar Lote (.ZIP)
       </button>
 
-      <div className="fd-items-scroll">
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', overflowY: 'auto' }}>
         {atenciones.map((item) => {
           const esSeleccionado = atencionSeleccionada?.id === item.id;
-          const esPendientePaso1 = pasoActual === 1 && item.estado === 'PENDIENTE';
-          const esOmitidoPaso2 = pasoActual === 2 && item.estado !== 'FIRMADO';
-
           return (
             <div
               key={item.id}
-              onClick={() => !esPendientePaso1 && alSeleccionarAtencion(item)}
-              className={`fd-item-card ${esSeleccionado ? 'selected' : ''} ${item.estado === 'FIRMADO' ? 'firmado' : ''} ${esOmitidoPaso2 ? 'omitido' : ''} ${esPendientePaso1 ? 'disabled' : ''}`}
+              onClick={() => alSeleccionarAtencion(item)}
+              style={{
+                backgroundColor: '#131c2a',
+                border: esSeleccionado ? '2px solid #00a3e0' : '1px solid #243049',
+                borderRadius: '6px',
+                padding: '12px',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'flex-start',
+                gap: '10px'
+              }}
             >
-              <div className="fd-item-body">
-                <input type="checkbox" checked={item.seleccionado} readOnly disabled={esPendientePaso1} />
-                <div>
-                  <div className="fd-patient-name">{item.pacienteNombre}</div>
-                  <div className="fd-file-name">{item.nombreArchivo}</div>
-                  <div className={`fd-item-status ${item.estado === 'FIRMADO' ? 'ok' : 'info'}`}>
-                    {item.estado === 'FIRMADO' && '✓ Detectado en Salida (Vista Habilitada)'}
-                    {item.estado === 'DESCARGADO' && '✓ Descargado en C:\\ReFirma\\Entrada'}
-                    {item.estado === 'PENDIENTE' && '⌛ Pendiente de descarga'}
-                    {esOmitidoPaso2 && '🚫 No detectado en Salida (Vista Bloqueada)'}
-                  </div>
+              <input type="checkbox" checked={item.seleccionado} readOnly style={{ marginTop: '3px' }} />
+              <div style={{ width: '100%' }}>
+                <div style={{ fontSize: '13px', fontWeight: 'bold', color: '#ffffff' }}>{item.pacienteNombre}</div>
+                <div style={{ fontSize: '10px', color: '#94a3b8', marginTop: '2px' }}>
+                  HC: {item.dni} | Atenc: #{item.id}
                 </div>
+                <div style={{ fontSize: '11px', color: '#38bdf8', marginTop: '2px' }}>{item.nombreArchivo}</div>
+                <div style={{ fontSize: '10px', color: '#38bdf8', fontWeight: 'bold', marginTop: '2px' }}>(PDF Borrador R2)</div>
               </div>
             </div>
           );

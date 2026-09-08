@@ -6,6 +6,7 @@ const API_URL = process.env.REACT_APP_URL_API;
 const SERVICE_BASE = "/api/v1/atenciones-medicas";
 const ENDPOINT_GUARDAR_FIRMA = "/atencionMedicaGuardar"; 
 const ENDPOINT_GENERAR_PDF_BORRADOR = "/preparar-pdf";
+const ENDPOINT_PENDIENTES_FIRMA = "/pendientes-firma";
 
 const guardarPdfFirmado = async (atencionMedicaRequest) => {
   const respuesta = await axios.post(
@@ -25,9 +26,24 @@ const generarPdfBorrador = async (atencionId) => {
   return respuesta.data;
 };
 
-const AtencionMedicaService = {
-  guardarPdfFirmado,
-  generarPdfBorrador
+// 3. Listar Atenciones Pendientes de Firma por Médico (Tenant implícito en Backend)
+const listarPendientesFirma = async (idMedico) => {
+  const respuesta = await axios.get(
+    `${API_URL}${SERVICE_BASE}${ENDPOINT_PENDIENTES_FIRMA}`,
+    {
+      params: { idMedico },
+      headers: header()
+    }
+  );
+  return respuesta.data;
 };
 
-export default AtencionMedicaService;
+const FirmaDigitalService = {
+  guardarPdfFirmado,
+  generarPdfBorrador,
+  listarPendientesFirma
+};
+
+
+
+export default FirmaDigitalService;
