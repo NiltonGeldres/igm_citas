@@ -192,7 +192,7 @@ const styles = {
   },
   tituloPaciente: {
     margin: 0,
-    fontSize: '15px',
+    fontSize: '11px',
     fontWeight: 'bold',
     color: '#f8fafc'
   },

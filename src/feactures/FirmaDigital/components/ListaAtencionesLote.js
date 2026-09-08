@@ -3,7 +3,8 @@ export const ListaAtencionesLote = ({
   atenciones,
   atencionSeleccionada,
   alSeleccionarAtencion,
-  alAccionarBotonPaso
+  alAccionarBotonPaso,
+  cargando
 }) => {
   return (
     <div style={{
@@ -27,20 +28,22 @@ export const ListaAtencionesLote = ({
           Lotes<br />3 / 15 Max
         </span>
       </div>
-
+      
       <button
         type="button"
         onClick={alAccionarBotonPaso}
+        disabled={cargando}
         style={{
           width: '100%',
-          backgroundColor: '#00a3e0',
+          backgroundColor: pasoActual === 1 ? '#00a3e0' : pasoActual === 2 ? '#16a34a' : '#2563eb',
           color: '#ffffff',
           border: 'none',
           borderRadius: '6px',
           padding: '10px',
           fontWeight: 'bold',
           fontSize: '12px',
-          cursor: 'pointer',
+          cursor: cargando ? 'not-allowed' : 'pointer',
+          opacity: cargando ? 0.7 : 1,
           marginBottom: '14px',
           display: 'flex',
           justifyContent: 'center',
@@ -48,8 +51,13 @@ export const ListaAtencionesLote = ({
           gap: '6px'
         }}
       >
-        📥 PASO 1: Descargar Lote (.ZIP)
+        {cargando && '⏳ Procesando...'}
+        {!cargando && pasoActual === 1 && '📥 PASO 1: Descargar Lote (.ZIP)'}
+        {!cargando && pasoActual === 2 && '📤 PASO 2: Cargar Firmados'}
+        {!cargando && pasoActual === 3 && '✅ PASO 3: Consolidar Lote'}
       </button>
+
+
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', overflowY: 'auto' }}>
         {atenciones.map((item) => {
