@@ -1,5 +1,5 @@
 import React from 'react';
-import { CheckCircle, Microscope, Pill, FileText } from 'lucide-react';
+import { CheckCircle, Microscope, Pill, FileText,ClipboardList } from 'lucide-react';
 
 export function BarraHerramientasFirma({ 
   vistaDocumento, 
@@ -8,7 +8,8 @@ export function BarraHerramientasFirma({
   const DOCUMENT_TABS = [
     { id: 'hc', label: 'HC', icon: FileText, title: 'Historia Clínica (PDF)' },
     { id: 'ordenes', label: 'Órdenes', icon: Microscope, title: 'Órdenes Médicas' },
-    { id: 'receta', label: 'Receta', icon: Pill, title: 'Receta Médica' }
+    { id: 'receta', label: 'Receta', icon: Pill, title: 'Receta Médica' },
+    { id: 'indicaciones', label: 'Indicaciones', icon: ClipboardList, title: 'indicaciones Médicas' }
   ];
 
   return (

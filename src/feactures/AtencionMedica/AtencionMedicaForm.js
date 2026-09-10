@@ -40,7 +40,7 @@ const {
   estadoFirma,
   urlJsonFirmadoBackend,
   rutaPdfFirmado,
-
+   documentosPdf, 
   handleTriajeChange,
   guardarAtencionBorrador,
   // --------------------------------------------------------
@@ -150,24 +150,18 @@ const {
                     />
                   )}
 
-            {activeTab === 'signature' && (
-              <AtencionMedicaFirmaPanelV1
-                sectionsData={sectionsData}
-                //ejecutarGuardadoYFirmaFinal={ejecutarGuardadoYFirmaFinal}
-                crearPdfBorrador={crearPdfBorrador}
-                imprimirFichaCompleta={imprimirFichaCompleta}
-                imprimirDocumentosPaciente={imprimirDocumentosPaciente}
-                modoImpresion={modoImpresion}
-//                fullMedicalRecord={fullMedicalRecord}
-                showModalMessage={showModalMessage}
-//                patientData={patientData}
-                // Estados conectados a tu backend
-                estadoFirma={estadoFirma}
-                jsonFirmadoUrl={urlJsonFirmadoBackend}
-                rutaPdfFirmado={rutaPdfFirmado}                
-              />
-            )}
-
+{activeTab === 'signature' && (
+  <AtencionMedicaFirmaPanelV1
+    sectionsData={sectionsData}
+    crearPdfBorrador={crearPdfBorrador}
+    imprimirDocumentosPaciente={imprimirDocumentosPaciente}
+    showModalMessage={showModalMessage}
+    estadoFirma={estadoFirma}
+    jsonFirmadoUrl={urlJsonFirmadoBackend}
+    rutaPdfFirmado={rutaPdfFirmado}
+    documentosPdf={documentosPdf} // 🟢 ENLACE CON EL HOOK
+  />
+)}
                 </>
               ) : (
                 <div className="hce-waiting-placeholder">
@@ -259,3 +253,6 @@ const {
 
 export default AtencionMedicaForm;
 
+//                patientData={patientData}
+                //ejecutarGuardadoYFirmaFinal={ejecutarGuardadoYFirmaFinal}
+//                fullMedicalRecord={fullMedicalRecord}

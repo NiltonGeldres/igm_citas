@@ -2,6 +2,7 @@
 import header from "../../shared/utils/Header";
 import axios from "axios";
 
+
 const API_URL = process.env.REACT_APP_URL_API; 
 const SERVICE_BASE = "/api/v1/atenciones-medicas";
 const ENDPOINT_GUARDAR_FIRMA = "/atencionMedicaGuardar"; 

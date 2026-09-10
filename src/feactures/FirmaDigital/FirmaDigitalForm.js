@@ -23,7 +23,6 @@ function FirmaDigitalForm() {
         setError(null);
         
         const data = await FirmaDigitalService.listarPendientesFirma(ID_MEDICO_LOGUEADO);
-        
         const atencionesMapeadas = data.map((item) => ({
           id: item.idAtencion,
           pacienteNombre: item.nombrePaciente,

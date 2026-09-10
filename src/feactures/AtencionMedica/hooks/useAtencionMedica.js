@@ -1,30 +1,34 @@
-import { useState,  useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import AtencionMedicaService from "../AtencionMedicaService";
 import { AtencionMedicaTriajeService } from '../AtencionMedicaTriaje/AtencionMedicaTriajeService';
 import { AtencionMedicaMapper } from '../AtencionMedicaMapper';
 import { AtencionMedicaSectionsRegistry } from '../AtencionMedicaSectionsRegistry';
 import { useAuth } from '../../../shared/context/AuthContext';
+
 export const ESTADOS_ATENCION = {
   BORRADOR: 'BORRADOR',
   PDF_BORRADOR: 'PENDIENTE_FIRMA',
   FIRMADO: 'FIRMADO'
 };
 
-
-
-
 export const useAtencionMedica = () => {
-  const { user, entidad } = useAuth();
+  const { user } = useAuth();
   const [cargando, setCargando] = useState(false);
 
   const [hashIntegridad, setHashIntegridad] = useState(null);
   const [rutaPdfFirmado, setRutaPdfFirmado] = useState(null);
-//  const [pdfBorradorUrl, setPdfBorradorUrl] = useState(null);
   const [urlJsonFirmadoBackend, setUrlJsonFirmadoBackend] = useState(null);
-  
+
+  // 🟢 ESTADO PARA ALMACENAR LAS 4 RUTAS DE PDFs
+  const [documentosPdf, setDocumentosPdf] = useState({
+    hc: null,
+    ordenes: null,
+    receta: null,
+    indicaciones: null
+  });
+
   const [estadoFirma, setEstadoFirma] = useState(ESTADOS_ATENCION.BORRADOR);
- //const [estadoAtencion, setEstadoAtencion] = useState(ESTADOS_ATENCION.EN_EDICION);
-  const [estadoGuardado, setEstadoGuardado] = useState('IDLE'); // 'SAVING' | 'SAVED' | 'ERROR' | 'IDLE'
+  const [estadoGuardado, setEstadoGuardado] = useState('IDLE');
   
   const [atencionCompleta, setAtencionCompleta] = useState(null);
   const [loadingAtencion, setLoadingAtencion] = useState(false);
@@ -38,10 +42,10 @@ export const useAtencionMedica = () => {
 
   const [datosGuardadosExito, setDatosGuardadosExito] = useState(null);
   const [mostrarModalExito, setMostrarModalExito] = useState(false);
+  
   const showModalMessage = (message) => setModalMessage(message);
   const closeModal = () => setModalMessage('');  
 
-  // ENTIDAD DE CABECERA Y CONTEXTO DEL PACIENTE (Sin arreglos clínicos)
   const [patientData, setPatientData] = useState({
     name: '',
     sex: '',
@@ -53,7 +57,7 @@ export const useAtencionMedica = () => {
     idAtencion: null,
     accionAgenda: 'ATENDER'
   });
-  // SECCIONES DE FORMULARIO CLÍNICO (El triaje pertenece exclusivamente a esta estructura)
+
   const [sectionsData, setSectionsData] = useState({
     PanelTriaje: [], 
     PanelAntecedentes: [],
@@ -67,17 +71,24 @@ export const useAtencionMedica = () => {
   });
 
   const contextoUsuario = {
-    idUsuario:  user.idUsuario || 0,
-    idMedico:  user.idMedico  || 0,
+    idUsuario: user.idUsuario || 0,
+    idMedico: user.idMedico || 0,
     idEntidad: user.idEntidad || 0,
   };
+
+  // 🟢 HELPER PARA MAPEAR LAS 4 RUTAS DESDE EL JSON DEL BACKEND
+  const extraerDocumentosPdf = (data) => ({
+    hc: data?.pdfRutaHistoria || data?.rutaPdfFirmado || null,
+    ordenes: data?.pdfRutaOrdenes || null,
+    receta: data?.pdfRutaReceta || null,
+    indicaciones: data?.pdfRutaIndicaciones || null
+  });
 
   useEffect(() => {
     if (!patientData.id) {
       setIsAgendaOpen(true);
     }
   }, [patientData.id]);
-
 
   const guardarAtencionBorrador = useCallback(async (esAutoSave = false) => {
     try {
@@ -92,25 +103,17 @@ export const useAtencionMedica = () => {
       let respuesta;
       const idAtencionExistente = patientData?.idAtencion;
 
-      // =========================================================================
-      // DECISIÓN: ¿ES CREAR (NUEVO) O ACTUALIZAR?
-      // =========================================================================
       if (!idAtencionExistente) {
-        // SERVICIO 1: AGREGAR / CREAR NUEVO
         respuesta = await AtencionMedicaService.crearAtencionBorrador(payload);
-        
-        // Asignamos el idAtencion generado para que las siguientes llamadas sean UPDATE
         if (respuesta?.idAtencion) {
-          setPatientData(prev => ({
-            ...prev,
-            idAtencion: respuesta.idAtencion
-          }));
+          setPatientData(prev => ({ ...prev, idAtencion: respuesta.idAtencion }));
         }
       } else {
-        // SERVICIO 2: ACTUALIZAR EXISTENTE
         respuesta = await AtencionMedicaService.actualizarAtencionBorrador(idAtencionExistente, payload);
       }
+
       setEstadoFirma(respuesta.estadoFirma);
+      setDocumentosPdf(extraerDocumentosPdf(respuesta));
 
       if (esAutoSave) {
         setEstadoGuardado('SAVED');
@@ -132,11 +135,7 @@ export const useAtencionMedica = () => {
     }
   }, [patientData, sectionsData]);
 
-  /**
-   * ETAPA 3: GENERAR PDF BORRADOR (Requiere Filtro Estricto)
-   */
   const crearPdfBorrador = async () => {
-    // 1. Validaciones clínicas obligatorias previas
     const errores = validarCamposObligatoriosClinicos(sectionsData);
     if (errores.length > 0) {
       showModalMessage(`No se puede generar el PDF Borrador. Faltan datos requeridos:\n• ${errores.join('\n• ')}`);
@@ -145,25 +144,18 @@ export const useAtencionMedica = () => {
 
     try {
       setCargando(true);
-
-      // 2. Mapear UI -> AtencionMedicaRequest DTO
-      const payload = AtencionMedicaMapper.uiToApiRequest(
-        patientData,
-        sectionsData,
-        contextoUsuario
-      );
-
-      // 3. Un solo llamado al backend (guarda/actualiza BD + genera hash + genera PDF borrador)
+      const payload = AtencionMedicaMapper.uiToApiRequest(patientData, sectionsData, contextoUsuario);
       const resPdf = await AtencionMedicaService.prepararPdfAtencion(payload);
 
       if (resPdf && resPdf.idAtencion) {
-        // Actualizar estados locales con los datos devueltos por Spring Boot
         setPatientData(prev => ({ ...prev, idAtencion: resPdf.idAtencion }));
         setHashIntegridad(resPdf.hashIntegridad);
         setRutaPdfFirmado(resPdf.rutaPdfFirmado);
         setEstadoFirma(resPdf.estadoFirma);
-  
-        console.log("RUTA DEPDF BORRADOR"+JSON.stringify(resPdf))
+
+        // 🟢 GUARDA LAS 4 RUTAS DEVUELTAS POR LA API
+        setDocumentosPdf(extraerDocumentosPdf(resPdf));
+
         showModalMessage("Atención guardada y PDF borrador generado exitosamente.");
         return resPdf;
       }
@@ -176,56 +168,12 @@ export const useAtencionMedica = () => {
     }
   };
 
-  /**
-   * PERMITE VOLVER A MODO EDICION DESDE LA VISTA PREVIA PDF
-   */
-  const volverAEdicion = () => {
-    setEstadoFirma(ESTADOS_ATENCION.BORRADOR);
-  };
-
-
   const handleTriajeChange = (nuevosSignosVitales) => {
-    setSectionsData(prev => ({
-      ...prev,
-      PanelTriaje: nuevosSignosVitales
-    }));
+    setSectionsData(prev => ({ ...prev, PanelTriaje: nuevosSignosVitales }));
   };
 
   const handleSectionContentChange = (sectionName, newContent) => {
-    setSectionsData(prev => ({
-      ...prev,
-      [sectionName]: newContent,
-    }));
-  };
-
-  const cargarTriajeDirecto = (accionAgenda, dataAtencionRegistrada = null) => {
-    try {
-      setCargandoTriaje(true);
-      let signosVitalesProcesados = [];
-
-      if (accionAgenda === 'ACTUALIZAR' && dataAtencionRegistrada) {
-        // Extrae lo registrado usando tu AtencionMedicaTriajeService
-        signosVitalesProcesados = AtencionMedicaTriajeService.obtenerTriajeRegistrado(dataAtencionRegistrada);
-        console.log("AtencionMedicaTriajeService "+AtencionMedicaTriajeService)
-      } else {
-        // Lee plantilla desde catálogo/sessionStorage
-        signosVitalesProcesados = AtencionMedicaTriajeService.obtenerTriajeInicial();
-      }
-
-      setSectionsData(prev => ({
-        ...prev,
-        PanelTriaje: signosVitalesProcesados || []
-      }));
-
-    } catch (error) {
-      console.error("❌ Error al procesar triaje:", error);
-      setSectionsData(prev => ({
-        ...prev,
-        PanelTriaje: []
-      }));
-    } finally {
-      setCargandoTriaje(false);
-    }
+    setSectionsData(prev => ({ ...prev, [sectionName]: newContent }));
   };
 
   const handleSelectPaciente = async (pacienteSeleccionado) => {
@@ -257,33 +205,31 @@ export const useAtencionMedica = () => {
     setPacienteActivo(pacienteSeleccionado);
     setPatientData(nuevoPatientData);
 
-    // CASO A: MODIFICACIÓN DE ATENCIÓN (ACTUALIZAR)
     if (idAtencionValido) {
       try {
         setLoadingAtencion(true);
         const dataAtencion = await AtencionMedicaService.obtenerAtencionPorId(idAtencionValido);
-        console.log("buscar paciente por ID   "+JSON.stringify(dataAtencion))        
+
         setAtencionCompleta(dataAtencion.estadoFirma);
         setRutaPdfFirmado(dataAtencion.rutaPdfFirmado);
         setEstadoFirma(dataAtencion.estadoFirma);
 
-        // Carga unificada de TODOS los paneles mediante el orquestador
+        // 🟢 CARGA LAS 4 RUTAS AL RECONSULTAR ATENCIÓN
+        setDocumentosPdf(extraerDocumentosPdf(dataAtencion));
+
         const seccionesCargadas = AtencionMedicaSectionsRegistry.cargarPanelesDesdeApi(dataAtencion);
         setSectionsData(seccionesCargadas);
 
       } catch (error) {
         console.error("❌ Error al obtener la atención completa:", error);
         setAtencionCompleta(null);
-        // Fallback a paneles iniciales si falla la consulta
         setSectionsData(AtencionMedicaSectionsRegistry.cargarPanelesIniciales());
       } finally {
         setLoadingAtencion(false);
       }
-    } 
-    // CASO B: NUEVA ATENCIÓN (ATENDER)
-    else {
+    } else {
       setAtencionCompleta(null);
-      // Carga inicial unificada de TODOS los paneles
+      setDocumentosPdf({ hc: null, ordenes: null, receta: null, indicaciones: null });
       setSectionsData(AtencionMedicaSectionsRegistry.cargarPanelesIniciales());
     }
 
@@ -291,15 +237,14 @@ export const useAtencionMedica = () => {
   };
 
   const fullMedicalRecord = {
-      patient: patientData, 
-      attentionDetails: {
-        ...sectionsData,
-        PanelDiagnostico: Array.isArray(sectionsData.PanelDiagnostico) ? sectionsData.PanelDiagnostico : []
-//        PanelPlanTrabajo: Array.isArray(sectionsData.PanelPlanTrabajo) ? sectionsData.PanelPlanTrabajo : []
-      },
-      timestamp: new Date().toISOString(),
+    patient: patientData, 
+    attentionDetails: {
+      ...sectionsData,
+      PanelDiagnostico: Array.isArray(sectionsData.PanelDiagnostico) ? sectionsData.PanelDiagnostico : []
+    },
+    timestamp: new Date().toISOString(),
   };
-  
+
   const validarCamposObligatoriosClinicos = () => {
     const errores = [];
 
@@ -326,35 +271,25 @@ export const useAtencionMedica = () => {
     if (!sectionsData.PanelDiagnostico || sectionsData.PanelDiagnostico.length === 0) {
       errores.push("Diagnósticos (CIE-10).");
     }
-/*
-    if (!sectionsData.PanelPlanTrabajo || sectionsData.PanelPlanTrabajo.length === 0) {
-      errores.push("Exámenes Auxiliares / Plan de Trabajo.");
-    }
 
-    if (!sectionsData.PanelTratamientos || sectionsData.PanelTratamientos.length === 0) {
-      errores.push("Medicación / Tratamientos.");
-    }
-*/
     const altaDesc = sectionsData.PanelAlta?.[0]?.descripcionAlta?.trim() || sectionsData.PanelAlta?.[0]?.nombreAlta?.trim();
     if (!sectionsData.PanelAlta || sectionsData.PanelAlta.length === 0 || !altaDesc) {
       errores.push("Indicaciones de Alta.");
     }
 
     if (errores.length > 0) {
-      showModalMessage(
-        "⚠️ No se puede guardar. Complete los siguientes bloques obligatorios:\n\n• " + errores.join("\n• ")
-      );
+      showModalMessage("⚠️ No se puede guardar. Complete los siguientes bloques obligatorios:\n\n• " + errores.join("\n• "));
       return false;
     }
 
     return true;
   };
 
-
   const handleFinalizarFlujoYRegresar = () => {
     setMostrarModalExito(false);
     setDatosGuardadosExito(null);
     setPacienteActivo(null);
+    setDocumentosPdf({ hc: null, ordenes: null, receta: null, indicaciones: null });
     setPatientData({ 
       name: '',
       sex: '',
@@ -411,7 +346,8 @@ export const useAtencionMedica = () => {
     estadoFirma,
     urlJsonFirmadoBackend,
     rutaPdfFirmado,
-        
+    documentosPdf, // 🟢 EXPORTADO PARA LA VISTA
+    
     handleTriajeChange,
     showModalMessage,
     closeModal,
@@ -419,110 +355,8 @@ export const useAtencionMedica = () => {
     handleSelectPaciente,
     guardarAtencionBorrador,
     crearPdfBorrador,
-//    ejecutarGuardadoYFirmaFinal,
     handleFinalizarFlujoYRegresar,
     imprimirFichaCompleta,
     imprimirDocumentosPaciente
-    
   };
 };
-
-
-/*   
-  const ejecutarGuardadoYFirmaFinal = async () => {
-    if (!patientData?.id) {
-      showModalMessage('Por favor, selecciona un paciente antes de procesar.');
-      return;
-    }
-    if (!validarCamposObligatorios()) {
-      return;
-    }
-    try {
-      const contextoUsuario = {
-        idMedico: sessionStorage.getItem('idMedico') || 2,
-        idEntidad: sessionStorage.getItem('idEntidad') || 2,
-        idUsuario: sessionStorage.getItem('idUsuario') || 12,
-      };
-      console.log("JSON A ENVIAR  " +JSON.stringify(patientData));
-      const payload = AtencionMedicaMapper.uiToApiRequest(patientData, sectionsData, contextoUsuario);
-      const response = await AtencionMedicaService.guardarAtencionCompleta(payload);
-
-      if (response?.exito) {
-        console.log("Atención guardada exitosamente. ID:", response.idAtencion);
-      }
-
-    } catch (error) {
-      const apiErrors = error.response?.data?.errors;
-      const errorMsg = apiErrors ? JSON.stringify(apiErrors) : error.message;
-      showModalMessage(`Error al validar el registro: ${errorMsg}`);
-    }
-  };
-*/
-
-
-  /*
-  const guardarBorrador = async () => {
-    if (!patientData.id) {
-      showModalMessage('Por favor, selecciona un paciente antes de cerrar la atención.');
-      return;
-    }
-
-    showModalMessage('Procesando el guardado clínico y aplicando rúbrica...');
-    
-    try { 
-      const response = await AtencionMedicaService.guardarYFirmarAtencion(fullMedicalRecord);
-      closeModal();
-      setDatosGuardadosExito(response.data); 
-      setMostrarModalExito(true);
-    } catch (error) {
-      console.error(error);
-      showModalMessage(`Error al cerrar ciclo: ${error.message}`);
-    }
-  };
-*/
-
-
-   // Guardar Atencion Medica
-/*
-   // 🟢 ACTUALIZACIÓN DEL GUARDADO Y FIRMA
-  const ejecutarGuardadoYFirmaFinal = async () => {
-    if (!patientData?.id) {
-      showModalMessage('Por favor, selecciona un paciente antes de procesar.');
-      return;
-    }
-    if (!validarCamposObligatoriosClin()) {
-      return;
-    }
-    try {
-      const contextoUsuario = {
-        idMedico: sessionStorage.getItem('idMedico') || 2,
-        idEntidad: sessionStorage.getItem('idEntidad') || 2,
-        idUsuario: sessionStorage.getItem('idUsuario') || 12,
-      };
-
-      const payload = AtencionMedicaMapper.uiToApiRequest(patientData, sectionsData, contextoUsuario);
-//      const response = await AtencionMedicaService.guardarAtencionCompleta(payload);
-      const response = await AtencionMedicaService.generarPdfBorradorAtencion(patientData.idAtencion);
-
-      if (response?.exito) {
-        console.log("RESPUESTA DE PDF "+JSON.stringify(response ))        
-        setEstadoAtencion('PDF BORRADOR');
-        setUrlJsonFirmadoBackend(response?.urlJsonFirmado || response?.rutaJson || null);
-        console.log("Atención guardada exitosamente. ID:", response.idAtencion);
-      }
-
-    } catch (error) {
-      const apiErrors = error.response?.data?.errors;
-      const errorMsg = apiErrors ? JSON.stringify(apiErrors) : error.message;
-      showModalMessage(`Error al validar el registro: ${errorMsg}`);
-    }
-  };
-*/
-/*
-      const contextoUsuario = {
-        idMedico: sessionStorage.getItem('idMedico') || 0,
-        idEntidad: sessionStorage.getItem('idEntidad') || 0,
-        idUsuario: sessionStorage.getItem('idUsuario') || 0,
-      };*/
-
-      // Mapeo UI -> DTO API

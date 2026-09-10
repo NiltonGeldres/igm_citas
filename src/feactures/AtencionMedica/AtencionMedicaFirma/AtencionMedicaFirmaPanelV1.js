@@ -5,27 +5,19 @@ import { ResumenClinicoBorradorCard } from './ResumenClinicoBorradorCard';
 import { VisorPdfGCS } from './VisorPdfGCS';
 import { BarraHerramientasFirma } from './BarraHerramientasFirma';
 
-import { AtencionMedicaDocumentoOrdenes } from './AtencionMedicaDocumentoOrdenes';
-import { AtencionMedicaDocumentoReceta } from './AtencionMedicaDocumentoReceta';
-
 function AtencionMedicaFirmaPanelV1({
   sectionsData = {},
   attentionDetails = {},
   crearPdfBorrador,
   imprimirDocumentosPaciente,
-//  fullMedicalRecord,
   showModalMessage,
-///  patientData = {},
-///  user = {},
   estadoFirma = false,
   jsonFirmadoUrl = null,
-  rutaPdfFirmado = null // 🟢 Recibe la Signed URL devuelta por Spring Boot / GCS
+  rutaPdfFirmado = null,
+  documentosPdf = {} // 🟢 RECIBE EL OBJETO CON LAS 4 RUTAS
 }) {
-
-  console.log("ESTADO DE LA FIRMA "+JSON.stringify(estadoFirma))
-  console.log("RUTA DE LA FIRMA "+rutaPdfFirmado)
   const [loadingFirma, setLoadingFirma] = useState(false);
-  const [vistaDocumento, setVistaDocumento] = useState('hc'); // 'hc' | 'ordenes' | 'receta'
+  const [vistaDocumento, setVistaDocumento] = useState('hc'); // 'hc' | 'ordenes' | 'receta' | 'indicaciones'
 
   const sourceDetails = Object.keys(attentionDetails).length > 0 ? attentionDetails : sectionsData;
 
@@ -46,11 +38,34 @@ function AtencionMedicaFirmaPanelV1({
     }
   };
 
+  // 🟢 MAPEA LA PESTAÑA SELECCIONADA CON SU RESPECTIVA RUTA PDF
+  const obtenerUrlSegunVista = () => {
+    switch (vistaDocumento) {
+      case 'hc':
+        return documentosPdf?.hc || rutaPdfFirmado;
+      case 'ordenes':
+        return documentosPdf?.ordenes;
+      case 'receta':
+        return documentosPdf?.receta;
+      case 'indicaciones':
+        return documentosPdf?.indicaciones;
+      default:
+        return rutaPdfFirmado;
+    }
+  };
+
+  const TITULOS_DOCUMENTO = {
+    hc: 'Historia Clínica Digital',
+    ordenes: 'Órdenes Médicas',
+    receta: 'Receta Médica',
+    indicaciones: 'Indicaciones Médicas'
+  };
+
   return (
     <div className="sub-window-container" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
       
       {/* ESTADO 1: ANTES DE GENERAR PDF BORRADOR */}
-      {estadoFirma == "BORRADOR" ? (
+      {estadoFirma === "BORRADOR" ? (
         <div className="no-print" style={{ backgroundColor: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', padding: '20px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
           
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -67,7 +82,6 @@ function AtencionMedicaFirmaPanelV1({
             </span>
           </div>
 
-          {/* Tarjeta con los detalles ingresados */}
           <ResumenClinicoBorradorCard sourceDetails={sourceDetails} />
 
           <button
@@ -92,22 +106,19 @@ function AtencionMedicaFirmaPanelV1({
         </div>
       ) : (
         
-        /* ESTADO 2: PDF BORRADOR GENERADO Y LISTO EN GOOGLE CLOUD STORAGE */
+        /* ESTADO 2: SE MUESTRA EL VISOR CON LA RUTA DINÁMICA DE LA PESTAÑA SELECCIONADA */
         <>
           <BarraHerramientasFirma
-            jsonFirmadoUrl={jsonFirmadoUrl}
-            imprimirDocumentosPaciente={imprimirDocumentosPaciente}
             vistaDocumento={vistaDocumento}
             setVistaDocumento={setVistaDocumento}
           />
 
           <div>
-            {vistaDocumento === 'hc' && (
-              <VisorPdfGCS 
-                urlPdfFirmado={rutaPdfFirmado} 
-                titulo="Historia Clínica Digital - Borrador GCS" 
-              />
-            )}
+            <VisorPdfGCS 
+              key={vistaDocumento} // key dinámica fuerza la recarga limpia del iframe
+              urlPdfFirmado={obtenerUrlSegunVista()} 
+              titulo={`${TITULOS_DOCUMENTO[vistaDocumento] || 'Documento Médico'} - Borrador GCS`} 
+            />
           </div>
         </>
       )}
@@ -117,25 +128,3 @@ function AtencionMedicaFirmaPanelV1({
 }
 
 export default AtencionMedicaFirmaPanelV1;
-
-/**
- * 
- 
-            {vistaDocumento === 'ordenes' && (
-              <AtencionMedicaDocumentoOrdenes
-                listaExamenes={sourceDetails.PanelPlanTrabajo || []}
-                patientData={patientData}
-                user={user}
-              />
-            )}
-
-            {vistaDocumento === 'receta' && (
-              <AtencionMedicaDocumentoReceta
-                listaMedicamentos={sourceDetails.PanelMedicacion || []}
-                listaAlta={sourceDetails.PanelAlta || []}
-                patientData={patientData}
-                user={user}
-              />
-            )}
-
- */

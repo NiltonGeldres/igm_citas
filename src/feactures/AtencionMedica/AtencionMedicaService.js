@@ -48,9 +48,7 @@ const actualizarAtencionBorrador = (idAtencion, atencionMedicaRequest) => {
  * Se usa cuando ya existe un idAtencion asignado (Auto-save o actualización manual).
  */
     const prepararPdfAtencion = (atencionMedicaRequest) => {
-        console.log("PREPARAR PDF ATENCION ", JSON.stringify(atencionMedicaRequest));  
-        
-        return axios.post(
+          return axios.post(
             `${API_URL}${SERVICE_BASE}/preparar-pdf`, 
             atencionMedicaRequest,
             { headers: header() }
