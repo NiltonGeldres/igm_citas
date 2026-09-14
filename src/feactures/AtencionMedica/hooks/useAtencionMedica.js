@@ -146,7 +146,6 @@ export const useAtencionMedica = () => {
       setCargando(true);
       const payload = AtencionMedicaMapper.uiToApiRequest(patientData, sectionsData, contextoUsuario);
       const resPdf = await AtencionMedicaService.prepararPdfAtencion(payload);
-
       if (resPdf && resPdf.idAtencion) {
         setPatientData(prev => ({ ...prev, idAtencion: resPdf.idAtencion }));
         setHashIntegridad(resPdf.hashIntegridad);
