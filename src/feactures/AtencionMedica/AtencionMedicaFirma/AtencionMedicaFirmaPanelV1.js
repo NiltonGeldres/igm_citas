@@ -40,9 +40,10 @@ function AtencionMedicaFirmaPanelV1({
 
   // 🟢 MAPEA LA PESTAÑA SELECCIONADA CON SU RESPECTIVA RUTA PDF
   const obtenerUrlSegunVista = () => {
+    console.log("DOCUMENTO A RENDRIZAR  "+vistaDocumento+"   :  "+JSON.stringify(documentosPdf)) 
     switch (vistaDocumento) {
       case 'hc':
-        return documentosPdf?.hc || rutaPdfFirmado;
+        return documentosPdf?.hc ;
       case 'ordenes':
         return documentosPdf?.ordenes;
       case 'receta':
@@ -60,7 +61,7 @@ function AtencionMedicaFirmaPanelV1({
     receta: 'Receta Médica',
     indicaciones: 'Indicaciones Médicas'
   };
-
+const urlPdfActual = obtenerUrlSegunVista();
   return (
     <div className="sub-window-container" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
       
@@ -115,8 +116,9 @@ function AtencionMedicaFirmaPanelV1({
 
           <div>
             <VisorPdfGCS 
-              key={vistaDocumento} // key dinámica fuerza la recarga limpia del iframe
-              urlPdfFirmado={obtenerUrlSegunVista()} 
+              key={`${vistaDocumento}-${urlPdfActual}`}            
+              //key={vistaDocumento} // key dinámica fuerza la recarga limpia del iframe
+              urlPdfFirmado={urlPdfActual} 
               titulo={`${TITULOS_DOCUMENTO[vistaDocumento] || 'Documento Médico'} - Borrador GCS`} 
             />
           </div>

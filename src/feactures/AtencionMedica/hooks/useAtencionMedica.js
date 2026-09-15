@@ -76,8 +76,7 @@ export const useAtencionMedica = () => {
     idEntidad: user.idEntidad || 0,
   };
 
-  // 🟢 HELPER PARA MAPEAR LAS 4 RUTAS DESDE EL JSON DEL BACKEND
-  const extraerDocumentosPdf = (data) => ({
+   const extraerDocumentosPdf = (data) => ({
     hc: data?.pdfRutaHistoria || data?.rutaPdfFirmado || null,
     ordenes: data?.pdfRutaOrdenes || null,
     receta: data?.pdfRutaReceta || null,
@@ -146,13 +145,12 @@ export const useAtencionMedica = () => {
       setCargando(true);
       const payload = AtencionMedicaMapper.uiToApiRequest(patientData, sectionsData, contextoUsuario);
       const resPdf = await AtencionMedicaService.prepararPdfAtencion(payload);
+        console.log("RETORNO DE GENERAR PDF "+JSON.stringify(resPdf))      
       if (resPdf && resPdf.idAtencion) {
         setPatientData(prev => ({ ...prev, idAtencion: resPdf.idAtencion }));
         setHashIntegridad(resPdf.hashIntegridad);
         setRutaPdfFirmado(resPdf.rutaPdfFirmado);
         setEstadoFirma(resPdf.estadoFirma);
-
-        // 🟢 GUARDA LAS 4 RUTAS DEVUELTAS POR LA API
         setDocumentosPdf(extraerDocumentosPdf(resPdf));
 
         showModalMessage("Atención guardada y PDF borrador generado exitosamente.");
@@ -208,7 +206,7 @@ export const useAtencionMedica = () => {
       try {
         setLoadingAtencion(true);
         const dataAtencion = await AtencionMedicaService.obtenerAtencionPorId(idAtencionValido);
-
+        console.log("BUSQUEDA POR ID ATENCION "+JSON.stringify(dataAtencion))
         setAtencionCompleta(dataAtencion.estadoFirma);
         setRutaPdfFirmado(dataAtencion.rutaPdfFirmado);
         setEstadoFirma(dataAtencion.estadoFirma);
