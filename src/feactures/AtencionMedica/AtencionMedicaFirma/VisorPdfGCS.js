@@ -8,18 +8,14 @@ export function VisorPdfGCS({ urlPdfFirmado, titulo = "Vista previa del Document
   // Función para transformar la ruta relativa a URL absoluta válida
   const obtenerUrlCompleta = (path) => {
     if (!path) return null;
-    
     // Si la URL ya empieza con http:// o https://, la deja tal cual
     if (path.startsWith('http://') || path.startsWith('https://')) {
       return path;
     }
-
     // Limpia la barra inicial del path si existe para evitar doble barra "//"
     const pathLimpia = path.startsWith('/') ? path.substring(1) : path;
-    
     // Limpia la barra final de la URL base si existe
     const baseLimpia = baseUrl.endsWith('/') ? baseUrl.substring(0, baseUrl.length - 1) : baseUrl;
-
     return `${baseLimpia}/${pathLimpia}`;
   };
 

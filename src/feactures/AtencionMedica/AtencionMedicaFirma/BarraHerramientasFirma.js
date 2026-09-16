@@ -1,9 +1,10 @@
 import React from 'react';
-import { CheckCircle, Microscope, Pill, FileText,ClipboardList } from 'lucide-react';
+import { CheckCircle, Microscope, Pill, FileText,ClipboardList ,Clock} from 'lucide-react';
 
 export function BarraHerramientasFirma({ 
   vistaDocumento, 
-  setVistaDocumento 
+  setVistaDocumento,
+  estadoFirma 
 }) {
   const DOCUMENT_TABS = [
     { id: 'hc', label: 'HC', icon: FileText, title: 'Historia Clínica (PDF)' },
@@ -11,6 +12,19 @@ export function BarraHerramientasFirma({
     { id: 'receta', label: 'Receta', icon: Pill, title: 'Receta Médica' },
     { id: 'indicaciones', label: 'Indicaciones', icon: ClipboardList, title: 'indicaciones Médicas' }
   ];
+  const CONFIG_ESTADO_FIRMA = {
+    PENDIENTE_FIRMA: {
+      texto: "Atención Médica Guardada (Pendiente de Firma)",
+      colorIcono: "#ec700a", // Azul para indicar que falta completar un paso
+      icono: Clock
+    },
+    FIRMADO: {
+      texto: "Atención Médica Guardada y Firmada Digitalmente",
+      colorIcono: "#16a34a", // Verde indicando éxito/completado
+      icono: CheckCircle
+    }
+  };
+
 
   return (
     <div 
@@ -25,10 +39,24 @@ export function BarraHerramientasFirma({
     >
       {/* LADO IZQUIERDO: Mensaje informativo */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
-        <CheckCircle size={18} color="#16a34a" style={{ flexShrink: 0 }} />
-        <span style={{ fontSize: '12px', color: '#334155', fontWeight: '600' }}>
-          Atención Médica Guardada y Documento Generado.
-        </span>
+        {(() => {
+          const estado = (estadoFirma || '').toUpperCase();
+          const config = CONFIG_ESTADO_FIRMA[estado] || {
+            texto: `Atención Médica Guardada (${estadoFirma})`,
+            colorIcono: "#64748b",
+            icono: CheckCircle
+          };
+          const IconoEstado = config.icono;
+
+          return (
+            <>
+              <IconoEstado size={40} color={config.colorIcono} style={{ flexShrink: 0 }} />
+              <span style={{ fontSize: '12px', color: '#f1750e', fontWeight: '600' }}>
+                {config.texto}
+              </span>
+            </>
+          );
+        })()}
       </div>
 
       {/* LADO DERECHO: Barra estilo Visor de PDF (Fondo oscuro e íconos limpios) */}

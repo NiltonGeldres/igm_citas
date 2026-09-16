@@ -76,12 +76,28 @@ export const useAtencionMedica = () => {
     idEntidad: user.idEntidad || 0,
   };
 
-   const extraerDocumentosPdf = (data) => ({
-    hc: data?.pdfRutaHistoria || data?.rutaPdfFirmado || null,
-    ordenes: data?.pdfRutaOrdenes || null,
-    receta: data?.pdfRutaReceta || null,
-    indicaciones: data?.pdfRutaIndicaciones || null
-  });
+
+
+
+  const extraerDocumentosPdf = (data) => {
+    // Mapa para extraer rápidamente por tipo de documento desde el arreglo unificado
+    const mapaDocs = (data?.documentos || []).reduce((acc, doc) => {
+      if (doc?.tipoDocumento) {
+        acc[doc.tipoDocumento.toLowerCase()] = doc.urlLecturaBorrador;
+      }
+      return acc;
+    }, {});
+
+    return {
+      // 1. Prioriza la URL del arreglo "documentos"
+      // 2. Fallbacks a las propiedades planas raíz por retrocompatibilidad
+      hc: mapaDocs['historia'] || data?.pdfRutaHistoria || data?.rutaPdfFirmado || null,
+      ordenes: mapaDocs['orden'] || data?.pdfRutaOrdenes || null,
+      receta: mapaDocs['receta'] || data?.pdfRutaReceta || null,
+      indicaciones: mapaDocs['indicaciones'] || data?.pdfRutaIndicaciones || null
+    };
+  };
+
 
   useEffect(() => {
     if (!patientData.id) {

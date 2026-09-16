@@ -40,7 +40,7 @@ function AtencionMedicaFirmaPanelV1({
 
   // 🟢 MAPEA LA PESTAÑA SELECCIONADA CON SU RESPECTIVA RUTA PDF
   const obtenerUrlSegunVista = () => {
-    console.log("DOCUMENTO A RENDRIZAR  "+vistaDocumento+"   :  "+JSON.stringify(documentosPdf)) 
+//    console.log("DOCUMENTO A RENDRIZAR  "+vistaDocumento+"   :  "+JSON.stringify(documentosPdf)) 
     switch (vistaDocumento) {
       case 'hc':
         return documentosPdf?.hc ;
@@ -110,8 +110,9 @@ const urlPdfActual = obtenerUrlSegunVista();
         /* ESTADO 2: SE MUESTRA EL VISOR CON LA RUTA DINÁMICA DE LA PESTAÑA SELECCIONADA */
         <>
           <BarraHerramientasFirma
-            vistaDocumento={vistaDocumento}
+            vistacumento={vistaDocumento}
             setVistaDocumento={setVistaDocumento}
+            estadoFirma={estadoFirma}
           />
 
           <div>
