@@ -8,8 +8,8 @@ export const ListaAtencionesLote = ({
 }) => {
   return (
     <div style={{
-      backgroundColor: '#1b2433',
-      border: '1px solid #2d3848',
+      backgroundColor: '#f8fafcef',
+      border: '1px solid #b8b9bb',
       borderRadius: '8px',
       padding: '16px',
       height: '100%',
