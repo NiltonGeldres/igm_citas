@@ -150,18 +150,18 @@ const {
                     />
                   )}
 
-{activeTab === 'signature' && (
-  <AtencionMedicaFirmaPanelV1
-    sectionsData={sectionsData}
-    crearPdfBorrador={crearPdfBorrador}
-    imprimirDocumentosPaciente={imprimirDocumentosPaciente}
-    showModalMessage={showModalMessage}
-    estadoFirma={estadoFirma}
-    jsonFirmadoUrl={urlJsonFirmadoBackend}
-    rutaPdfFirmado={rutaPdfFirmado}
-    documentosPdf={documentosPdf} // 🟢 ENLACE CON EL HOOK
-  />
-)}
+                {activeTab === 'signature' && (
+                  <AtencionMedicaFirmaPanelV1
+                    sectionsData={sectionsData}
+                    crearPdfBorrador={crearPdfBorrador}
+                    imprimirDocumentosPaciente={imprimirDocumentosPaciente}
+                    showModalMessage={showModalMessage}
+                    estadoFirma={estadoFirma}
+                    jsonFirmadoUrl={urlJsonFirmadoBackend}
+                    rutaPdfFirmado={rutaPdfFirmado}
+                    documentosPdf={documentosPdf} // 🟢 ENLACE CON EL HOOK
+                  />
+                )}
                 </>
               ) : (
                 <div className="hce-waiting-placeholder">

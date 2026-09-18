@@ -111,6 +111,7 @@ function FirmaDigitalForm() {
         setError(null);
         
         const data = await FirmaDigitalService.listarPendientesFirma(ID_MEDICO_LOGUEADO);
+        console.log("PENDIENTES dDE FIRMAR "+ JSON.stringify(data))
         const atencionesMapeadas = data.map((item) => ({
           id: item.idAtencion,
           pacienteNombre: item.nombrePaciente,

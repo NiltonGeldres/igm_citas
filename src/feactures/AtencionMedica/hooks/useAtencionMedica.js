@@ -77,8 +77,40 @@ export const useAtencionMedica = () => {
   };
 
 
+  const extraerDocumentosPdf = (data) => {
+    // Mapa indexado por 'tipoDocumento' desde el arreglo 'documentos'
+    const mapaDocs = (data?.documentos || []).reduce((acc, doc) => {
+      if (doc?.tipoDocumento) {
+        acc[doc.tipoDocumento.toLowerCase()] = doc;
+      }
+      return acc;
+    }, {});
 
+    return {
+      hc: {
+        nombreArchivo: data?.nombreArchivoHistoria || null,
+        urlLectura: mapaDocs['historia']?.urlLecturaBorrador || data?.pdfRutaHistoria || null,
+        urlSubidaFirmado: mapaDocs['historia']?.urlSubidaFirmado || null
+      },
+      receta: {
+        nombreArchivo: data?.nombreArchivoReceta || null,
+        urlLectura: mapaDocs['receta']?.urlLecturaBorrador || data?.pdfRutaReceta || null,
+        urlSubidaFirmado: mapaDocs['receta']?.urlSubidaFirmado || null
+      },
+      ordenes: {
+        nombreArchivo: data?.nombreArchivoOrdenes || null,
+        urlLectura: mapaDocs['orden']?.urlLecturaBorrador || data?.pdfRutaOrdenes || null,
+        urlSubidaFirmado: mapaDocs['orden']?.urlSubidaFirmado || null
+      },
+      indicaciones: {
+        nombreArchivo: data?.nombreArchivoIndicaciones || null,
+        urlLectura: mapaDocs['indicaciones']?.urlLecturaBorrador || data?.pdfRutaIndicaciones || null,
+        urlSubidaFirmado: mapaDocs['indicaciones']?.urlSubidaFirmado || null
+      }
+    };
+  };
 
+/*
   const extraerDocumentosPdf = (data) => {
     // Mapa para extraer rápidamente por tipo de documento desde el arreglo unificado
     const mapaDocs = (data?.documentos || []).reduce((acc, doc) => {
@@ -91,13 +123,30 @@ export const useAtencionMedica = () => {
     return {
       // 1. Prioriza la URL del arreglo "documentos"
       // 2. Fallbacks a las propiedades planas raíz por retrocompatibilidad
-      hc: mapaDocs['historia'] || data?.pdfRutaHistoria || data?.rutaPdfFirmado || null,
-      ordenes: mapaDocs['orden'] || data?.pdfRutaOrdenes || null,
-      receta: mapaDocs['receta'] || data?.pdfRutaReceta || null,
-      indicaciones: mapaDocs['indicaciones'] || data?.pdfRutaIndicaciones || null
+      //hc: mapaDocs['historia'] || data?.pdfRutaHistoria  || null,
+      //ordenes: mapaDocs['orden'] || data?.pdfRutaOrdenes || null,
+      //receta: mapaDocs['receta'] || data?.pdfRutaReceta || null,
+      //indicaciones: mapaDocs['indicaciones'] || data?.pdfRutaIndicaciones || null
+      hc: {
+        url: mapaDocs['historia']?.url || data?.pdfRutaHistoria || null,
+        nombreArchivo: mapaDocs['historia']?.nombreArchivo || data?.nombreArchivoHistoria || null
+      },
+      ordenes: {
+        url: mapaDocs['orden']?.url || data?.pdfRutaOrdenes || null,
+        nombreArchivo: mapaDocs['orden']?.nombreArchivo || data?.nombreArchivoOrdenes || null
+      },
+      receta: {
+        url: mapaDocs['receta']?.url || data?.pdfRutaReceta || null,
+        nombreArchivo: mapaDocs['receta']?.nombreArchivo || data?.nombreArchivoReceta || null
+      },
+      indicaciones: {
+        url: mapaDocs['indicaciones']?.url || data?.pdfRutaIndicaciones || null,
+        nombreArchivo: mapaDocs['indicaciones']?.nombreArchivo || data?.nombreArchivoIndicaciones || null
+      }
+      
     };
   };
-
+*/
 
   useEffect(() => {
     if (!patientData.id) {
