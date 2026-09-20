@@ -76,7 +76,42 @@ export const useAtencionMedica = () => {
     idEntidad: user.idEntidad || 0,
   };
 
+const extraerDocumentosPdf = (data) => {
+  // Mapa indexado por 'tipoDocumento' desde el arreglo 'documentos'
+  const mapaDocs = (data?.documentos || []).reduce((acc, doc) => {
+    if (doc?.tipoDocumento) {
+      acc[doc.tipoDocumento.toLowerCase()] = doc;
+    }
+    return acc;
+  }, {});
 
+    const extraerInfoDoc = (claveMapa, nombreFallback, rutaFallback) => {
+      const doc = mapaDocs[claveMapa] || {};
+      
+      // Evaluamos la URL de lectura priorizando el firmado sobre el borrador
+      const urlLecturaCalculada = doc.urlLecturaFirmado 
+        || doc.urlLecturaBorrador 
+        || doc.urlLectura 
+        || rutaFallback 
+        || null;
+
+      return {
+        nombreArchivo: nombreFallback || null,
+        urlLectura: urlLecturaCalculada,
+        urlLecturaFirmado: doc.urlLecturaFirmado || null,
+        urlLecturaBorrador: doc.urlLecturaBorrador || rutaFallback || null,
+        urlSubidaFirmado: doc.urlSubidaFirmado || null
+      };
+    };
+
+    return {
+      hc: extraerInfoDoc('historia', data?.nombreArchivoHistoria, data?.pdfRutaHistoria),
+      receta: extraerInfoDoc('receta', data?.nombreArchivoReceta, data?.pdfRutaReceta),
+      ordenes: extraerInfoDoc('orden', data?.nombreArchivoOrdenes, data?.pdfRutaOrdenes),
+      indicaciones: extraerInfoDoc('indicaciones', data?.nombreArchivoIndicaciones, data?.pdfRutaIndicaciones)
+    };
+  };  
+/*
   const extraerDocumentosPdf = (data) => {
     // Mapa indexado por 'tipoDocumento' desde el arreglo 'documentos'
     const mapaDocs = (data?.documentos || []).reduce((acc, doc) => {
@@ -109,45 +144,7 @@ export const useAtencionMedica = () => {
       }
     };
   };
-
-/*
-  const extraerDocumentosPdf = (data) => {
-    // Mapa para extraer rápidamente por tipo de documento desde el arreglo unificado
-    const mapaDocs = (data?.documentos || []).reduce((acc, doc) => {
-      if (doc?.tipoDocumento) {
-        acc[doc.tipoDocumento.toLowerCase()] = doc.urlLecturaBorrador;
-      }
-      return acc;
-    }, {});
-
-    return {
-      // 1. Prioriza la URL del arreglo "documentos"
-      // 2. Fallbacks a las propiedades planas raíz por retrocompatibilidad
-      //hc: mapaDocs['historia'] || data?.pdfRutaHistoria  || null,
-      //ordenes: mapaDocs['orden'] || data?.pdfRutaOrdenes || null,
-      //receta: mapaDocs['receta'] || data?.pdfRutaReceta || null,
-      //indicaciones: mapaDocs['indicaciones'] || data?.pdfRutaIndicaciones || null
-      hc: {
-        url: mapaDocs['historia']?.url || data?.pdfRutaHistoria || null,
-        nombreArchivo: mapaDocs['historia']?.nombreArchivo || data?.nombreArchivoHistoria || null
-      },
-      ordenes: {
-        url: mapaDocs['orden']?.url || data?.pdfRutaOrdenes || null,
-        nombreArchivo: mapaDocs['orden']?.nombreArchivo || data?.nombreArchivoOrdenes || null
-      },
-      receta: {
-        url: mapaDocs['receta']?.url || data?.pdfRutaReceta || null,
-        nombreArchivo: mapaDocs['receta']?.nombreArchivo || data?.nombreArchivoReceta || null
-      },
-      indicaciones: {
-        url: mapaDocs['indicaciones']?.url || data?.pdfRutaIndicaciones || null,
-        nombreArchivo: mapaDocs['indicaciones']?.nombreArchivo || data?.nombreArchivoIndicaciones || null
-      }
-      
-    };
-  };
 */
-
   useEffect(() => {
     if (!patientData.id) {
       setIsAgendaOpen(true);

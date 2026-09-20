@@ -91,6 +91,23 @@ const firmarAtencionDigital = (idAtencion, tokenFirma) => {
     });
 };
 
+
+/**
+ * 6. CONFIRMAR FIRMA DIGITAL (POST)
+ * Envía el DTO AtencionMedicaConfirmarFirmaRequest
+ */
+const confirmarFirma = (confirmarFirmaRequest) => {
+    return axios.post(
+        `${API_URL}${SERVICE_BASE}/confirmar-firma`, 
+        confirmarFirmaRequest,
+        { headers: header() }
+    ).then(response => response.data)
+     .catch(function (error) {
+        console.error("Error en confirmarFirma:", error.response?.data || error.toJSON());
+        throw error; 
+    });
+};
+
 /**
  * Consulta la atención médica completa por idAtencion.
  * Petición HTTP única para recuperar todo el expediente clínico guardado.
@@ -173,6 +190,7 @@ const AtencionMedicaService = {
   prepararPdfAtencion,  
   generarPdfBorradorAtencion,
   firmarAtencionDigital,  
+  confirmarFirma  , 
   obtenerAtencionPorId,    
   guardarAtencionCompleta,    
   getTodos,

@@ -153,6 +153,7 @@ const {
                 {activeTab === 'signature' && (
                   <AtencionMedicaFirmaPanelV1
                     sectionsData={sectionsData}
+                    patientData={patientData}
                     crearPdfBorrador={crearPdfBorrador}
                     imprimirDocumentosPaciente={imprimirDocumentosPaciente}
                     showModalMessage={showModalMessage}
