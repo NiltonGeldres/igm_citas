@@ -1,5 +1,4 @@
 
-import { useState } from 'react';
 import {  RefreshCw, Save} from 'lucide-react';
 
 import MessageModal from './common/MessageModal';
@@ -24,8 +23,6 @@ function AtencionMedicaForm() {
 const {
   activeTab,
   setActiveTab,
-  subTabFirma,
-  setSubTabFirma,
   modalMessage,
   isAgendaOpen,
   setIsAgendaOpen,
@@ -34,13 +31,12 @@ const {
   mostrarModalExito,
   patientData,
   sectionsData,
-  fullMedicalRecord,
   estadoGuardado,
   cargandoTriaje,
   estadoFirma,
   urlJsonFirmadoBackend,
   rutaPdfFirmado,
-   documentosPdf, 
+  documentosPdf, 
   handleTriajeChange,
   guardarAtencionBorrador,
   // --------------------------------------------------------
@@ -48,11 +44,9 @@ const {
   handleSectionContentChange,
   handleSelectPaciente,
   crearPdfBorrador , 
-//  ejecutarGuardadoYFirmaFinal,
   handleFinalizarFlujoYRegresar,
-  imprimirFichaCompleta,
-  imprimirDocumentosPaciente,
-  showModalMessage
+  showModalMessage,
+  refrescarEstadoFirma
 } = useAtencionMedica();
   return (
     <div className="main-layout-hce fullscreen-process-mode">
@@ -88,8 +82,6 @@ const {
                         /> 
                       )               
                     )}
-
-                  
 
                   {activeTab === 'diseaseAndExam' && (
                     <>
@@ -151,17 +143,17 @@ const {
                   )}
 
                 {activeTab === 'signature' && (
-                  <AtencionMedicaFirmaPanelV1
+                <AtencionMedicaFirmaPanelV1
                     sectionsData={sectionsData}
                     patientData={patientData}
                     crearPdfBorrador={crearPdfBorrador}
-                    imprimirDocumentosPaciente={imprimirDocumentosPaciente}
                     showModalMessage={showModalMessage}
                     estadoFirma={estadoFirma}
                     jsonFirmadoUrl={urlJsonFirmadoBackend}
                     rutaPdfFirmado={rutaPdfFirmado}
-                    documentosPdf={documentosPdf} // 🟢 ENLACE CON EL HOOK
-                  />
+                    documentosPdf={documentosPdf}
+                    refrescarEstadoFirma={refrescarEstadoFirma} // 🟢 Pasar la función como prop
+                  />                  
                 )}
                 </>
               ) : (
@@ -257,3 +249,17 @@ export default AtencionMedicaForm;
 //                patientData={patientData}
                 //ejecutarGuardadoYFirmaFinal={ejecutarGuardadoYFirmaFinal}
 //                fullMedicalRecord={fullMedicalRecord}
+/*
+                  <AtencionMedicaFirmaPanelV1
+                    sectionsData={sectionsData}
+                    patientData={patientData}
+                    crearPdfBorrador={crearPdfBorrador}
+                    imprimirDocumentosPaciente={imprimirDocumentosPaciente}
+                    showModalMessage={showModalMessage}
+                    estadoFirma={estadoFirma}
+                    jsonFirmadoUrl={urlJsonFirmadoBackend}
+                    rutaPdfFirmado={rutaPdfFirmado}
+                    documentosPdf={documentosPdf} // 🟢 ENLACE CON EL HOOK
+                  />
+
+*/

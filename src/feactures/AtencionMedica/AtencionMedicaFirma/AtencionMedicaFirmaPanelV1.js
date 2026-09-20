@@ -14,7 +14,7 @@ export function AtencionMedicaFirmaPanelV1({
   jsonFirmadoUrl = null,
   rutaPdfFirmado = null,
   documentosPdf = {},
-  onRefrescarEstadoFirma
+  refrescarEstadoFirma
 }) {
   const [loadingFirma, setLoadingFirma] = useState(false);
   const [vistaDocumento, setVistaDocumento] = useState('hc');
@@ -72,10 +72,8 @@ export function AtencionMedicaFirmaPanelV1({
   const obtenerUrlSegunVista = () => {
     const esFirmado = estadoFirma === 'FIRMADO' || estadoFirma === 'FIRMADO_ELECTRONICO';
     const docObj = documentosPdf[vistaDocumento] || {};
-    console.log("documentosPdf    "+JSON.stringify(documentosPdf))
 
     if (esFirmado) {
-      console.log("URL LEctura FIRMADO "+JSON.stringify(docObj.urlLecturaFirmado))
       return docObj.urlLecturaFirmado || docObj.urlLectura || rutaPdfFirmado;
     }
     return docObj.urlLecturaBorrador || docObj.urlLectura || docObj.urlPdf;
@@ -92,6 +90,101 @@ export function AtencionMedicaFirmaPanelV1({
   // Función requerida por VisorPdfGCS para subir los PDFs firmados desde C:\igm_salud\refirma\salida
 // Función requerida por VisorPdfGCS para subir los PDFs firmados desde C:\igm_salud\refirma\salida
   const handleProcesarFirmadosSalida = async (archivosFirmados) => {
+      try {
+        const idAtencion = patientData?.idAtencion;
+        const idStr = idAtencion ? String(idAtencion) : '';
+
+        // 1. URLs Presigned PUT para subida a Cloudflare R2
+        const mapaPutUrls = {
+          hc: documentosPdf?.hc?.urlSubidaFirmado,
+          receta: documentosPdf?.receta?.urlSubidaFirmado,
+          ordenes: documentosPdf?.ordenes?.urlSubidaFirmado,
+          indicaciones: documentosPdf?.indicaciones?.urlSubidaFirmado
+        };
+
+        // 2. Nombres exactos recibidos desde el backend
+        const mapaNombresBackend = {
+          hc: (documentosPdf?.hc?.nombreArchivo || '').toLowerCase().replace('.pdf', ''),
+          receta: (documentosPdf?.receta?.nombreArchivo || '').toLowerCase().replace('.pdf', ''),
+          ordenes: (documentosPdf?.ordenes?.nombreArchivo || '').toLowerCase().replace('.pdf', ''),
+          indicaciones: (documentosPdf?.indicaciones?.nombreArchivo || '').toLowerCase().replace('.pdf', '')
+        };
+
+        let subidosExitosos = 0;
+
+        for (const item of archivosFirmados) {
+          const nombreLeido = (item.nombreArchivo || '').toLowerCase();
+          let urlPutDestino = null;
+
+          if (
+            (mapaNombresBackend.hc && nombreLeido.includes(mapaNombresBackend.hc)) ||
+            (idStr && nombreLeido.includes(idStr) && (nombreLeido.includes('historia') || nombreLeido.includes('hc')))
+          ) {
+            urlPutDestino = mapaPutUrls.hc;
+          } else if (
+            (mapaNombresBackend.receta && nombreLeido.includes(mapaNombresBackend.receta)) ||
+            (idStr && nombreLeido.includes(idStr) && nombreLeido.includes('receta'))
+          ) {
+            urlPutDestino = mapaPutUrls.receta;
+          } else if (
+            (mapaNombresBackend.ordenes && nombreLeido.includes(mapaNombresBackend.ordenes)) ||
+            (idStr && nombreLeido.includes(idStr) && (nombreLeido.includes('orden') || nombreLeido.includes('procedimiento')))
+          ) {
+            urlPutDestino = mapaPutUrls.ordenes;
+          } else if (
+            (mapaNombresBackend.indicaciones && nombreLeido.includes(mapaNombresBackend.indicaciones)) ||
+            (idStr && nombreLeido.includes(idStr) && (nombreLeido.includes('indicación') || nombreLeido.includes('indicacion')))
+          ) {
+            urlPutDestino = mapaPutUrls.indicaciones;
+          }
+
+          if (urlPutDestino) {
+            const archivoPayload = item.blob instanceof Blob ? item.blob : (item.file instanceof File ? item.file : item.blob);
+
+            const res = await fetch(urlPutDestino, {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/pdf' },
+              body: archivoPayload
+            });
+
+            if (res.ok) {
+              subidosExitosos++;
+            } else {
+              console.error(`Error HTTP al subir ${item.nombreArchivo}: Status ${res.status}`);
+            }
+          } else {
+            console.warn(`No se encontró coincidencia para: ${item.nombreArchivo}`);
+          }
+        }
+
+        // 3. Confirmación con Spring Boot y actualización de estado
+        if (subidosExitosos > 0) {
+          const payloadConfirmacion = {
+            idAtencion: idAtencion,
+            observaciones: "Firma digital completada con éxito mediante ReFirma"
+          };
+
+          const jsonActualizado = await AtencionMedicaService.confirmarFirma(payloadConfirmacion);
+          showModalMessage?.(`¡Se subieron ${subidosExitosos} documento(s) correctamente y se confirmó la firma!`);
+          console.log("Validador - refrescarEstadoFirma es:", typeof refrescarEstadoFirma);
+
+              // 🟢 Ejecuta el refresco de estado en la vista padre
+            if (typeof refrescarEstadoFirma === 'function') {
+              await refrescarEstadoFirma(jsonActualizado);
+            } else {
+              console.error("⚠️ La prop refrescarEstadoFirma no está definida o no es una función.");
+            }
+        } else {
+          showModalMessage?.("No se encontraron coincidencias entre los archivos leídos y los documentos de esta atención.");
+        }
+
+      } catch (error) {
+        console.error("Error en la carga o confirmación de archivos firmados:", error);
+        showModalMessage?.("Ocurrió un error al intentar subir los archivos o confirmar la firma.");
+      }
+    };
+    
+/*  const handleProcesarFirmadosSalida = async (archivosFirmados) => {
     try {
       const idAtencion = patientData?.idAtencion ;
       const idStr = idAtencion ? String(idAtencion) : '';
@@ -191,7 +284,7 @@ export function AtencionMedicaFirmaPanelV1({
       console.error("Error en la carga o confirmación de archivos firmados:", error);
       showModalMessage?.("Ocurrió un error al intentar subir los archivos o confirmar la firma.");
     }
-  };
+  };*/
 
 /*    const handleProcesarFirmadosSalida = async (archivosFirmados) => {
       console.log("FIRMADOS: ", archivosFirmados);
@@ -330,7 +423,7 @@ export function AtencionMedicaFirmaPanelV1({
             documentosPdf={documentosPdf}
             onInvocarReFirma={handleInvocarReFirma}
             onProcesarFirmadosSalida={handleProcesarFirmadosSalida}
-            onRefrescarEstadoFirma={onRefrescarEstadoFirma}
+            onRefrescarEstadoFirma={refrescarEstadoFirma}
             showModalMessage={showModalMessage}
           />
         </div>

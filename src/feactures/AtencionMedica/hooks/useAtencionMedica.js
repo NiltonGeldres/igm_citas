@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import AtencionMedicaService from "../AtencionMedicaService";
-import { AtencionMedicaTriajeService } from '../AtencionMedicaTriaje/AtencionMedicaTriajeService';
+//import { AtencionMedicaTriajeService } from '../AtencionMedicaTriaje/AtencionMedicaTriajeService';
 import { AtencionMedicaMapper } from '../AtencionMedicaMapper';
 import { AtencionMedicaSectionsRegistry } from '../AtencionMedicaSectionsRegistry';
 import { useAuth } from '../../../shared/context/AuthContext';
@@ -15,7 +15,7 @@ export const useAtencionMedica = () => {
   const { user } = useAuth();
   const [cargando, setCargando] = useState(false);
 
-  const [hashIntegridad, setHashIntegridad] = useState(null);
+ // const [hashIntegridad, setHashIntegridad] = useState(null);
   const [rutaPdfFirmado, setRutaPdfFirmado] = useState(null);
   const [urlJsonFirmadoBackend, setUrlJsonFirmadoBackend] = useState(null);
 
@@ -30,14 +30,14 @@ export const useAtencionMedica = () => {
   const [estadoFirma, setEstadoFirma] = useState(ESTADOS_ATENCION.BORRADOR);
   const [estadoGuardado, setEstadoGuardado] = useState('IDLE');
   
-  const [atencionCompleta, setAtencionCompleta] = useState(null);
-  const [loadingAtencion, setLoadingAtencion] = useState(false);
+//  const [atencionCompleta, setAtencionCompleta] = useState(null);
+ // const [loadingAtencion, setLoadingAtencion] = useState(false);
   const [activeTab, setActiveTab] = useState('triaje');
   const [subTabFirma, setSubTabFirma] = useState('vista-ficha');
   const [modalMessage, setModalMessage] = useState('');
   const [isAgendaOpen, setIsAgendaOpen] = useState(false);
   const [modoImpresion, setModoImpresion] = useState('completo');
-  const [cargandoTriaje, setCargandoTriaje] = useState(false);
+ // const [cargandoTriaje, setCargandoTriaje] = useState(false);
   const [pacienteActivo, setPacienteActivo] = useState(null);
 
   const [datosGuardadosExito, setDatosGuardadosExito] = useState(null);
@@ -207,10 +207,9 @@ const extraerDocumentosPdf = (data) => {
       setCargando(true);
       const payload = AtencionMedicaMapper.uiToApiRequest(patientData, sectionsData, contextoUsuario);
       const resPdf = await AtencionMedicaService.prepararPdfAtencion(payload);
-        console.log("RETORNO DE GENERAR PDF "+JSON.stringify(resPdf))      
       if (resPdf && resPdf.idAtencion) {
         setPatientData(prev => ({ ...prev, idAtencion: resPdf.idAtencion }));
-        setHashIntegridad(resPdf.hashIntegridad);
+       // setHashIntegridad(resPdf.hashIntegridad);
         setRutaPdfFirmado(resPdf.rutaPdfFirmado);
         setEstadoFirma(resPdf.estadoFirma);
         setDocumentosPdf(extraerDocumentosPdf(resPdf));
@@ -266,10 +265,10 @@ const extraerDocumentosPdf = (data) => {
 
     if (idAtencionValido) {
       try {
-        setLoadingAtencion(true);
+       // setLoadingAtencion(true);
         const dataAtencion = await AtencionMedicaService.obtenerAtencionPorId(idAtencionValido);
         console.log("BUSQUEDA POR ID ATENCION "+JSON.stringify(dataAtencion))
-        setAtencionCompleta(dataAtencion.estadoFirma);
+      //  setAtencionCompleta(dataAtencion.estadoFirma);
         setRutaPdfFirmado(dataAtencion.rutaPdfFirmado);
         setEstadoFirma(dataAtencion.estadoFirma);
 
@@ -281,13 +280,13 @@ const extraerDocumentosPdf = (data) => {
 
       } catch (error) {
         console.error("❌ Error al obtener la atención completa:", error);
-        setAtencionCompleta(null);
+       // setAtencionCompleta(null);
         setSectionsData(AtencionMedicaSectionsRegistry.cargarPanelesIniciales());
       } finally {
-        setLoadingAtencion(false);
+      //  setLoadingAtencion(false);
       }
     } else {
-      setAtencionCompleta(null);
+     // setAtencionCompleta(null);
       setDocumentosPdf({ hc: null, ordenes: null, receta: null, indicaciones: null });
       setSectionsData(AtencionMedicaSectionsRegistry.cargarPanelesIniciales());
     }
@@ -384,6 +383,73 @@ const extraerDocumentosPdf = (data) => {
     setTimeout(() => { window.print(); }, 150);
   };
 
+/*  const refrescarEstadoFirma = useCallback(async () => {
+      const idAtencion = patientData?.idAtencion;
+      if (!idAtencion) return;
+
+      try {
+        setCargando(true);
+        const dataAtencion = await AtencionMedicaService.obtenerAtencionPorId(idAtencion);
+
+        setAtencionCompleta(dataAtencion.estadoFirma);
+        setRutaPdfFirmado(dataAtencion.rutaPdfFirmado || null);
+        setEstadoFirma(dataAtencion.estadoFirma);
+        setDocumentosPdf(extraerDocumentosPdf(dataAtencion));
+
+        const seccionesCargadas = AtencionMedicaSectionsRegistry.cargarPanelesDesdeApi(dataAtencion);
+        setSectionsData(seccionesCargadas);
+
+        return dataAtencion;
+      } catch (error) {
+        console.error("Error al refrescar estado de la firma:", error);
+      } finally {
+        setCargando(false);
+      }
+    }, [patientData?.idAtencion]);  
+*/
+
+  // Permite recibir el JSON ya actualizado desde la confirmación
+    const refrescarEstadoFirma = useCallback(async (dataActualizada = null) => {
+      try {
+        setCargando(true);
+
+        // 🟢 Si NO vienen datos directos, los pide al backend. Si YA vienen, los usa.
+        let dataAtencion = dataActualizada;
+
+        if (!dataAtencion) {
+          const idAtencion = patientData?.idAtencion;
+          if (!idAtencion) return;
+          dataAtencion = await AtencionMedicaService.obtenerAtencionPorId(idAtencion);
+        }
+
+        // Parámetro anti-caché para forzar al visor PDF a descargar la versión firmada de R2
+        const timestamp = Date.now();
+
+        setEstadoFirma(dataAtencion.estadoFirma);
+       // setAtencionCompleta?.(dataAtencion);
+
+        if (dataAtencion.rutaPdfFirmado) {
+          setRutaPdfFirmado(`${dataAtencion.rutaPdfFirmado}?t=${timestamp}`);
+        }
+
+        const docs = extraerDocumentosPdf(dataAtencion);
+        // Aplicar anti-caché a las URLs de los PDFs
+        if (docs?.hc?.urlDescargaFirmado) {
+          docs.hc.urlDescargaFirmado = `${docs.hc.urlDescargaFirmado}?t=${timestamp}`;
+        }
+        setDocumentosPdf(docs);
+
+        const seccionesCargadas = AtencionMedicaSectionsRegistry.cargarPanelesDesdeApi(dataAtencion);
+        setSectionsData(seccionesCargadas);
+
+        return dataAtencion;
+      } catch (error) {
+        console.error("Error al refrescar estado de la atención:", error);
+      } finally {
+        setCargando(false);
+      }
+    }, [patientData?.idAtencion]);
+    
   return {
     setActiveTab,
     setSubTabFirma,
@@ -394,7 +460,7 @@ const extraerDocumentosPdf = (data) => {
     isAgendaOpen,
     modoImpresion,
     cargando,
-    cargandoTriaje,
+   // cargandoTriaje,
     estadoGuardado,
     datosGuardadosExito,
     mostrarModalExito,
@@ -416,6 +482,7 @@ const extraerDocumentosPdf = (data) => {
     crearPdfBorrador,
     handleFinalizarFlujoYRegresar,
     imprimirFichaCompleta,
-    imprimirDocumentosPaciente
+    imprimirDocumentosPaciente,
+    refrescarEstadoFirma
   };
 };
