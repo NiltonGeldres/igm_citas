@@ -39,7 +39,7 @@ export function AtencionMedicaFirmaPanelV1({
 
   // Función para invocar el protocolo ReFirma
   const handleInvocarReFirma = () => {
-    
+    alert(JSON.stringify(jsonFirmadoUrl))
     if (jsonFirmadoUrl) {
       const refirmaUrl = jsonFirmadoUrl.startsWith('refirma://')
         ? jsonFirmadoUrl
@@ -58,17 +58,6 @@ export function AtencionMedicaFirmaPanelV1({
       }, 2000);
     }
   };
-/*
-  const obtenerUrlSegunVista = () => {
-    switch (vistaDocumento) {
-      case 'hc': return documentosPdf?.hc?.urlLectura;
-      case 'receta': return documentosPdf?.receta?.urlLectura;
-      case 'ordenes': return documentosPdf?.ordenes?.urlLectura;
-      case 'indicaciones': return documentosPdf?.indicaciones?.urlLectura;
-      default: return rutaPdfFirmado || documentosPdf?.hc?.urlLectura;      
-    }
-  };
-*/
 
   const obtenerUrlSegunVista = () => {
     const esFirmado = estadoFirma === 'FIRMADO' || estadoFirma === 'FIRMADO_ELECTRONICO';
