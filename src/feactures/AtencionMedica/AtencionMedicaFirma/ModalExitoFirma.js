@@ -1,5 +1,5 @@
-import React from 'react';
-import { CheckCircle, Printer, Download, ArrowRight } from 'lucide-react';
+
+import { CheckCircle, Printer,  ArrowRight } from 'lucide-react';
 
 function ModalExitoFirma({ isOpen, documentos, onCerrar }) {
   if (!isOpen || !documentos) return null;

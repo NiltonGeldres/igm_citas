@@ -9,8 +9,8 @@ const SERVICE = "/atencionmedica";
 const SERVICE_BASE = "/api/v1/atenciones-medicas";
 const SERVICE_BASE_OBTENER = "/api/v1/atenciones-medicas/detalle";
 // Endpoint exacto solicitado para el proceso unificado de Guardado y Firma (Rúbrica)
-const ENDPOINT_GUARDAR_FIRMA = "/atencionMedicaGuardar"; 
-const ENDPOINT_GENERAR_PDF_BORRADOR ="/preparar-pdf";
+//const ENDPOINT_GUARDAR_FIRMA = "/atencionMedicaGuardar"; 
+//const ENDPOINT_GENERAR_PDF_BORRADOR ="/preparar-pdf";
 
 
 const crearAtencionBorrador = (atencionMedicaRequest) => {

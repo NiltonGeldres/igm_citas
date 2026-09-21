@@ -1,5 +1,5 @@
 // src/components/Medicacion/AtencionMedicaMedicamentoPanel.js
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import AutoCompleteInput from '../common/AutoCompleteInput'; 
 import AtencionMedicaMedicamentoDetalleModal from './AtencionMedicaMedicamentoDetalleModal'; 
 import Styles from '../../../Styles'; 
@@ -271,7 +271,8 @@ function AtencionMedicaMedicamentoPanel({ content = [], onContentChange,  onModa
         <div style={{ border: '1px solid #e2e8f0', borderRadius: '8px', backgroundColor: '#ffffff' }}>
           {content.map((item, index) => {
             // Resolución del diagnóstico asociado usando el ID dentro del ciclo del .map
-            const dxAsociado = diagnosticosDisponibles.find(
+//            const dxAsociado = diagnosticosDisponibles.find(
+            diagnosticosDisponibles.find(
               (d) => String(d.id || d.idDiagnostico) === String(item.idDiagnostico)
             );
 
