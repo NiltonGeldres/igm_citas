@@ -31,7 +31,7 @@ export const VisorDocumentoFirma = ({ pasoActual, atencion }) => {
 
   // Resetear estados al cambiar de atención seleccionada
   useEffect(() => {
-    if (atencion) {
+    if (atencion?.id) {
       setCargandoPdf(true);
       setErrorCarga(false);
     }

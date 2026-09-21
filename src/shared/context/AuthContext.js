@@ -149,7 +149,7 @@ export const AuthProvider = ({ children }) => {
         setCatalogoGlobal(JSON.parse(storedCatalogo));
      }    
      actualizarDatosGlobales();
-  }, []);
+  }, [actualizarDatosGlobales]);
 
   const value = {
     user,

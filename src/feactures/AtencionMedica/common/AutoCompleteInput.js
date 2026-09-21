@@ -1,5 +1,5 @@
 // src/components/common/AutoCompleteInput.js
-import React, { useState, useEffect, useRef } from 'react';
+import  { useState, useEffect, useRef } from 'react';
 import useVoiceRecognition from '../../../hooks/useVoiceRecognition'; 
 import styles from '../../../Styles'; 
 import { v4 as uuidv4 } from 'uuid'; 
@@ -150,7 +150,7 @@ const AutoCompleteInput = ({ label, placeholder, onSelectSuggestion, fetchSugges
             type="button"
             style={styles.clearInputButton}
             onClick={handleClearInput}
-            aria-label="Borrar texto"
+//            aria-label="Borrar texto"
           >
             <X size={18} color="#94a3b8" /> 
           </button>
