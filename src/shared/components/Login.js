@@ -77,6 +77,10 @@ const Login = () => {
         </button>
 
         <p style={Styles.loginSignupText}>
+          Miclinica v.1.1 {" "}
+        </p>
+
+        <p style={Styles.loginSignupText}>
           ¿No tienes una cuenta?{" "}
           <Link to="/signup" style={Styles.loginSignupLink}>
             Regístrate aquí
