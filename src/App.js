@@ -1,9 +1,7 @@
 import { Routes, Route, Navigate,  useNavigate} from "react-router-dom";
 import {useAuth} from "../src/shared//context/AuthContext"
-//import { useAuth } from "./components/context/AuthContext";
 import { BaseHeader } from "./shared/components/layout/BaseHeader";
 import { MedicoRouter } from "./apps/medicos-app/routes/MedicoRouter";
-//import Login from "./components/Login/Login";
 import Login from "../src/shared/components/Login";
 import Signup from "./shared/components/Signup";
 import AuthService from "./master-data/services/auth.service";
@@ -20,6 +18,13 @@ function App() {
         AuthService.logout(); // Limpia sessionStorage
         navigate("/login");
   };
+
+  const getHomeRedirect = () => {
+      if (!user) return <Navigate to="/login" replace />;
+      return Authority === 'Medicos' 
+        ? <Navigate to="/med/agenda" replace /> 
+        : <Navigate to="/paciente/citas" replace />;
+    };
 
   return (
     <div className="App" style={{ minHeight: '100vh', backgroundColor: "#f8f9fa" }}>
@@ -38,12 +43,8 @@ function App() {
             <Signup />
           </>
         } />
-
-        {/* 2. REDIRECCIÓN INICIAL: El "Semáforo" de roles */}
-        <Route path="/" element={
-          !user ? <Navigate to="/login" replace /> : 
-          (Authority === 'Medicos' ? <Navigate to="/med/agenda" replace /> : <Navigate to="/paciente/citas" replace />)
-        } />
+        {/* 2. REDIRECCIÓN INICIAL: Raíz / */}
+        <Route path="/" element={getHomeRedirect()} />
 
         {/* 3. MUNDO MÉDICO: El MedicoRouter ya incluye el Layout con el BaseHeader completo */}
         <Route path="/med/*" element={
@@ -63,8 +64,12 @@ function App() {
 }
 
 export default App;
-
-
-
-
  
+
+
+//        {/* 2. REDIRECCIÓN INICIAL: El "Semáforo" de roles */}
+//        <Route path="/" element={
+//          !user ? <Navigate to="/login" replace /> : 
+//          (Authority === 'Medicos' ? <Navigate to="/med/agenda" replace /> : <Navigate to="/paciente/citas" replace />)
+//        } />
+

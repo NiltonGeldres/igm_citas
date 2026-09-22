@@ -1,4 +1,3 @@
-//import header from "../../components/Security/Header";
 import header from "../../shared/utils/Header";
 import axios from "axios";
 import { jwtDecode } from "jwt-decode";
@@ -133,7 +132,6 @@ const obtenerDatosGlobales = (token) => {
     return axios
     .post(API_URL+DATOS_GLOBALES ,{},{ headers: header()})
     .then((response) => {
-       // console.log("Datos Globales response "+JSON.stringify(response))
         return response.data;
     });
 };
@@ -188,49 +186,9 @@ const AuthService = {
     actualizaUsuario   , 
     leerPerfil,
     usuarioCrear,
-  //  getCurrentUser,
- //   getCurrentUsername,
-//    leerUsuario,
     leerUsuarioUsername,
-//    getCurrentAuthority,
-  //  getContextoActual,
 };
 
 export default AuthService;
 
 
-
-/**
- * 
- * 
- * 
-const login = (user, password) => {
-
-    return axios
-    .post(API_URL+LOGIN,{ user, password })
-    .then((response) => {
-
-        if(response.data.jwtToken){
-            const decoded = jwtDecode(response.data.jwtToken);
-            const perfil = {
-                username: decoded.sub,
-                rol: decoded.rol.authority,
-                idPaciente: decoded.idReferencia, 
-                idMedico: decoded.idReferencia, 
-                idUsuario: decoded.idUsuario, 
-                idEntidad: decoded.idEntidad,     
-                idReferencia: decoded.idReferencia,     
-                idRol: decoded.idRol 
-
-            };
-            alert(decoded.sub)
-            sessionStorage.setItem('username',  decoded.sub) ;  
-            sessionStorage.setItem('token_data',  JSON.stringify(response.data)) ;
-            sessionStorage.setItem('user_profile', JSON.stringify(perfil));
-
-            }
-        return response.data;
-    });
-};
-
- */

@@ -1,4 +1,4 @@
-import  { createContext, useState, useContext, useEffect } from 'react';
+import  { createContext, useState, useContext, useEffect, useCallback } from 'react';
 import AuthService from '../../master-data/services/auth.service';
 import axios from 'axios';
 import header from '../../shared/utils/Header';
@@ -7,7 +7,6 @@ const API_URL = process.env.REACT_APP_URL_API;
 const AuthContext = createContext();
 const SERVICE_CATALOGO_INICIAL = "/api/v1/catalogos/init";      
 
-// src/components/Catalogos/mockCatalogoGlobal.js
 
 export const MOCK_CATALOGO_GLOBAL = {
   catalogoTriajes: [
@@ -60,36 +59,16 @@ export const MOCK_CATALOGO_GLOBAL = {
 };
 
 
-
-
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [catalogoGlobal, setCatalogoGlobal] = useState([]);
-/*
-  const cargarCatalogoGlobal = async () => {
-      try {
-        // Usamos GET ya que el backend espera una petición @GetMapping
-        const response = await axios.get(
-          `${API_URL}${SERVICE_CATALOGO_INICIAL}`, 
-          { headers: header() }
-        );
-        const data = response.data.catalogo || response.data;
-        setCatalogoGlobal(data);
-        sessionStorage.setItem('catalogo_global', JSON.stringify(data));
-      } catch (error) {
-        console.error("❌ Error al cargar el catálogo inicial:", error);
-      }
-    };
 
-*/
-    const cargarCatalogoGlobal = async () => {
+  const cargarCatalogoGlobal = useCallback(async () => {
         // 1. Determinamos el entorno
         const isProduction = process.env.REACT_APP_NODE_ENV === 'production';
-
         try {
           let data;
-
           if (isProduction) {
             // 2. Lógica para Producción: Llamada real al backend
             const response = await axios.get(
@@ -97,8 +76,6 @@ export const AuthProvider = ({ children }) => {
               { headers: header() }
             );
             data = response.data.catalogo || response.data;
-            console.log("*** CATALOGO GLOBAL "+JSON.stringify(data))
-
           } else {
             // 3. Lógica para Desarrollo: Usamos el MOCK con un retraso simulado
             console.info("🛠️ Usando MOCK_CATALOGO_GLOBAL para desarrollo");
@@ -106,16 +83,15 @@ export const AuthProvider = ({ children }) => {
               setTimeout(() => resolve(MOCK_CATALOGO_GLOBAL), 300);
             });
           }
-
           setCatalogoGlobal(data);
           sessionStorage.setItem('catalogo_global', JSON.stringify(data));
           
         } catch (error) {
           console.error("❌ Error al cargar el catálogo inicial:", error);
         }
-      };
+  },[]);
       
-    const actualizarDatosGlobales = async () => {
+  const actualizarDatosGlobales = useCallback(async () => {
       const perfilToken = AuthService.leerPerfil();
       if (perfilToken) {
         try {
@@ -125,7 +101,6 @@ export const AuthProvider = ({ children }) => {
             nombresUsuario: resData.nombresUsuario,
             nombreEntidad: resData.nombreEntidad,
             email: resData.email,
-            //idEntidad: resData.idEntidad // Incluido por si necesitas pasar la entidad al catálogo
           };        
         
           setUser(perfilConDatosGlobales);
@@ -141,25 +116,30 @@ export const AuthProvider = ({ children }) => {
         setUser(null);      
       }
       setLoading(false);
-    };
+  },[cargarCatalogoGlobal]);
 
+// Carga inicial
   useEffect(() => {
-     const storedCatalogo = sessionStorage.getItem('catalogo_global');
-     if (storedCatalogo) {
+    const storedCatalogo = sessionStorage.getItem('catalogo_global');
+    if (storedCatalogo) {
+      try {
         setCatalogoGlobal(JSON.parse(storedCatalogo));
-     }    
-     actualizarDatosGlobales();
+      } catch (e) {
+        sessionStorage.removeItem('catalogo_global');
+      }
+    }    
+    actualizarDatosGlobales();
   }, [actualizarDatosGlobales]);
 
   const value = {
-    user,
-    catalogoGlobal,    
-    actualizarDatosGlobales,
-    isLoggedIn: !!user,
-    loading
+      user,
+      catalogoGlobal,    
+      actualizarDatosGlobales,
+      isLoggedIn: !!user,
+      loading
   };
   
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
 export const useAuth = () => {
@@ -169,3 +149,4 @@ export const useAuth = () => {
   }
   return context;
 };
+
