@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback,useMemo } from 'react';
 import AtencionMedicaService from "../AtencionMedicaService";
 //import { AtencionMedicaTriajeService } from '../AtencionMedicaTriaje/AtencionMedicaTriajeService';
 import { AtencionMedicaMapper } from '../AtencionMedicaMapper';
@@ -17,7 +17,7 @@ export const useAtencionMedica = () => {
 
  // const [hashIntegridad, setHashIntegridad] = useState(null);
   const [rutaPdfFirmado, setRutaPdfFirmado] = useState(null);
-  const [urlJsonFirmadoBackend, setUrlJsonFirmadoBackend] = useState(null);
+  const [urlJsonFirmadoBackend] = useState(null);
 
   // 🟢 ESTADO PARA ALMACENAR LAS 4 RUTAS DE PDFs
   const [documentosPdf, setDocumentosPdf] = useState({
@@ -70,11 +70,19 @@ export const useAtencionMedica = () => {
     PanelAlta: [],
   });
 
-  const contextoUsuario = {
-    idUsuario: user.idUsuario || 0,
-    idMedico: user.idMedico || 0,
-    idEntidad: user.idEntidad || 0,
-  };
+
+
+// 🟢 Extraer primitivos para estabilizar la referencia
+  const idUsuario = user?.idUsuario || 0;
+  const idMedico = user?.idMedico || 0;
+  const idEntidad = user?.idEntidad || 0;
+
+  // 🟢 useMemo dependiente solo de valores primitivos
+  const contextoUsuario = useMemo(() => ({
+    idUsuario,
+    idMedico,
+    idEntidad,
+  }), [idUsuario, idMedico, idEntidad]);
 
 const extraerDocumentosPdf = (data) => {
   // Mapa indexado por 'tipoDocumento' desde el arreglo 'documentos'
@@ -111,40 +119,7 @@ const extraerDocumentosPdf = (data) => {
       indicaciones: extraerInfoDoc('indicaciones', data?.nombreArchivoIndicaciones, data?.pdfRutaIndicaciones)
     };
   };  
-/*
-  const extraerDocumentosPdf = (data) => {
-    // Mapa indexado por 'tipoDocumento' desde el arreglo 'documentos'
-    const mapaDocs = (data?.documentos || []).reduce((acc, doc) => {
-      if (doc?.tipoDocumento) {
-        acc[doc.tipoDocumento.toLowerCase()] = doc;
-      }
-      return acc;
-    }, {});
 
-    return {
-      hc: {
-        nombreArchivo: data?.nombreArchivoHistoria || null,
-        urlLectura: mapaDocs['historia']?.urlLecturaBorrador || data?.pdfRutaHistoria || null,
-        urlSubidaFirmado: mapaDocs['historia']?.urlSubidaFirmado || null
-      },
-      receta: {
-        nombreArchivo: data?.nombreArchivoReceta || null,
-        urlLectura: mapaDocs['receta']?.urlLecturaBorrador || data?.pdfRutaReceta || null,
-        urlSubidaFirmado: mapaDocs['receta']?.urlSubidaFirmado || null
-      },
-      ordenes: {
-        nombreArchivo: data?.nombreArchivoOrdenes || null,
-        urlLectura: mapaDocs['orden']?.urlLecturaBorrador || data?.pdfRutaOrdenes || null,
-        urlSubidaFirmado: mapaDocs['orden']?.urlSubidaFirmado || null
-      },
-      indicaciones: {
-        nombreArchivo: data?.nombreArchivoIndicaciones || null,
-        urlLectura: mapaDocs['indicaciones']?.urlLecturaBorrador || data?.pdfRutaIndicaciones || null,
-        urlSubidaFirmado: mapaDocs['indicaciones']?.urlSubidaFirmado || null
-      }
-    };
-  };
-*/
   useEffect(() => {
     if (!patientData.id) {
       setIsAgendaOpen(true);
@@ -194,7 +169,7 @@ const extraerDocumentosPdf = (data) => {
     } finally {
       setCargando(false);
     }
-  }, [patientData, sectionsData]);
+  }, [patientData, sectionsData,contextoUsuario]);
 
   const crearPdfBorrador = async () => {
     const errores = validarCamposObligatoriosClinicos(sectionsData);
