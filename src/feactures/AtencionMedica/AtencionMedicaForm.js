@@ -1,3 +1,4 @@
+import React, { useEffect } from 'react';
 import { RefreshCw, Save, Calendar, ArrowRight, X } from 'lucide-react';
 
 import MessageModal from './common/MessageModal';
@@ -12,7 +13,8 @@ import AtencionMedicaExamenPanel from './AtencionMedicaExamen/AtencionMedicaExam
 import AtencionMedicaTriajePanel from './AtencionMedicaTriaje/AtencionMedicaTriajePanel'; 
 import ModalExitoFirma from './AtencionMedicaFirma/ModalExitoFirma';
 import './styles/medico-app-hce.css';
-import { useAtencionMedica } from './hooks/useAtencionMedica';
+//import { useAtencionMedica } from './hooks/useAtencionMedica';
+import { useAtencionContext } from '../../apps/medicos-app/context/AtencionProvider';
 import AtencionMedicaHeader from './components/AtencionMedicaHeader';
 import AtencionMedicaFirmaPanelV1 from './AtencionMedicaFirma/AtencionMedicaFirmaPanelV1';
 
@@ -43,12 +45,29 @@ function AtencionMedicaForm() {
     handleFinalizarFlujoYRegresar,
     showModalMessage,
     refrescarEstadoFirma
-  } = useAtencionMedica();
+  } = useAtencionContext();
+//  } = useAtencionMedica();
+
+  // CONTROL DE APERTURA INICIAL/ESTADO DE AGENDA
+  // Si no hay paciente, se exige la agenda. Si ya hay paciente seleccionado, el modal permanece cerrado.
+  useEffect(() => {
+    if (!patientData?.id) {
+      setIsAgendaOpen(true);
+    } else {
+      setIsAgendaOpen(false);
+    }
+  }, [patientData?.id, setIsAgendaOpen]);
+
+  // Manejador que selecciona paciente y cierra inmediatamente el modal
+  const handleSelectPacienteAndClose = (paciente) => {
+    handleSelectPaciente(paciente);
+    setIsAgendaOpen(false);
+  };
 
   return (
     <div className="main-layout-hce fullscreen-process-mode">
       
-      {/* 1. SECCIÓN FIJA SUPERIOR (Mantiene el Header Original) */}
+      {/* 1. SECCIÓN FIJA SUPERIOR */}
       <AtencionMedicaHeader 
         patientData={patientData}
         estadoGuardado={estadoGuardado}
@@ -57,7 +76,7 @@ function AtencionMedicaForm() {
         setActiveTab={setActiveTab}
       />
 
-      {/* 2. ÁREA CENTRAL CON SCROLL INDEPENDIENTE (Alineación Estándar Restaurada) */}
+      {/* 2. ÁREA CENTRAL CON SCROLL INDEPENDIENTE */}
       <div className="scrollable-content-container-hce">
         {patientData.id ? (
           <>
@@ -150,7 +169,7 @@ function AtencionMedicaForm() {
             )}
           </>
         ) : (
-          /* MENSAJE INICIAL EN LUGAR DEL TEXTO SIMPLE (SIN ALTERAR LA ALINEACIÓN DEL CONTENEDOR) */
+          /* MENSAJE INICIAL EN LUGAR DEL TEXTO SIMPLE */
           <div className="hce-waiting-placeholder" style={{ padding: '24px 16px', margin: '0' }}>
             <p style={{ margin: '0 0 16px 0', fontSize: '14px', color: '#475569' }}>
               Por favor, seleccione un paciente de la lista de citas para cargar su atención.
@@ -195,7 +214,7 @@ function AtencionMedicaForm() {
         </button>
       )}
 
-      {/* 4. MODAL FLOTANTE (RESPETA HEADER Y BOTTOM BAR) */}
+      {/* 4. MODAL FLOTANTE DE CITAS */}
       {isAgendaOpen && (
         <div 
           style={{
@@ -245,6 +264,7 @@ function AtencionMedicaForm() {
                 </h3>
               </div>
 
+              {/* Botón de cierre activo únicamente cuando existe un paciente seleccionado */}
               {patientData.id && (
                 <button 
                   type="button" 
@@ -268,7 +288,7 @@ function AtencionMedicaForm() {
             </div>
 
             <div style={{ flex: 1, overflowY: 'auto', padding: '12px' }}>
-              <AgendaPage onSelectPaciente={handleSelectPaciente} />
+              <AgendaPage onSelectPaciente={handleSelectPacienteAndClose} />
             </div>
           </div>
         </div>

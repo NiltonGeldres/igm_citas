@@ -4,6 +4,7 @@ import { formatCapitalize } from '../utils/textFormatter';
 import TabNavigation from './TabNavigation';
 
 function AtencionMedicaHeader({ patientData, estadoGuardado, onOpenAgenda, activeTab, setActiveTab }) {
+ console.log("DATA DEL PACIENTE:   "+JSON.stringify(patientData)) 
   return (
     <div className="fixed-header-wrapper-hce" style={{ padding: '8px 12px 0 12px' }}>
       {/* TARJETA UNIFICADA */}
@@ -78,10 +79,13 @@ function AtencionMedicaHeader({ patientData, estadoGuardado, onOpenAgenda, activ
                 {/* Etiquetas Demográficas más Visibles */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
                   <span style={{ backgroundColor: '#f1f5f9', color: '#334155', padding: '3px 8px', borderRadius: '5px', fontSize: '12px', fontWeight: '500' }}>
-                    <strong>Sexo:</strong> {patientData.sex ? formatCapitalize(patientData.sex) : 'N/A'}
+                    <strong>Nro Atencion:</strong> {patientData.idAtencion ? patientData.idAtencion : 'N/A'}
                   </span>
                   <span style={{ backgroundColor: '#f1f5f9', color: '#334155', padding: '3px 8px', borderRadius: '5px', fontSize: '12px', fontWeight: '500' }}>
-                    <strong>Edad:</strong> {patientData.age ? patientData.age : 'N/A'}
+                    <strong>Sexo:</strong> {patientData.sexo ? formatCapitalize(patientData.sexo) : 'N/A'}
+                  </span>
+                  <span style={{ backgroundColor: '#f1f5f9', color: '#334155', padding: '3px 8px', borderRadius: '5px', fontSize: '12px', fontWeight: '500' }}>
+                    <strong>Edad:</strong> {patientData.edad ? patientData.edad : 'N/A'}
                   </span>
                   <span style={{ backgroundColor: '#eff6ff', color: '#1d4ed8', padding: '3px 8px', borderRadius: '5px', fontSize: '12px', fontWeight: '700', border: '1px solid #dbeafe' }}>
                     HC: {patientData.hc || '---'}

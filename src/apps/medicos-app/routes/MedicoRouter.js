@@ -3,22 +3,21 @@ import { MedicoLayout } from '../layout/MedicoLayout';
 import ProgramacionHorario from '../../../feactures/ProgramacionHorario/ProgramacionHorario';
 import Facturacion from  '../../../feactures/Facturacion/Facturacion';
 import AtencionMedicaForm from '../../../feactures/AtencionMedica/AtencionMedicaForm';
-import FirmaDigitalForm from '../../../feactures/FirmaDigital/FirmaDigitalForm';
+import { AtencionProvider } from '../context/AtencionProvider';
 
 export const MedicoRouter = ({ onLogout }) => {
   return (
+<AtencionProvider>
     <MedicoLayout  onLogout={onLogout}   >
       <Routes>
-        {/*  */}
-         {/*<Route path="agenda" element={<AgendaPage />} />*/}
         <Route path="atencion-medica" element={<AtencionMedicaForm />} />
         <Route path="scheduling" element={<ProgramacionHorario />} />
         <Route path="billing" element={<Facturacion/>} />
-        {/*  */}
         <Route path="/" element={<Navigate to="atencion-medica" />} />
         <Route path="*" element={<Navigate to="atencion-medica" />} />
       </Routes>
     </MedicoLayout>
+</AtencionProvider>        
   );
 };
 

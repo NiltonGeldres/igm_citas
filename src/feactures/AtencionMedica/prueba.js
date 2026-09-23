@@ -1,152 +1,310 @@
-import  { createContext, useState, useContext, useEffect, useCallback } from 'react';
-import AuthService from '../../master-data/services/auth.service';
-import axios from 'axios';
-import header from '../../shared/utils/Header';
+import React, { useState } from 'react';
+import { PenTool, RefreshCw, UploadCloud, AlertTriangle } from 'lucide-react';
 
-const API_URL = process.env.REACT_APP_URL_API;
-const AuthContext = createContext();
-const SERVICE_CATALOGO_INICIAL = "/api/v1/catalogos/init";      
+import { 
+  solicitarAccesoCarpetaEntrada, 
+  guardarPDFsEnCarpetaEntrada,
+  solicitarAccesoCarpetaSalida,
+  leerPDFsDeCarpetaSalida
+} from '../../FirmaDigital/hooks/useFileSystemRefirma';
 
+// =======================================================================
+// UTILIDAD: DETECCIÓN DE DISPOSITIVOS MÓVILES (Android, iOS, iPadOS, etc.)
+// =======================================================================
+const isMobileDevice = () => {
+  if (typeof window === 'undefined') return false;
 
-export const MOCK_CATALOGO_GLOBAL = {
-  catalogoTriajes: [
-    { idTriaje: 53, nombreTriaje: "Frecuencia Cardíaca", um: "lpm", prioridad: 0 },
-    { idTriaje: 54, nombreTriaje: "Frecuencia Respiratoria", um: "rpm", prioridad: 0 },
-    { idTriaje: 60, nombreTriaje: "Glucosa Capilar", um: "mg/dL", prioridad: 0 },
-    { idTriaje: 59, nombreTriaje: "Hemoglobina", um: "g/dL", prioridad: 0 },
-    { idTriaje: 56, nombreTriaje: "Perímetro Abdominal", um: "cm", prioridad: 0 },
-    { idTriaje: 52, nombreTriaje: "Presión Arterial", um: "mmHg", prioridad: 0 },
-    { idTriaje: 55, nombreTriaje: "Saturación de Oxígeno", um: "%", prioridad: 0 },
-    { idTriaje: 49, nombreTriaje: "Temperatura", um: "°C", prioridad: 0 },
-    { idTriaje: 58, nombreTriaje: "Temperatura Axilar", um: "°C", prioridad: 0 },
-    { idTriaje: 57, nombreTriaje: "Índice de Masa Corporal (IMC)", um: "kg/m²", prioridad: 0 },
-    { idTriaje: 50, nombreTriaje: "Peso", um: "kg", prioridad: 1 },
-    { idTriaje: 51, nombreTriaje: "Talla", um: "cm", prioridad: 1 }
-  ],
-  catalogoTipoDiagnostico: [
-    { idDiagnosticoSubclasificacion: 8, codigo: "B", descripcion: "Causa Basica", idDiagnosticoClasificacion: 4, idTipoServicio: 3 },
-    { idDiagnosticoSubclasificacion: 12, codigo: "D", descripcion: "Definitivo", idDiagnosticoClasificacion: 7, idTipoServicio: 3 },
-    { idDiagnosticoSubclasificacion: 2, codigo: "D", descripcion: "Definitivo", idDiagnosticoClasificacion: 1, idTipoServicio: 1 },
-    { idDiagnosticoSubclasificacion: 6, codigo: "F", descripcion: "Causa Final", idDiagnosticoClasificacion: 4, idTipoServicio: 3 },
-    { idDiagnosticoSubclasificacion: 10, codigo: "FP", descripcion: "Causa fetal /perinatal", idDiagnosticoClasificacion: 5, idTipoServicio: 3 },
-    { idDiagnosticoSubclasificacion: 7, codigo: "I", descripcion: "Causa Intermedia", idDiagnosticoClasificacion: 4, idTipoServicio: 3 },
-    { idDiagnosticoSubclasificacion: 9, codigo: "M", descripcion: "Causa Materna", idDiagnosticoClasificacion: 5, idTipoServicio: 3 },
-    { idDiagnosticoSubclasificacion: 1, codigo: "P", descripcion: "Presuntivo", idDiagnosticoClasificacion: 1, idTipoServicio: 1 },
-    { idDiagnosticoSubclasificacion: 4, codigo: "P", descripcion: "Principal", idDiagnosticoClasificacion: 3, idTipoServicio: 3 },
-    { idDiagnosticoSubclasificacion: 11, codigo: "P", descripcion: "Presuntivo", idDiagnosticoClasificacion: 7, idTipoServicio: 3 },
-    { idDiagnosticoSubclasificacion: 13, codigo: "R", descripcion: "Repetido", idDiagnosticoClasificacion: 7, idTipoServicio: 3 },
-    { idDiagnosticoSubclasificacion: 3, codigo: "R", descripcion: "Repetido", idDiagnosticoClasificacion: 1, idTipoServicio: 1 },
-    { idDiagnosticoSubclasificacion: 5, codigo: "S", descripcion: "Secundario", idDiagnosticoClasificacion: 3, idTipoServicio: 3 }
-  ],
-  catalogoViasAdministracion: [
-    { idViaAdministracion: 10, nombreViaAdministracion: " Ótica", grupoClasificacion: "Tópicas y Locales" },
-    { idViaAdministracion: 11, nombreViaAdministracion: " Ótica", grupoClasificacion: "Tópicas y Locales" },
-    { idViaAdministracion: 12, nombreViaAdministracion: "Inhalatoria", grupoClasificacion: "Tópicas y Locales" },
-    { idViaAdministracion: 7, nombreViaAdministracion: "Intradérmica", grupoClasificacion: "Intradérmica" },
-    { idViaAdministracion: 5, nombreViaAdministracion: "Intramuscular", grupoClasificacion: "Intradérmica" },
-    { idViaAdministracion: 4, nombreViaAdministracion: "Intravenosa", grupoClasificacion: "Intradérmica" },
-    { idViaAdministracion: 9, nombreViaAdministracion: "Oftálmica", grupoClasificacion: "Tópicas y Locales" },
-    { idViaAdministracion: 1, nombreViaAdministracion: "Oral", grupoClasificacion: "Enteral" },
-    { idViaAdministracion: 3, nombreViaAdministracion: "Rectal", grupoClasificacion: "Enteral" },
-    { idViaAdministracion: 6, nombreViaAdministracion: "Subcutánea", grupoClasificacion: "Intradérmica" },
-    { idViaAdministracion: 2, nombreViaAdministracion: "Sublingual", grupoClasificacion: "Enteral" },
-    { idViaAdministracion: 13, nombreViaAdministracion: "Transdérmica", grupoClasificacion: "Tópicas y Locales" },
-    { idViaAdministracion: 8, nombreViaAdministracion: "Tópica / Cutánea", grupoClasificacion: "Tópicas y Locales" },
-    { idViaAdministracion: 14, nombreViaAdministracion: "Vaginal", grupoClasificacion: "Tópicas y Locales" }
-  ],
-  catalogoPaquetesMedicacion: [],
-  catalogoPaquetesExamenes: []
-};
-
-
-export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [catalogoGlobal, setCatalogoGlobal] = useState([]);
-
-  const cargarCatalogoGlobal = useCallback(async () => {
-        // 1. Determinamos el entorno
-        const isProduction = process.env.REACT_APP_NODE_ENV === 'production';
-        try {
-          let data;
-          if (isProduction) {
-            // 2. Lógica para Producción: Llamada real al backend
-            const response = await axios.get(
-              `${API_URL}${SERVICE_CATALOGO_INICIAL}`, 
-              { headers: header() }
-            );
-            data = response.data.catalogo || response.data;
-          } else {
-            // 3. Lógica para Desarrollo: Usamos el MOCK con un retraso simulado
-            console.info("🛠️ Usando MOCK_CATALOGO_GLOBAL para desarrollo");
-            data = await new Promise((resolve) => {
-              setTimeout(() => resolve(MOCK_CATALOGO_GLOBAL), 300);
-            });
-          }
-          setCatalogoGlobal(data);
-          sessionStorage.setItem('catalogo_global', JSON.stringify(data));
-          
-        } catch (error) {
-          console.error("❌ Error al cargar el catálogo inicial:", error);
-        }
-  },[]);
-      
-  const actualizarDatosGlobales = useCallback(async () => {
-      const perfilToken = AuthService.leerPerfil();
-      if (perfilToken) {
-        try {
-          const resData = await AuthService.obtenerDatosGlobales(); 
-          const perfilConDatosGlobales = {
-            ...perfilToken,    
-            nombresUsuario: resData.nombresUsuario,
-            nombreEntidad: resData.nombreEntidad,
-            email: resData.email,
-          };        
-        
-          setUser(perfilConDatosGlobales);
-          // Pasamos el idEntidad del usuario recién hidratado si aplica
-          await cargarCatalogoGlobal();
-
-        } catch (error) {
-          console.error("Fallo la hidratación de datos globales:", error);
-          setUser(perfilToken);        
-        }
-      } else {
-        console.warn("No hay sesión válida para hidratar datos.");
-        setUser(null);      
-      }
-      setLoading(false);
-  },[cargarCatalogoGlobal]);
-
-// Carga inicial
-  useEffect(() => {
-    const storedCatalogo = sessionStorage.getItem('catalogo_global');
-    if (storedCatalogo) {
-      try {
-        setCatalogoGlobal(JSON.parse(storedCatalogo));
-      } catch (e) {
-        sessionStorage.removeItem('catalogo_global');
-      }
-    }    
-    actualizarDatosGlobales();
-  }, [actualizarDatosGlobales]);
-
-  const value = {
-      user,
-      catalogoGlobal,    
-      actualizarDatosGlobales,
-      isLoggedIn: !!user,
-      loading
-  };
+  const userAgent = navigator.userAgent || navigator.vendor || window.opera;
+  const mobileRegex = /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i;
   
-   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  // Soporte especial para iPads en iPadOS 13+ que reportan como Mac Desktop
+  const isMacTouch = navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1;
+
+  return mobileRegex.test(userAgent) || isMacTouch;
 };
 
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error("useAuth debe usarse dentro de un AuthProvider");
-  }
-  return context;
-};
+export function VisorPdfGCS({ 
+  urlPdfFirmado, 
+  titulo = "Atención de Consulta Externa (HC)",
+  estadoFirma,
+  atencionData,
+  documentosPdf = {},
+  onInvocarReFirma,
+  onProcesarFirmadosSalida,
+  onRefrescarEstadoFirma,
+  showModalMessage
+}) {
+  const [dirHandleEntrada, setDirHandleEntrada] = useState(null);
+  const [dirHandleSalida, setDirHandleSalida] = useState(null);
+  const [procesandoFirma, setProcesandoFirma] = useState(false);
+  const [cargandoSalida, setCargandoSalida] = useState(false);
+  const [progreso, setProgreso] = useState(0);
+  const [errorMovil, setErrorMovil] = useState(false);
 
+  const baseUrl = process.env.REACT_APP_URL_ARCHIVOS || '';
+
+  const obtenerUrlCompleta = (path) => {
+    if (!path) return null;
+    if (path.startsWith('http://') || path.startsWith('https://')) {
+      return `${path}#toolbar=0&navpanes=0`;
+    }
+
+    const pathLimpia = path.startsWith('/') ? path.substring(1) : path;
+    const baseLimpia = baseUrl.endsWith('/') ? baseUrl.substring(0, baseUrl.length - 1) : baseUrl;
+    return `${baseLimpia}/${pathLimpia}#toolbar=0&navpanes=0`;
+  };
+
+  const urlAbsoluta = obtenerUrlCompleta(urlPdfFirmado);
+
+  const estadoUpper = (estadoFirma || '').toUpperCase();
+  const esPendiente = estadoUpper === 'PENDIENTE_FIRMA' || estadoUpper === 'PDF_BORRADOR';
+
+  // HANDLER PARA LA FIRMA CON RESTRUCTURACIÓN PARA DISPOSITIVOS MÓVILES
+  const handleEjecutarFirmaCompleta = async () => {
+    // 1. Validar si el cliente está accediendo desde un dispositivo móvil
+    if (isMobileDevice()) {
+      setErrorMovil(true);
+      if (typeof showModalMessage === 'function') {
+        showModalMessage("Este proceso solo se realiza en equipos de escritorio.");
+      }
+      return;
+    }
+
+    setErrorMovil(false);
+
+    let handleActual = dirHandleEntrada;
+
+    if (!handleActual) {
+      handleActual = await solicitarAccesoCarpetaEntrada();
+      if (!handleActual) {
+        showModalMessage?.("Debes seleccionar la carpeta de ENTRADA de ReFirma (ej. C:\\igm_salud\\refirma\\entrada) para continuar.");
+        return;
+      }
+      setDirHandleEntrada(handleActual);
+    }
+
+    try {
+      setProcesandoFirma(true);
+      setProgreso(0);
+
+      const idAtencion = atencionData?.idAtencion || atencionData?.id || 'atencion';
+
+      const urlHc = documentosPdf?.hc?.urlLectura || documentosPdf?.urlHistoriaPdf;
+      const urlReceta = documentosPdf?.receta?.urlLectura || documentosPdf?.urlRecetaPdf;
+      const urlOrdenes = documentosPdf?.ordenes?.urlLectura || documentosPdf?.urlOrdenesPdf;
+      const urlIndicaciones = documentosPdf?.indicaciones?.urlLectura || documentosPdf?.urlIndicacionesPdf;
+
+      const loteDocumentos = [
+        { 
+          id: `${idAtencion}_hc`, 
+          urlPdfBorrador: urlHc, 
+          nombreArchivo: documentosPdf?.hc?.nombreArchivo || `atencion_${idAtencion}_historia-borrador.pdf` 
+        },
+        { 
+          id: `${idAtencion}_receta`, 
+          urlPdfBorrador: urlReceta, 
+          nombreArchivo: documentosPdf?.receta?.nombreArchivo || `atencion_${idAtencion}_receta-borrador.pdf` 
+        },
+        { 
+          id: `${idAtencion}_ordenes`, 
+          urlPdfBorrador: urlOrdenes, 
+          nombreArchivo: documentosPdf?.ordenes?.nombreArchivo || `atencion_${idAtencion}_orden-borrador.pdf` 
+        },
+        { 
+          id: `${idAtencion}_indicaciones`, 
+          urlPdfBorrador: urlIndicaciones, 
+          nombreArchivo: documentosPdf?.indicaciones?.nombreArchivo || `atencion_${idAtencion}_indicaciones-borrador.pdf` 
+        }
+      ].filter(doc => Boolean(doc.urlPdfBorrador));
+
+      if (loteDocumentos.length === 0) {
+        showModalMessage?.("No se encontraron URLs válidas de PDF en el lote para firmar.");
+        return;
+      }
+
+      await guardarPDFsEnCarpetaEntrada(handleActual, loteDocumentos, (porcentaje) => {
+        setProgreso(porcentaje);
+      });
+
+      if (typeof onInvocarReFirma === 'function') {
+        onInvocarReFirma();
+      }
+
+    } catch (error) {
+      console.error("Error al procesar la firma en lote:", error);
+      showModalMessage?.("Error al guardar los archivos en la carpeta de entrada o ejecutar ReFirma.");
+    } finally {
+      setProcesandoFirma(false);
+    }
+  };
+
+  const handleCargarFirmadosSalida = async () => {
+    let handleSalidaActual = dirHandleSalida;
+
+    if (!handleSalidaActual) {
+      handleSalidaActual = await solicitarAccesoCarpetaSalida();
+      if (!handleSalidaActual) {
+        showModalMessage?.("Debes seleccionar la carpeta de SALIDA de ReFirma (ej. C:\\igm_salud\\refirma\\salida) para procesar los firmados.");
+        return;
+      }
+      setDirHandleSalida(handleSalidaActual);
+    }
+
+    try {
+      setCargandoSalida(true);
+      const archivosFirmados = await leerPDFsDeCarpetaSalida(handleSalidaActual);
+
+      if (!archivosFirmados || archivosFirmados.length === 0) {
+        showModalMessage?.("No se encontraron documentos PDF firmados en la carpeta de salida.");
+        return;
+      }
+
+      if (typeof onProcesarFirmadosSalida === 'function') {
+        await onProcesarFirmadosSalida(archivosFirmados);
+      } else {
+        showModalMessage?.("Se leyeron los archivos pero no hay una función de carga registrada.");
+      }
+    } catch (error) {
+      console.error("Error al leer la carpeta de salida:", error);
+      showModalMessage?.("Error al leer los documentos firmados de la carpeta de salida.");
+    } finally {
+      setCargandoSalida(false);
+    }
+  };
+
+  return (
+    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', width: '100%', height: '650px' }}>
+      
+      {/* ALERTA DE ADVERTENCIA PARA DISPOSITIVOS MÓVILES */}
+      {errorMovil && (
+        <div style={{
+          backgroundColor: '#fef3c7',
+          borderBottom: '1px solid #f59e0b',
+          color: '#92400e',
+          padding: '8px 16px',
+          fontSize: '12px',
+          fontWeight: '600',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px'
+        }}>
+          <AlertTriangle size={16} color="#d97706" />
+          <span>Este proceso solo se realiza en equipos de escritorio.</span>
+        </div>
+      )}
+
+      <div 
+        style={{ 
+          backgroundColor: '#0f172a', 
+          color: '#ffffff', 
+          padding: '8px 16px', 
+          borderTopRightRadius: '8px', 
+          display: 'flex', 
+          justifyContent: 'space-between', 
+          alignItems: 'center' 
+        }}
+      >
+        <span style={{ fontWeight: '700', fontSize: '13px', color: '#38bdf8' }}>
+          {titulo}
+        </span>
+
+        {esPendiente && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <button
+              type="button"
+              onClick={handleEjecutarFirmaCompleta}
+              disabled={procesandoFirma || cargandoSalida}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                backgroundColor: procesandoFirma ? '#94a3b8' : '#16a34a',
+                color: '#ffffff',
+                border: 'none',
+                borderRadius: '6px',
+                padding: '6px 14px',
+                fontSize: '12px',
+                fontWeight: '700',
+                cursor: (procesandoFirma || cargandoSalida) ? 'not-allowed' : 'pointer',
+                boxShadow: '0 2px 4px rgba(22, 163, 74, 0.3)'
+              }}
+              title="1. Descargar lote a la carpeta de entrada y ejecutar ReFirma PC"
+            >
+              <PenTool size={14} /> 
+              {procesandoFirma ? `Guardando lote (${progreso}%)...` : '1. FIRMAR CON REFIRMA'}
+            </button>
+
+            <button
+              type="button"
+              onClick={handleCargarFirmadosSalida}
+              disabled={procesandoFirma || cargandoSalida}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                backgroundColor: cargandoSalida ? '#94a3b8' : '#0284c7',
+                color: '#ffffff',
+                border: 'none',
+                borderRadius: '6px',
+                padding: '6px 14px',
+                fontSize: '12px',
+                fontWeight: '700',
+                cursor: (procesandoFirma || cargandoSalida) ? 'not-allowed' : 'pointer',
+                boxShadow: '0 2px 4px rgba(2, 132, 199, 0.3)'
+              }}
+              title="2. Procesar y guardar documentos firmados desde la carpeta de salida"
+            >
+              <UploadCloud size={14} /> 
+              {cargandoSalida ? 'Procesando firmados...' : '2. CARGAR FIRMADOS'}
+            </button>
+
+            {onRefrescarEstadoFirma && (
+              <button
+                type="button"
+                onClick={onRefrescarEstadoFirma}
+                disabled={procesandoFirma || cargandoSalida}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  backgroundColor: '#1e293b',
+                  color: '#94a3b8',
+                  border: '1px solid #334155',
+                  borderRadius: '6px',
+                  padding: '6px 8px',
+                  cursor: (procesandoFirma || cargandoSalida) ? 'not-allowed' : 'pointer'
+                }}
+                title="Refrescar estado de firma"
+              >
+                <RefreshCw size={13} />
+              </button>
+            )}
+          </div>
+        )}
+      </div>
+
+      <div style={{ flex: 1, backgroundColor: '#f1f5f9', padding: '12px', display: 'flex', justifyContent: 'center' }}>
+        {!urlAbsoluta ? (
+          <div style={{ padding: '40px', textAlign: 'center', color: '#64748b' }}>
+            No hay documento PDF disponible para previsualizar.
+          </div>
+        ) : (
+          <iframe
+            key={urlAbsoluta}
+            src={urlAbsoluta}
+            width="100%"
+            height="100%"
+            title={titulo}
+            style={{
+              border: 'none',
+              borderRadius: '4px',
+              backgroundColor: '#ffffff',
+              boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+            }}
+          />
+        )}
+      </div>
+    </div>
+  );
+}
+
+export default VisorPdfGCS;

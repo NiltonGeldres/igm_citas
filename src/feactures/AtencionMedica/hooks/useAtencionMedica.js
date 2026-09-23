@@ -48,8 +48,8 @@ export const useAtencionMedica = () => {
 
   const [patientData, setPatientData] = useState({
     name: '',
-    sex: '',
-    age: '',
+    sexo: '',
+    edad: '',
     id: '',
     hc: '',
     idPaciente: null,
@@ -222,8 +222,8 @@ const extraerDocumentosPdf = (data) => {
 
     const nuevoPatientData = {
       name: pacienteSeleccionado.nombres || '',
-      sex: pacienteSeleccionado.sexo || 'N/A',
-      age: pacienteSeleccionado.edad ? `${pacienteSeleccionado.edad} años` : 'N/A',
+      sexo: pacienteSeleccionado.sexo || 'N/A',
+      edad: pacienteSeleccionado.edad ? `${pacienteSeleccionado.edad} años` : 'N/A',
       id: pacienteSeleccionado.idPaciente,
       idPaciente: pacienteSeleccionado.idPaciente,
       idCuentaAtencion: pacienteSeleccionado.idCuentaAtencion,
@@ -234,6 +234,7 @@ const extraerDocumentosPdf = (data) => {
       idAtencion: idAtencionValido,
       accionAgenda: accionGatillada
     };
+   console.log("PACIENTE SELECCIONADO "+JSON.stringify(nuevoPatientData))
 
     setPacienteActivo(pacienteSeleccionado);
     setPatientData(nuevoPatientData);
@@ -325,8 +326,8 @@ const extraerDocumentosPdf = (data) => {
     setDocumentosPdf({ hc: null, ordenes: null, receta: null, indicaciones: null });
     setPatientData({ 
       name: '',
-      sex: '',
-      age: 'Edad',
+      sexo: '',
+      Edad: 'Edad',
       id: '',
       hc: '',
       idPaciente: null,

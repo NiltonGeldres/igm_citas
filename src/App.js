@@ -4,7 +4,7 @@ import { BaseHeader } from "./shared/components/layout/BaseHeader";
 import { MedicoRouter } from "./apps/medicos-app/routes/MedicoRouter";
 import Login from "../src/shared/components/Login";
 import Signup from "./shared/components/Signup";
-import AuthService from "./master-data/services/auth.service";
+//import AuthService from "./master-data/services/auth.service";
 import PacientePage from "./apps/paciente-app/pages/PacientePage";
 
 function App() {

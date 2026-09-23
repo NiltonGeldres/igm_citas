@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { PenTool, RefreshCw, UploadCloud } from 'lucide-react';
+import { PenTool, RefreshCw, UploadCloud ,AlertTriangle} from 'lucide-react';
 
 import { 
   solicitarAccesoCarpetaEntrada, 
@@ -7,6 +7,19 @@ import {
   solicitarAccesoCarpetaSalida,
   leerPDFsDeCarpetaSalida
 } from '../../FirmaDigital/hooks/useFileSystemRefirma';
+
+const isMobileDevice = () => {
+  if (typeof window === 'undefined') return false;
+
+  const userAgent = navigator.userAgent || navigator.vendor || window.opera;
+  const mobileRegex = /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i;
+  
+  // Soporte especial para iPads en iPadOS 13+ que reportan como Mac Desktop
+  const isMacTouch = navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1;
+
+  return mobileRegex.test(userAgent) || isMacTouch;
+};
+
 
 export function VisorPdfGCS({ 
   urlPdfFirmado, 
@@ -24,7 +37,7 @@ export function VisorPdfGCS({
   const [procesandoFirma, setProcesandoFirma] = useState(false);
   const [cargandoSalida, setCargandoSalida] = useState(false);
   const [progreso, setProgreso] = useState(0);
-
+  const [errorMovil, setErrorMovil] = useState(false);
   const baseUrl = process.env.REACT_APP_URL_ARCHIVOS || '';
 
   const obtenerUrlCompleta = (path) => {
@@ -44,6 +57,16 @@ export function VisorPdfGCS({
   const esPendiente = estadoUpper === 'PENDIENTE_FIRMA' || estadoUpper === 'PDF_BORRADOR';
 
   const handleEjecutarFirmaCompleta = async () => {
+
+    if (isMobileDevice()) {
+      setErrorMovil(true);
+      if (typeof showModalMessage === 'function') {
+        showModalMessage("Este proceso solo se realiza en equipos de escritorio.");
+      }
+      return;
+    }
+    setErrorMovil(false);
+    
     let handleActual = dirHandleEntrada;
 
     if (!handleActual) {
@@ -146,6 +169,24 @@ export function VisorPdfGCS({
 
   return (
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', width: '100%', height: '650px' }}>
+
+      {errorMovil && (
+        <div style={{
+          backgroundColor: '#fef3c7',
+          borderBottom: '1px solid #f59e0b',
+          color: '#92400e',
+          padding: '8px 16px',
+          fontSize: '12px',
+          fontWeight: '600',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px'
+        }}>
+          <AlertTriangle size={16} color="#d97706" />
+          <span>Este proceso solo se realiza en equipos de escritorio.</span>
+        </div>
+      )}
+
       <div 
         style={{ 
           backgroundColor: '#0f172a', 

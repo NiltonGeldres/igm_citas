@@ -1,4 +1,4 @@
-import { CalendarDays, CreditCard, ClipboardList, Stethoscope } from "lucide-react";
+import { CalendarDays, CreditCard,  Stethoscope } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 
 export const MedicoFooter = () => {
