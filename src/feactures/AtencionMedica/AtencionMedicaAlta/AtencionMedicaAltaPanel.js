@@ -1,5 +1,5 @@
 // src/components/AtencionMedica/AtencionMedicaAltaPanel.js
-import React from 'react';
+
 import Styles from '../../../Styles'; 
 import useVoiceRecognition from "../../../hooks/useVoiceRecognition"; 
 import { Mic, MicOff, LogOut } from 'lucide-react';

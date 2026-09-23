@@ -8,14 +8,15 @@ import AuthService from "./master-data/services/auth.service";
 import PacientePage from "./apps/paciente-app/pages/PacientePage";
 
 function App() {
-  const { user, loading } = useAuth();
+  const { user, loading, logout } = useAuth();  
   const Authority = user?.rol; 
   const navigate = useNavigate();
 
   if (loading) return <div className="loading-screen">Cargando MiClinica...</div>;
   
   const logOut = () => {
-        AuthService.logout(); // Limpia sessionStorage
+//        AuthService.logout(); // Limpia sessionStorage
+        logout();
         navigate("/login");
   };
 

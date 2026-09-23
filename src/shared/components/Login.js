@@ -21,9 +21,11 @@ const Login = () => {
     setLoading(true);
     try {
        const response =  await AuthService.login(email, password);
-       if (response.jwtToken) {
+      if (response && (response.jwtToken || response.token)) {
+      //   if (response.jwtToken) {
               await actualizarDatosGlobales(); // <--- ESTO LLENA EL HEADER AL INSTANTE
-              navigate("/");
+              //navigate("/");
+              navigate("/", { replace: true });              
        }        
        //  window.location.reload();
     } catch (err) {
@@ -76,15 +78,15 @@ const Login = () => {
           {loading ? "Cargando..." : "Ingresar"}
         </button>
 
-        <p style={Styles.loginSignupText}>
-          Miclinica v.1.1 {" "}
-        </p>
 
         <p style={Styles.loginSignupText}>
           ¿No tienes una cuenta?{" "}
           <Link to="/signup" style={Styles.loginSignupLink}>
             Regístrate aquí
           </Link>
+        </p>
+        <p style={Styles.loginSignupTextVersion}>
+          Miclinica v.1.1 {" "}
         </p>
       </form>
 

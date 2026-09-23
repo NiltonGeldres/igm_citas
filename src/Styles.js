@@ -1194,6 +1194,11 @@ const Styles = {
     color: '#555',
     marginTop: '10px',
   },
+  loginSignupTextVersion: {
+    fontSize: '12px',
+    color: '#555454',
+    marginTop: '10px',
+  },
   loginSignupLink: {
     color: '#007bff',
     textDecoration: 'none',

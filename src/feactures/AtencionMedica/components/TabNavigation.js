@@ -1,22 +1,22 @@
 import React from 'react';
 import { 
-  Thermometer, 
+  Activity, 
   Stethoscope, 
-  Lightbulb, 
-  Microscope, 
+  FileText, 
+  TestTube, 
   Pill, 
-  CheckCircle, 
-  PenTool 
+  CheckCircle2, 
+  FileSignature 
 } from 'lucide-react';
 
 const TABS = [
-  { id: 'triaje', label: 'Signos', icon: Thermometer },
+  { id: 'triaje', label: 'Signos', icon: Activity },
   { id: 'diseaseAndExam', label: 'Anamnesis', icon: Stethoscope },
-  { id: 'diagnosis', label: 'Diag', icon: Lightbulb },
-  { id: 'exams', label: 'Orden', icon: Microscope },
+  { id: 'diagnosis', label: 'Diag', icon: FileText },
+  { id: 'exams', label: 'Orden', icon: TestTube },
   { id: 'medication', label: 'Receta', icon: Pill },
-  { id: 'discharge', label: 'Alta', icon: CheckCircle },
-  { id: 'signature', label: 'Fin', icon: PenTool },
+  { id: 'discharge', label: 'Alta', icon: CheckCircle2 },
+  { id: 'signature', label: 'Fin', icon: FileSignature },
 ];
 
 export const TabNavigation = ({ activeTab, onSelectTab, isDisabled = false }) => {
@@ -25,9 +25,8 @@ export const TabNavigation = ({ activeTab, onSelectTab, isDisabled = false }) =>
       aria-label="Navegación de Historia Clínica"
       style={{
         display: 'grid',
-        gridTemplateColumns: 'repeat(7, 1fr)', // Fuerza distribución equitativa de las 7 pestañas
-        gap: '2px',
-        padding: '4px 2px 0 2px',
+        gridTemplateColumns: 'repeat(7, 1fr)',
+        padding: '0 4px',
         backgroundColor: '#ffffff',
         width: '100%',
         boxSizing: 'border-box'
@@ -45,41 +44,46 @@ export const TabNavigation = ({ activeTab, onSelectTab, isDisabled = false }) =>
             onClick={() => onSelectTab(tab.id)}
             style={{
               display: 'flex',
-              flexDirection: 'column', // Ícono arriba, texto abajo para ahorrar ancho
+              flexDirection: 'column',
               alignItems: 'center',
               justifyContent: 'center',
-              gap: '2px',
+              gap: '4px',
+              minHeight: '54px', // GARANTIZA ALTURA CONFORTABLE Y PROPORCIONADA
               padding: '6px 2px',
               border: 'none',
-              borderBottom: isActive ? '2.5px solid #0284c7' : '2.5px solid transparent',
-              backgroundColor: isActive ? '#f0f9ff' : 'transparent', // Ligero fondo al estar activo
-              borderRadius: '6px 6px 0 0',
-              color: isActive ? '#0284c7' : '#64748b',
-              fontWeight: isActive ? '700' : '500',
-              fontSize: '11px',
+              borderBottom: isActive ? '3px solid #0066FF' : '3px solid transparent',
+              backgroundColor: isActive ? '#EFF6FF' : 'transparent',
+              borderRadius: '8px 8px 0 0',
+              color: isActive ? '#0066FF' : '#64748B',
               cursor: isDisabled ? 'not-allowed' : 'pointer',
-              opacity: isDisabled ? 0.4 : 1,
-              transition: 'all 0.15s ease',
+              opacity: isDisabled ? 0.35 : 1,
+              transition: 'all 0.18s ease-in-out',
               outline: 'none',
               width: '100%',
-              minWidth: 0 // Previene desbordamientos de flex/grid
+              minWidth: 0
             }}
           >
             <IconComponent 
-              size={15} 
+              size={isActive ? 19 : 18} 
+              strokeWidth={isActive ? 2.3 : 1.8}
               style={{ 
-                color: isActive ? '#0284c7' : '#64748b',
-                flexShrink: 0
+                color: isActive ? '#0066FF' : '#64748B',
+                flexShrink: 0,
+                transition: 'transform 0.15s ease'
               }} 
             />
+            
             <span 
               style={{ 
-                fontSize: '10.5px',
-                lineHeight: '1',
+                fontSize: '11px',
+                fontWeight: isActive ? '700' : '600',
+                lineHeight: '1.1',
                 textOverflow: 'ellipsis',
                 overflow: 'hidden',
                 whiteSpace: 'nowrap',
-                maxWidth: '100%'
+                maxWidth: '100%',
+                color: isActive ? '#0066FF' : '#64748B',
+                letterSpacing: '-0.1px'
               }}
             >
               {tab.label}

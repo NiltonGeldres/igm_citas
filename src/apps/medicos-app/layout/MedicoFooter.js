@@ -11,7 +11,7 @@ const menuItems = [
 //  { id: 'agenda', label: 'Agenda', icon: ClipboardList, path: '/med/agenda' },
 //  { id: 'atencion-medica', label: 'Atención', icon: Stethoscope, path: '/med/atencion-medica', ocultarEnFooter: true },
   { id: 'atencion-medica', label: 'Atención', icon: Stethoscope, path: '/med/atencion-medica'},
-  { id: 'firma', label: 'Firmar', icon: ClipboardList, path: '/med/firma' },
+//  { id: 'firma', label: 'Firmar', icon: ClipboardList, path: '/med/firma' },
 ];
 
 
