@@ -13,7 +13,6 @@ import AtencionMedicaExamenPanel from './AtencionMedicaExamen/AtencionMedicaExam
 import AtencionMedicaTriajePanel from './AtencionMedicaTriaje/AtencionMedicaTriajePanel'; 
 import ModalExitoFirma from './AtencionMedicaFirma/ModalExitoFirma';
 import './styles/medico-app-hce.css';
-//import { useAtencionMedica } from './hooks/useAtencionMedica';
 import { useAtencionContext } from '../../apps/medicos-app/context/AtencionProvider';
 import AtencionMedicaHeader from './components/AtencionMedicaHeader';
 import AtencionMedicaFirmaPanelV1 from './AtencionMedicaFirma/AtencionMedicaFirmaPanelV1';
