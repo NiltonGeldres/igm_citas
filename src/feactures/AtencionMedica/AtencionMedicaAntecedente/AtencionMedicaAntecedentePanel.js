@@ -1,5 +1,4 @@
-// src/components/AtencionMedica/AtencionMedicaEnfermedadPanel.js
-import React from 'react';
+import React, { useMemo, useCallback, useRef, useEffect } from 'react';
 import Styles from '../../../Styles'; 
 import useVoiceRecognition from "../../../hooks/useVoiceRecognition"; 
 import { Mic, MicOff, FileText } from 'lucide-react';
@@ -7,29 +6,40 @@ import { Mic, MicOff, FileText } from 'lucide-react';
 /**
  * Componente para la gestión de Antecedentes (Texto libre adaptado a estructura de lista con ID 0).
  */
-const AtencionMedicaAntecedentesPanel = ({ content = [], onContentChange, onModalMessage }) => {
+const AtencionMedicaAntecedentesPanel = ({ 
+  content = [], 
+  onContentChange, 
+  onModalMessage 
+}) => {
   const title = "Antecedentes";
+  const textareaRef = useRef(null);
 
-  // Asegurarnos de que 'content' sea un arreglo
-  const listaAntecedentes = Array.isArray(content) ? content : [];
+  // 1. Memorizar la lista normalizada para evitar recalculaciones
+  const listaAntecedentes = useMemo(() => {
+    return Array.isArray(content) ? content : [];
+  }, [content]);
 
-  // Extraer el texto libre actual (aquél que tenga id/idAntecedente igual a 0 o no tenga ID)
-  const itemTextoLibre = listaAntecedentes.find(
-    (item) => Number(item.idAntecedente ?? item.id) === 0
-  );
+  // 2. Obtener la referencia del texto libre actual (id === 0 o string)
+  const itemTextoLibre = useMemo(() => {
+    return listaAntecedentes.find(
+      (item) => Number(item.idAntecedente ?? item.id) === 0
+    );
+  }, [listaAntecedentes]);
 
-  const textoActual = itemTextoLibre
-    ? (itemTextoLibre.nombreAntecedente || itemTextoLibre.descripcion || "")
-    : (typeof content === 'string' ? content : "");
+  const textoActual = useMemo(() => {
+    if (itemTextoLibre) {
+      return itemTextoLibre.nombreAntecedente || itemTextoLibre.descripcion || "";
+    }
+    return typeof content === 'string' ? content : "";
+  }, [itemTextoLibre, content]);
 
-  // Función para emitir la lista actualizada manteniendo ítems de catálogo (id > 0)
-  const actualizarTextoLibre = (nuevoTexto) => {
-    // Filtrar elementos del catálogo si existieran en el estado
+  // 3. Función optimizada para actualizar el estado manteniendo los elementos de catálogo
+  const actualizarTextoLibre = useCallback((nuevoTexto) => {
     const soloCatalogo = listaAntecedentes.filter(
       (item) => Number(item.idAntecedente ?? item.id) > 0
     );
 
-    let listaActualizada = [...soloCatalogo];
+    const listaActualizada = [...soloCatalogo];
 
     if (nuevoTexto.trim() !== '') {
       listaActualizada.push({
@@ -39,16 +49,31 @@ const AtencionMedicaAntecedentesPanel = ({ content = [], onContentChange, onModa
     }
 
     onContentChange(listaActualizada);
-  };
+  }, [listaAntecedentes, onContentChange]);
 
-  // Inicialización del Hook de Reconocimiento de Voz
+  // 4. Integración del dictado por voz
   const { startListening, stopListening, isListening, error } = useVoiceRecognition(
     (transcript) => {
-      const nuevoContenido = textoActual ? `${textoActual} ${transcript}` : transcript;
+      const nuevoContenido = textoActual 
+        ? `${textoActual.trim()} ${transcript}` 
+        : transcript;
       actualizarTextoLibre(nuevoContenido);
     },
     onModalMessage
   );
+
+  // Re-calcular la altura dinámicamente tanto al escribir como al dictar o cargar datos
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+      textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
+    }
+  }, [textoActual]);
+
+  const handleInput = (e) => {
+    e.target.style.height = 'auto';
+    e.target.style.height = `${e.target.scrollHeight}px`;
+  };  
 
   return (
     <div style={Styles.medicalSection}>
@@ -57,84 +82,92 @@ const AtencionMedicaAntecedentesPanel = ({ content = [], onContentChange, onModa
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
-        marginBottom: '12px'
+        marginBottom: '6px'
       }}>
-        <h3 style={{ ...Styles.sectionTitle, margin: 0, fontSize: '16px', color: '#1e293b', fontWeight: '600' }}>
+        <label style={{ 
+          fontSize: '11px', 
+          fontWeight: '600', 
+          color: '#475569', 
+          letterSpacing: '0.025em'
+        }}>
           {title}
-        </h3>
-        
-        {/* Botón de Dictado por Voz */}
+        </label>
+
+        {/* Botón de Dictado por Voz Compacto */}
         <button
           type="button"
           onClick={isListening ? stopListening : startListening}
           style={{
-            display: 'flex',
+            display: 'inline-flex',
             alignItems: 'center',
-            gap: '6px',
+            gap: '4px',
             backgroundColor: isListening ? '#fef2f2' : '#ffffff',
             border: isListening ? '1px solid #fca5a5' : '1px solid #cbd5e1',
-            borderRadius: '20px',
-            padding: '6px 14px',
+            borderRadius: '12px',
+            padding: '2px 8px',
             color: isListening ? '#ef4444' : '#2563eb',
-            fontSize: '13px',
+            fontSize: '11px',
             fontWeight: '500',
             cursor: 'pointer',
-            transition: 'all 0.2s ease',
-            boxShadow: isListening ? '0 0 8px rgba(239, 68, 68, 0.2)' : 'none'
+            transition: 'all 0.15s ease',
+            boxShadow: isListening ? '0 0 6px rgba(239, 68, 68, 0.2)' : 'none'
           }}
         >
           {isListening ? (
             <>
-              <MicOff size={14} strokeWidth={2.5} className="animate-pulse" />
-              <span style={{ fontWeight: '600' }}>Detener Dictado</span>
+              <MicOff size={12} strokeWidth={2.5} className="animate-pulse" />
+              <span style={{ fontWeight: '600' }}>Detener</span>
             </>
           ) : (
             <>
-              <Mic size={14} strokeWidth={2.5} />
-              <span>Dictar por voz</span>
+              <Mic size={12} strokeWidth={2.5} />
+              <span>Dictar</span>
             </>
           )}
         </button>
       </div>
 
-      {/* Contenedor del Área de Texto */}
+      {/* Contenedor del Área de Texto Compacta */}
       <div style={{ position: 'relative', width: '100%' }}>
         <textarea
+          ref={textareaRef}
+          rows={1}
           style={{
             width: '100%',
-            minHeight: '120px',
-            padding: '12px 14px',
-            borderRadius: '8px',
+            minHeight: '38px',
+            padding: '6px 45px 6px 10px',
+            borderRadius: '6px',
             border: isListening ? '1.5px solid #f87171' : '1px solid #cbd5e1',
-            backgroundColor: isListening ? '#fffdfd' : '#ffffff',
-            fontSize: '13px',
-            color: '#334155',
-            lineHeight: '1.5',
+            backgroundColor: isListening ? '#fffdfd' : '#f8fafc',
+            fontSize: '12px',
+            color: '#1e293b',
+            lineHeight: '1.4',
             outline: 'none',
-            resize: 'vertical',
+            resize: 'none', // Se cambió a 'none' para un auto-resize impecable
+            overflowY: 'hidden',
             fontFamily: 'inherit',
-            transition: 'border-color 0.2s ease'
+            transition: 'border-color 0.15s ease, background-color 0.15s ease'
           }}
+          onInput={handleInput}          
           value={textoActual}
           onChange={(e) => actualizarTextoLibre(e.target.value)}
-          placeholder="Escriba o use el botón de dictado para detallar los antecedentes del paciente..."
-          rows="5"
+          placeholder="HTA, RAM: Penicilina, cirugías previas..."
         />
 
-        {/* Indicador visual de caracteres */}
+        {/* Indicador visual de caracteres dentro del campo */}
         <div style={{
           position: 'absolute',
-          bottom: '10px',
-          right: '12px',
+          bottom: '6px',
+          right: '8px',
           display: 'flex',
           alignItems: 'center',
-          gap: '4px',
+          gap: '3px',
           pointerEvents: 'none',
-          opacity: 0.6
+          opacity: 0.5
         }}>
-          <FileText size={12} color="#64748b" />
-          <span style={{ fontSize: '10px', color: '#64748b', fontWeight: '500' }}>
-            {textoActual ? `${textoActual.length} caracteres` : 'Vacío'}
+          <FileText size={10} color="#64748b" />
+          <span style={{ fontSize: '9.5px', color: '#64748b', fontWeight: '500' }}>
+            {textoActual ? `${textoActual.length}` : '0'}
           </span>
         </div>
       </div>
@@ -142,16 +175,16 @@ const AtencionMedicaAntecedentesPanel = ({ content = [], onContentChange, onModa
       {/* Manejo de Errores de Micrófono */}
       {error && (
         <div style={{
-          marginTop: '8px',
-          padding: '6px 12px',
+          marginTop: '4px',
+          padding: '4px 8px',
           backgroundColor: '#fef2f2',
           border: '1px solid #fee2e2',
-          borderRadius: '6px',
+          borderRadius: '4px',
           color: '#b91c1c',
-          fontSize: '11px',
+          fontSize: '10.5px',
           fontWeight: '500'
         }}>
-          ⚠️ {error}
+          ⚠ {error}
         </div>
       )}
     </div>

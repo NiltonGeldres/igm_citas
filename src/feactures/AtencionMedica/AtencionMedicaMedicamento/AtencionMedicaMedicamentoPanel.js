@@ -1,67 +1,83 @@
 // src/components/Medicacion/AtencionMedicaMedicamentoPanel.js
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import AutoCompleteInput from '../common/AutoCompleteInput'; 
 import AtencionMedicaMedicamentoDetalleModal from './AtencionMedicaMedicamentoDetalleModal'; 
 import Styles from '../../../Styles'; 
 import { v4 as uuidv4 } from 'uuid';
-import { Pencil, Trash2 } from 'lucide-react'; 
+import { Pencil, Trash2, Layers, CheckSquare, Square, Search, X } from 'lucide-react'; 
 import { AtencionMedicaMedicamentoService } from './AtencionMedicaMedicamentoService';
-import { Layers, CheckSquare, Square } from 'lucide-react';
 
-
-function AtencionMedicaMedicamentoPanel({ content = [], onContentChange,  onModalMessage, diagnosticosDisponibles = [] }) {
+function AtencionMedicaMedicamentoPanel({ 
+  content = [], 
+  onContentChange, 
+  onModalMessage, 
+  diagnosticosDisponibles = [] 
+}) {
+  const title = "Tratamiento / Medicación";
   const [mostrarBuscador, setMostrarBuscador] = useState(false);
-  const [tipoBusqueda, setTipoBusqueda] = useState('INDIVIDUAL'); // 'INDIVIDUAL' o 'PAQUETE'
+  const [tipoBusqueda, setTipoBusqueda] = useState('INDIVIDUAL'); // 'INDIVIDUAL' | 'PAQUETE'
   const [mostrarDetalleMedicamentoModal, setMostrarDetalleMedicamentoModal] = useState(false);
   const [medicamentoActualParaEditar, setMedicamentoActualParaEditar] = useState(null);
   const [paquetesDisponibles, setPaquetesDisponibles] = useState([]);
+  const [cargandoPaquete, setCargandoPaquete] = useState(false);
   const [dropdownAbiertoId, setDropdownAbiertoId] = useState(null);
-  // 🔄 CAMBIO 1: Carga de lista de paquetes alineada a la nueva función del servicio
+
+  const searchRef = useRef(null);
+  const dropdownRef = useRef(null);
+
+  // Normalización memorizada del contenido
+  const listaMedicamentos = useMemo(() => {
+    return Array.isArray(content) ? content : [];
+  }, [content]);
+
+  // Carga inicial de paquetes con prevención de memory leaks
   useEffect(() => {
+    let isMounted = true;
     const cargarPaquetes = async () => {
-      const pkgs = await AtencionMedicaMedicamentoService.obtenerListaPaquetes();
-      setPaquetesDisponibles(pkgs);
+      try {
+        const pkgs = await AtencionMedicaMedicamentoService.obtenerListaPaquetes();
+        if (isMounted) setPaquetesDisponibles(pkgs || []);
+      } catch (error) {
+        console.error("Error al cargar lista de paquetes de medicamentos:", error);
+      }
     };
     cargarPaquetes();
+    return () => { isMounted = false; };
   }, []);
 
-  const fetchMedicationSuggestions = async (query) => {
-    return await AtencionMedicaMedicamentoService.buscarMedicamentosCatalogo(query);
-  };
-
-
-// Handler para vincular/desvincular diagnóstico
-  const handleSelectDiagnostico = (medicamentoId, diag) => {
-    const diagIdReal = diag.idDiagnostico || diag.id;
-    const codigoCieReal = diag.codigoCIE || diag.codigo || diag.codigoCie10 || '';
-
-    const listaActualizada = content.map((item) => {
-      if (item.id === medicamentoId) {
-        // Desvincula si vuelve a presionar el mismo
-        if (String(item.idDiagnostico) === String(diagIdReal)) {
-          return { ...item, idDiagnostico: null, codigoCIE: '' };
-        }
-        // Vincula el nuevo diagnóstico seleccionado
-        return {
-          ...item,
-          idDiagnostico: diagIdReal,
-          codigoCIE: codigoCieReal
-        };
+  // Cierre de dropdowns y buscador al hacer clic fuera
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (searchRef.current && !searchRef.current.contains(event.target)) {
+        setMostrarBuscador(false);
       }
-      return item;
-    });
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setDropdownAbiertoId(null);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
-    onContentChange(listaActualizada);
-    setDropdownAbiertoId(null);
-  };
+  const fetchMedicationSuggestions = useCallback(async (query) => {
+    try {
+      return await AtencionMedicaMedicamentoService.buscarMedicamentosCatalogo(query);
+    } catch (error) {
+      if (onModalMessage) onModalMessage('Error al conectar con el catálogo de medicamentos.');
+      return [];
+    }
+  }, [onModalMessage]);
 
-  // CAMINO A: SELECCIÓN INDIVIDUAL (Abre el Modal)
-    const handleAddMedication = (medicationItem) => {
+  // Selección individual de medicamento
+  const handleAddMedication = useCallback((medicationItem) => {
+    if (!medicationItem) return;
 
-    const existingMed = content.find(item => item.descripcion === medicationItem.label);
+    const existingMed = listaMedicamentos.find(item => item.descripcion === medicationItem.label);
+    
     if (existingMed) {
-      console.log("existingMed TRUE  "+JSON.stringify(medicamentoActualParaEditar))
-      if (onModalMessage) onModalMessage(`El medicamento "${medicationItem.label}" ya fue agregado. Editando posología.`);
+      if (onModalMessage) {
+        onModalMessage(`El medicamento "${medicationItem.label}" ya fue agregado. Editando posología.`);
+      }
       setMedicamentoActualParaEditar(existingMed);
     } else {
       setMedicamentoActualParaEditar({
@@ -73,327 +89,438 @@ function AtencionMedicaMedicamentoPanel({ content = [], onContentChange,  onModa
         periodo: medicationItem.duracionDiasDefault || '',
         cantidad: medicationItem.cantidadPredefinida || '',
         via: medicationItem.idViaDefault || '',
+        idDiagnostico: null,
+        codigoCIE: ''
       });
-      console.log("MEDICATION ITEM edicamentoActualParaEditar  "+JSON.stringify(medicationItem))
     }
     setMostrarDetalleMedicamentoModal(true);
-  };
+  }, [listaMedicamentos, onModalMessage]);
 
-  // 🔄 CAMBIO 2: Manejador asíncrono para cargar el detalle del paquete al seleccionar
-  const handleCargarPaquete = async (e) => {
+  // Cargar medicamentos desde paquete preconfigurado
+  const handleCargarPaquete = useCallback(async (e) => {
     const paqueteId = e.target.value;
     if (!paqueteId) return;
 
-    const paqueteSeleccionado = paquetesDisponibles.find(pkg => String(pkg.id) === String(paqueteId));
-    if (!paqueteSeleccionado) return;
+    const paqueteSeleccionado = paquetesDisponibles.find(
+      pkg => String(pkg.idPaqueteExamen || pkg.id) === String(paqueteId)
+    );
 
-    // Obtención asíncrona de medicamentos asociados
-    const medicamentosAsociados = await AtencionMedicaMedicamentoService.obtenerProductosPorPaquete(paqueteId);
+    try {
+      setCargandoPaquete(true);
+      const medicamentosAsociados = await AtencionMedicaMedicamentoService.obtenerProductosPorPaquete(paqueteId);
 
-    let nuevosAgregados = 0;
-    const listaActualizada = [...content];
-
-    medicamentosAsociados.forEach(medItem => {
-      const nombreMed = medItem.label;
-      const yaExiste = listaActualizada.some(item => item.descripcion.toLowerCase() === nombreMed.toLowerCase());
-      
-      if (!yaExiste) {
-        listaActualizada.push({
-          id: uuidv4(),
-          descripcion: nombreMed,
-          dosis: medItem.dosisDefault || '',
-          frecuencia: medItem.frecuenciaDefault || '',
-          periodo: medItem.duracionDiasDefault || '',
-          cantidad: medItem.cantidadPredefinida || '',
-          via: medItem.idViaDefault || ''
-        });
-        nuevosAgregados++;
+      if (!medicamentosAsociados || medicamentosAsociados.length === 0) {
+        if (onModalMessage) onModalMessage('El paquete seleccionado no contiene medicamentos registrados.');
+        setCargandoPaquete(false);
+        e.target.value = "";
+        return;
       }
-    });
 
-    onContentChange(listaActualizada);
-    setMostrarBuscador(false);
-    e.target.value = ""; // Reset del dropdown
+      let nuevosAgregados = 0;
+      const listaActualizada = [...listaMedicamentos];
 
-    if (onModalMessage && nuevosAgregados > 0) {
-      onModalMessage(`Se inyectaron ${nuevosAgregados} medicamentos del paquete "${paqueteSeleccionado.label}".`);
+      medicamentosAsociados.forEach(medItem => {
+        const nombreMed = medItem.label || medItem.descripcion;
+        const yaExiste = listaActualizada.some(
+          item => item.descripcion && item.descripcion.toLowerCase() === nombreMed.toLowerCase()
+        );
+
+        if (!yaExiste) {
+          listaActualizada.push({
+            id: uuidv4(),
+            idProducto: medItem.idProducto || medItem.id,
+            descripcion: nombreMed,
+            dosis: medItem.dosisDefault || '',
+            frecuencia: medItem.frecuenciaDefault || '',
+            periodo: medItem.duracionDiasDefault || '',
+            cantidad: medItem.cantidadPredefinida || '',
+            via: medItem.idViaDefault || '',
+            idDiagnostico: null,
+            codigoCIE: ''
+          });
+          nuevosAgregados++;
+        }
+      });
+
+      onContentChange(listaActualizada);
+      setMostrarBuscador(false);
+
+      if (onModalMessage && nuevosAgregados > 0) {
+        const nombrePkg = paqueteSeleccionado ? (paqueteSeleccionado.label || paqueteSeleccionado.nombrePaquete) : '';
+        onModalMessage(`Se inyectaron ${nuevosAgregados} medicamentos del paquete "${nombrePkg}".`);
+      }
+    } catch (error) {
+      if (onModalMessage) onModalMessage('Error al obtener el detalle del paquete seleccionado.');
+    } finally {
+      setCargandoPaquete(false);
+      e.target.value = "";
     }
-  };
+  }, [listaMedicamentos, paquetesDisponibles, onContentChange, onModalMessage]);
 
-  const handleSaveMedicationDetails = (updatedMedication) => {
-      console.log("handleSaveMedicationDetails updatedMedication "+JSON.stringify(updatedMedication))
-   
-    const existingIndex = content.findIndex(item => item.id === updatedMedication.id);
-    let updatedList = [...content];
+  // Guardar posología editada en modal
+  const handleSaveMedicationDetails = useCallback((updatedMedication) => {
+    const existingIndex = listaMedicamentos.findIndex(item => item.id === updatedMedication.id);
+    let updatedList = [...listaMedicamentos];
+
     if (existingIndex > -1) {
       updatedList[existingIndex] = updatedMedication;
     } else {
       updatedList.push(updatedMedication);
     }
+
     onContentChange(updatedList);
     setMostrarDetalleMedicamentoModal(false);
     setMedicamentoActualParaEditar(null);
     setMostrarBuscador(false);
-  };
+  }, [listaMedicamentos, onContentChange]);
 
-  const handleDeleteMedication = (medicationId) => {
-    const updatedList = content.filter(med => med.id !== medicationId);
-    onContentChange(updatedList);
+  // Vinculación / Desvinculación de Diagnóstico (Relación 1 a 1)
+  const handleSelectDiagnostico = useCallback((medicamentoId, diagObj) => {
+    const targetDiagId = diagObj.idDiagnostico || diagObj.id;
+    const codigoCieReal = diagObj.codigoCIE || diagObj.codigo || diagObj.codigoCie10 || 'S/C';
+
+    const listaActualizada = listaMedicamentos.map(item => {
+      if (item.id === medicamentoId) {
+        if (String(item.idDiagnostico) === String(targetDiagId)) {
+          return { ...item, idDiagnostico: null, codigoCIE: '' };
+        }
+        return {
+          ...item,
+          idDiagnostico: targetDiagId,
+          codigoCIE: codigoCieReal
+        };
+      }
+      return item;
+    });
+
+    onContentChange(listaActualizada);
+    setDropdownAbiertoId(null);
+  }, [listaMedicamentos, onContentChange]);
+
+  // Eliminar medicamento de la lista
+  const handleDeleteMedication = useCallback((medicamentoId) => {
+    const listaActualizada = listaMedicamentos.filter(med => med.id !== medicamentoId);
+    onContentChange(listaActualizada);
     if (onModalMessage) onModalMessage('Medicamento eliminado del tratamiento.');
-  };
-
+  }, [listaMedicamentos, onContentChange, onModalMessage]);
 
   return (
     <div style={Styles.medicalSection}>
-      {/* Cabecera Uniforme */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-        <h3 style={{ ...Styles.sectionTitle, margin: 0, fontSize: '16px', color: '#1e293b', fontWeight: '600' }}>
-          Tratamiento / Medicación
-        </h3>
-        
-        <button
-          type="button"
-          onClick={() => setMostrarBuscador(!mostrarBuscador)}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '6px',
-            backgroundColor: mostrarBuscador ? '#f1f5f9' : '#ffffff',
-            border: '1px solid #cbd5e1',
-            borderRadius: '20px',
-            padding: '6px 14px',
-            color: '#1d4ed8',
-            fontSize: '13px',
-            fontWeight: '500',
-            cursor: 'pointer'
-          }}
-        >
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1d4ed8" strokeWidth="2.5">
-            <circle cx="11" cy="11" r="8"></circle>
-            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-          </svg>
-          {mostrarBuscador ? 'Cerrar opciones' : 'Añadir medicamento o receta'}
-        </button>
-      </div>
-
-      {/* Caja de Herramientas Apilada Verticalmente */}
-      {mostrarBuscador && (
-        <div style={{ 
-          display: 'flex', 
-          flexDirection: 'column',
-          gap: '12px', 
-          marginBottom: '16px', 
-          backgroundColor: '#f8fafc',
-          padding: '14px',
-          borderRadius: '8px',
-          border: '1px solid #e2e8f0'
+      {/* Cabecera Principal Compacta */}
+      <div style={{
+        display: 'flex',
+        justify: 'space-between',
+        alignItems: 'center',
+        marginBottom: '6px',
+        minHeight: '24px'
+      }}>
+        <label style={{ 
+          fontSize: '11px', 
+          fontWeight: '600', 
+          color: '#475569', 
+          letterSpacing: '0.025em'
         }}>
-          {/* Tabs superiores */}
-          <div style={{ display: 'flex', gap: '4px', borderBottom: '1px solid #e2e8f0', paddingBottom: '8px' }}>
-            <button
-              type="button"
-              onClick={() => setTipoBusqueda('INDIVIDUAL')}
-              style={{
-                padding: '4px 12px',
-                fontSize: '12px',
-                fontWeight: '600',
-                borderRadius: '4px',
-                border: 'none',
-                cursor: 'pointer',
-                backgroundColor: tipoBusqueda === 'INDIVIDUAL' ? '#e0f2fe' : 'transparent',
-                color: tipoBusqueda === 'INDIVIDUAL' ? '#0369a1' : '#64748b'
-              }}
-            >
-              💊 Fármaco Individual
-            </button>
-            <button
-              type="button"
-              onClick={() => setTipoBusqueda('PAQUETE')}
-              style={{
-                padding: '4px 12px',
-                fontSize: '12px',
-                fontWeight: '600',
-                borderRadius: '4px',
-                border: 'none',
-                cursor: 'pointer',
-                backgroundColor: tipoBusqueda === 'PAQUETE' ? '#e0f2fe' : 'transparent',
-                color: tipoBusqueda === 'PAQUETE' ? '#0369a1' : '#64748b'
-              }}
-            >
-              📦 Cargar Receta Preconfigurada
-            </button>
-          </div>
+          {title}
+        </label>
 
-          {/* Renderizado del buscador según Tab activo */}
-          {tipoBusqueda === 'INDIVIDUAL' ? (
-            <div>
-              <AutoCompleteInput
-                placeholder="Busque el medicamento (Ej: Paracetamol, Amoxicilina)..."
-                onSelectSuggestion={handleAddMedication}
-                fetchSuggestions={fetchMedicationSuggestions}
-                onModalMessage={onModalMessage} 
-                style={{ padding: '6px 12px', height: '34px', fontSize: '13px' }} 
-              />
+        {/* Botón / Desplegable de Búsqueda Compacto */}
+        <div ref={searchRef} style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
+          {mostrarBuscador ? (
+            <div style={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '6px',
+              backgroundColor: '#f8fafc',
+              border: '1px solid #cbd5e1',
+              borderRadius: '6px',
+              padding: '6px',
+              width: '280px',
+              boxShadow: '0 2px 6px rgba(0,0,0,0.05)'
+            }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div style={{ display: 'flex', gap: '4px' }}>
+                  <button
+                    type="button"
+                    onClick={() => setTipoBusqueda('INDIVIDUAL')}
+                    style={{
+                      padding: '2px 6px',
+                      fontSize: '10px',
+                      fontWeight: '600',
+                      borderRadius: '4px',
+                      border: 'none',
+                      cursor: 'pointer',
+                      backgroundColor: tipoBusqueda === 'INDIVIDUAL' ? '#e0f2fe' : 'transparent',
+                      color: tipoBusqueda === 'INDIVIDUAL' ? '#0369a1' : '#64748b'
+                    }}
+                  >
+                    Fármaco
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setTipoBusqueda('PAQUETE')}
+                    style={{
+                      padding: '2px 6px',
+                      fontSize: '10px',
+                      fontWeight: '600',
+                      borderRadius: '4px',
+                      border: 'none',
+                      cursor: 'pointer',
+                      backgroundColor: tipoBusqueda === 'PAQUETE' ? '#e0f2fe' : 'transparent',
+                      color: tipoBusqueda === 'PAQUETE' ? '#0369a1' : '#64748b'
+                    }}
+                  >
+                    Receta Preconfigurada
+                  </button>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setMostrarBuscador(false)}
+                  style={{ border: 'none', background: 'transparent', color: '#94a3b8', cursor: 'pointer', padding: '0' }}
+                >
+                  <X size={14} />
+                </button>
+              </div>
+
+              {tipoBusqueda === 'INDIVIDUAL' ? (
+                <AutoCompleteInput
+                  placeholder="Escriba el fármaco..."
+                  onSelectSuggestion={handleAddMedication}
+                  fetchSuggestions={fetchMedicationSuggestions}
+                  onModalMessage={onModalMessage}
+                />
+              ) : (
+                <select
+                  onChange={handleCargarPaquete}
+                  defaultValue=""
+                  disabled={cargandoPaquete}
+                  style={{
+                    width: '100%',
+                    height: '26px',
+                    padding: '0 6px',
+                    borderRadius: '4px',
+                    border: '1px solid #cbd5e1',
+                    backgroundColor: cargandoPaquete ? '#f1f5f9' : '#ffffff',
+                    fontSize: '11px',
+                    color: '#334155',
+                    outline: 'none',
+                    cursor: cargandoPaquete ? 'wait' : 'pointer'
+                  }}
+                >
+                  <option value="" disabled>
+                    {cargandoPaquete ? 'Cargando...' : '-- Seleccionar Receta --'}
+                  </option>
+                  {paquetesDisponibles.map(pkg => {
+                    const pkgId = pkg.idPaqueteExamen || pkg.id;
+                    return (
+                      <option key={pkgId} value={pkgId}>
+                        {pkg.label || pkg.nombrePaquete}
+                      </option>
+                    );
+                  })}
+                </select>
+              )}
             </div>
           ) : (
-            <div>
-              <select
-                onChange={handleCargarPaquete}
-                defaultValue=""
-                style={{
-                  width: '100%',
-                  height: '34px',
-                  padding: '0 10px',
-                  borderRadius: '6px',
-                  border: '1px solid #cbd5e1',
-                  backgroundColor: '#ffffff',
-                  fontSize: '13px',
-                  color: '#334155',
-                  outline: 'none',
-                  cursor: 'pointer'
-                }}
-              >
-                <option value="" disabled>-- Seleccione un Paquete Farmacológico --</option>
-                {/* 🔄 CAMBIO 3: Renderizado usando pkg.label en lugar de propiedades directas del backend */}
-                {paquetesDisponibles.map(pkg => (
-                  <option key={pkg.id} value={pkg.id}>
-                    {pkg.label}
-                  </option>
-                ))}
-              </select>
-            </div>
+            <button
+              type="button"
+              onClick={() => setMostrarBuscador(true)}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '4px',
+                backgroundColor: '#ffffff',
+                border: '1px solid #cbd5e1',
+                borderRadius: '12px',
+                padding: '2px 8px',
+                color: '#2563eb',
+                fontSize: '11px',
+                fontWeight: '500',
+                cursor: 'pointer',
+                transition: 'all 0.15s ease'
+              }}
+            >
+              <Search size={12} strokeWidth={2.5} />
+              <span>Añadir</span>
+            </button>
           )}
         </div>
-      )}
+      </div>
 
-      {/* Lista Estricta optimizada en espacio */}
-      {content.length > 0 && (
-        <div style={{ border: '1px solid #e2e8f0', borderRadius: '8px', backgroundColor: '#ffffff' }}>
-          {content.map((item, index) => {
-            // Resolución del diagnóstico asociado usando el ID dentro del ciclo del .map
-//            const dxAsociado = diagnosticosDisponibles.find(
-            diagnosticosDisponibles.find(
-              (d) => String(d.id || d.idDiagnostico) === String(item.idDiagnostico)
-            );
+      {/* Lista de Registros */}
+      {listaMedicamentos.length > 0 && (
+        <div style={{
+          border: '1px solid #e2e8f0',
+          borderRadius: '6px',
+          backgroundColor: '#ffffff'
+        }}>
+          {listaMedicamentos.map((item, index) => {
+            const tieneDxIncompleto = !item.idDiagnostico;
 
             return (
               <div 
                 key={item.id} 
                 style={{
+                  position: 'relative',
                   display: 'flex',
                   alignItems: 'center',
-                  padding: '12px 14px',
-                  borderBottom: index === content.length - 1 ? 'none' : '1px solid #e2e8f0',
-                  gap: '10px'
+                  padding: '5px 8px',
+                  borderBottom: index === listaMedicamentos.length - 1 ? 'none' : '1px solid #f1f5f9',
+                  gap: '8px'
                 }}
               >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                {/* Action Buttons: Editar / Eliminar */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
                   <button
                     type="button"
                     onClick={() => {
                       setMedicamentoActualParaEditar(item);
                       setMostrarDetalleMedicamentoModal(true);
                     }}
-                    style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '2px', color: '#3b82f6' }}
+                    title="Editar posología"
+                    style={{
+                      border: 'none',
+                      background: 'transparent',
+                      color: '#3b82f6',
+                      cursor: 'pointer',
+                      padding: '2px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      borderRadius: '4px',
+                      transition: 'all 0.15s ease'
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#eff6ff'}
+                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                   >
-                    <Pencil size={15} strokeWidth={2.5} />
+                    <Pencil size={13} />
                   </button>
                   <button
                     type="button"
                     onClick={() => handleDeleteMedication(item.id)}
-                    style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '2px', color: '#f87171' }}
+                    title="Eliminar medicamento"
+                    style={{
+                      border: 'none',
+                      background: 'transparent',
+                      color: '#94a3b8',
+                      cursor: 'pointer',
+                      padding: '2px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      borderRadius: '4px',
+                      transition: 'all 0.15s ease'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = '#fef2f2';
+                      e.currentTarget.style.color = '#ef4444';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = 'transparent';
+                      e.currentTarget.style.color = '#94a3b8';
+                    }}
                   >
-                    <Trash2 size={15} strokeWidth={2.5} />
+                    <Trash2 size={13} />
                   </button>
-                  <div style={{
-                    backgroundColor: '#f1f5f9', color: '#64748b', fontWeight: '600', fontSize: '11px',
-                    padding: '2px 5px', borderRadius: '4px', minWidth: '18px', textAlign: 'center', border: '1px solid #e2e8f0'
-                  }}>
-                    {index + 1}
-                  </div>
                 </div>
 
-                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                  <div style={{ fontSize: '14px', color: '#1e293b', fontWeight: '600', lineHeight: '1.2' }}>
+                {/* Badge Correlativo */}
+                <span style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justify: 'center',
+                  width: '18px',
+                  height: '18px',
+                  borderRadius: '4px',
+                  fontSize: '10px',
+                  fontWeight: '700',
+                  backgroundColor: '#f1f5f9',
+                  color: '#64748b',
+                  flexShrink: 0
+                }}>
+                  {index + 1}
+                </span>
+
+                {/* Bloque Clínico */}
+                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '2px', minWidth: 0 }}>
+                  
+                  {/* Fila 1: Descripción */}
+                  <div style={{ 
+                    fontSize: '12px', 
+                    color: '#1e293b', 
+                    fontWeight: '500', 
+                    lineHeight: '1.3',
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis'
+                  }}>
                     {item.descripcion}
                   </div>
                   
-                  <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', alignItems: 'center' }}>
-                    {/* Badge de Diagnóstico Integrada */}
-
-                    <span style={{ fontSize: '11px', backgroundColor: '#f0fdf4', color: '#16a34a', padding: '1px 5px', borderRadius: '4px', border: '1px solid #bbf7d0', fontWeight: '500', textTransform: 'capitalize' }}>
+                  {/* Fila 2: Metadata de Posología y Vinculación */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px', flexWrap: 'wrap' }}>
+                    
+                    {/* Badges Posológicos */}
+                    <span style={{ fontSize: '10px', backgroundColor: '#f0fdf4', color: '#16a34a', padding: '1px 5px', borderRadius: '4px', border: '1px solid #bbf7d0', fontWeight: '500', textTransform: 'capitalize' }}>
                       Vía: {item.via || 'N/A'}
                     </span>
-                    <span style={{ fontSize: '11px', backgroundColor: '#eff6ff', color: '#2563eb', padding: '1px 5px', borderRadius: '4px', border: '1px solid #bfdbfe', fontWeight: '500' }}>
+                    <span style={{ fontSize: '10px', backgroundColor: '#eff6ff', color: '#2563eb', padding: '1px 5px', borderRadius: '4px', border: '1px solid #bfdbfe', fontWeight: '500' }}>
                       Dosis: {item.dosis || 'N/A'}
                     </span>
-                    <span style={{ fontSize: '11px', backgroundColor: '#fff7ed', color: '#ea580c', padding: '1px 5px', borderRadius: '4px', border: '1px solid #ffedd5', fontWeight: '500' }}>
+                    <span style={{ fontSize: '10px', backgroundColor: '#fff7ed', color: '#ea580c', padding: '1px 5px', borderRadius: '4px', border: '1px solid #ffedd5', fontWeight: '500' }}>
                       Cada: {item.frecuencia ? `Cada ${Math.round(24 / item.frecuencia)} hrs` : 'N/A'} ({item.frecuencia || 0} v/d)
                     </span>
-                    <span style={{ fontSize: '11px', backgroundColor: '#f3e8ff', color: '#9333ea', padding: '1px 5px', borderRadius: '4px', border: '1px solid #e9d5ff', fontWeight: '500' }}>
+                    <span style={{ fontSize: '10px', backgroundColor: '#f3e8ff', color: '#9333ea', padding: '1px 5px', borderRadius: '4px', border: '1px solid #e9d5ff', fontWeight: '500' }}>
                       Durante: {item.periodo || '0'} días
                     </span>
-                    <span style={{ fontSize: '11px', backgroundColor: '#f1f5f9', color: '#475569', padding: '1px 5px', borderRadius: '4px', border: '1px solid #e2e8f0', fontWeight: '600' }}>
-                      Total: Disp. {item.cantidad || 0} und.
+                    <span style={{ fontSize: '10px', backgroundColor: '#f1f5f9', color: '#475569', padding: '1px 5px', borderRadius: '4px', border: '1px solid #e2e8f0', fontWeight: '600' }}>
+                      Total: {item.cantidad || 0} und.
                     </span>
 
-                    {/* Reemplazo del badge en la tarjeta del medicamento */}
-                    <div style={{ position: 'relative', display: 'inline-block' }}>
+                    {/* Botón Vinculador de Diagnóstico */}
+                    <div style={{ position: 'relative' }} ref={dropdownAbiertoId === item.id ? dropdownRef : null}>
                       <button
-                          type="button"
-                          onClick={() => setDropdownAbiertoId(dropdownAbiertoId === item.id ? null : item.id)}
-                          style={{
-                            padding: '2px 8px',
-                            borderRadius: '4px',
-                            backgroundColor: !item.idDiagnostico ? '#fef2f2' : '#e0f2fe',
-                            border: !item.idDiagnostico ? '1px solid #fca5a5' : '1px solid #bae6fd',
-                            color: !item.idDiagnostico ? '#dc2626' : '#0369a1',
-                            fontSize: '11px',
-                            fontWeight: '600',
-                            cursor: 'pointer',
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: '4px'
-                          }}
-                        >
-                          <Layers size={11} />
-                          {item.idDiagnostico
-                            ? `Dx: [${
-                                item.codigoCIE || 
-                                item.codigo || 
-                                item.codigoCie10 || 
-                                diagnosticosDisponibles.find(d => String(d.idDiagnostico || d.id) === String(item.idDiagnostico))?.codigoCIE ||
-                                diagnosticosDisponibles.find(d => String(d.idDiagnostico || d.id) === String(item.idDiagnostico))?.codigoCie10 ||
-                                diagnosticosDisponibles.find(d => String(d.idDiagnostico || d.id) === String(item.idDiagnostico))?.codigo ||
-                                'S/C'
-                              }]`
-                            : 'Vincular Diagnóstico (Requerido)'}
-                        </button>
+                        type="button"
+                        onClick={() => setDropdownAbiertoId(dropdownAbiertoId === item.id ? null : item.id)}
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '3px',
+                          padding: '1px 5px',
+                          borderRadius: '4px',
+                          backgroundColor: tieneDxIncompleto ? '#fef2f2' : '#f0fdf4',
+                          border: tieneDxIncompleto ? '1px solid #fca5a5' : '1px solid #bbf7d0',
+                          color: tieneDxIncompleto ? '#dc2626' : '#16a34a',
+                          fontSize: '10px',
+                          fontWeight: '500',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        <Layers size={10} />
+                        {tieneDxIncompleto 
+                          ? 'Vincular Dx (Requerido)' 
+                          : `Dx: [${item.codigoCIE || 'S/C'}]`}
+                      </button>
 
-                      {/* Desplegable Flotante */}
+                      {/* Dropdown Flotante de Diagnósticos */}
                       {dropdownAbiertoId === item.id && (
                         <div style={{
                           position: 'absolute',
-                          top: '100%',
+                          top: '20px',
                           left: 0,
                           zIndex: 100,
                           backgroundColor: '#ffffff',
                           border: '1px solid #cbd5e1',
-                          borderRadius: '8px',
-                          boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-                          padding: '8px',
-                          width: '270px',
-                          maxHeight: '180px',
-                          overflowY: 'auto',
-                          marginTop: '4px'
+                          borderRadius: '6px',
+                          boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                          padding: '6px',
+                          width: '250px',
+                          maxHeight: '160px',
+                          overflowY: 'auto'
                         }}>
-                          <div style={{ fontSize: '10px', color: '#64748b', fontWeight: '600', marginBottom: '6px' }}>
+                          <div style={{ fontSize: '10px', color: '#64748b', fontWeight: '600', marginBottom: '4px', paddingBottom: '3px', borderBottom: '1px solid #f1f5f9' }}>
                             Seleccione el diagnóstico asociado:
                           </div>
-
                           {diagnosticosDisponibles.length === 0 ? (
-                            <div style={{ fontSize: '11px', color: '#94a3b8', padding: '6px', textAlign: 'center' }}>
-                              ⚠️ No hay diagnósticos agregados en la atención.
+                            <div style={{ fontSize: '10px', color: '#94a3b8', padding: '4px', textAlign: 'center' }}>
+                              ⚠️ Registre diagnósticos en el panel superior.
                             </div>
                           ) : (
                             diagnosticosDisponibles.map((diag) => {
@@ -408,16 +535,17 @@ function AtencionMedicaMedicamentoPanel({ content = [], onContentChange,  onModa
                                   style={{
                                     display: 'flex',
                                     alignItems: 'center',
-                                    gap: '8px',
-                                    padding: '6px',
+                                    gap: '6px',
+                                    padding: '4px',
                                     borderRadius: '4px',
                                     cursor: 'pointer',
                                     backgroundColor: seleccionado ? '#eff6ff' : 'transparent',
-                                    fontSize: '11px'
+                                    fontSize: '11px',
+                                    color: '#334155'
                                   }}
                                 >
-                                  {seleccionado ? <CheckSquare size={13} color="#2563eb" /> : <Square size={13} color="#94a3b8" />}
-                                  <span style={{ fontWeight: '700', color: '#1e3a8a' }}>[{codigo}]</span>
+                                  {seleccionado ? <CheckSquare size={12} color="#2563eb" /> : <Square size={12} color="#94a3b8" />}
+                                  <span style={{ fontWeight: '600', color: '#1e3a8a' }}>[{codigo}]</span>
                                   <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                                     {diag.label || diag.diagnostico || diag.descripcion}
                                   </span>
@@ -427,10 +555,33 @@ function AtencionMedicaMedicamentoPanel({ content = [], onContentChange,  onModa
                           )}
                         </div>
                       )}
-                    </div>                    
+                    </div>
+
+                    {/* Desvincular Diagnóstico rápido */}
+                    {item.idDiagnostico && (
+                      <span 
+                        onClick={() => handleSelectDiagnostico(item.id, { idDiagnostico: item.idDiagnostico })}
+                        title="Eliminar vinculación"
+                        style={{
+                          backgroundColor: '#eff6ff',
+                          color: '#2563eb',
+                          border: '1px solid #bfdbfe',
+                          borderRadius: '4px',
+                          padding: '0 4px',
+                          fontSize: '10px',
+                          fontWeight: '600',
+                          cursor: 'pointer',
+                          display: 'inline-flex',
+                          alignItems: 'center'
+                        }}
+                      >
+                        {item.codigoCIE} <span style={{ marginLeft: '3px', color: '#ef4444' }}>×</span>
+                      </span>
+                    )}
 
                   </div>
                 </div>
+
               </div>
             );
           })}

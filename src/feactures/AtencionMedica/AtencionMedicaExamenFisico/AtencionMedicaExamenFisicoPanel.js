@@ -1,5 +1,5 @@
 // src/components/AtencionMedica/AtencionMedicaExamenFisicoPanel.js
-import React from 'react';
+import React, { useMemo, useCallback, useRef, useEffect } from 'react';
 import Styles from '../../../Styles'; 
 import useVoiceRecognition from "../../../hooks/useVoiceRecognition"; 
 import { Mic, MicOff, Activity } from 'lucide-react';
@@ -8,28 +8,40 @@ import { Mic, MicOff, Activity } from 'lucide-react';
  * Componente optimizado para el registro del Examen Físico.
  * Adaptado para gestionar una lista de objetos [{ idExamenFisico, nombreExamenFisico }].
  */
-const AtencionMedicaExamenFisicoPanel = ({ content = [], onContentChange, onModalMessage }) => {
+const AtencionMedicaExamenFisicoPanel = ({ 
+  content = [], 
+  onContentChange, 
+  onModalMessage 
+}) => {
   const title = "Examen Físico Dirigido";
+  const textareaRef = useRef(null);
 
-  // Asegurar que 'content' sea un arreglo
-  const listaExamenFisico = Array.isArray(content) ? content : [];
+  // 1. Memorizar la lista normalizada para evitar recalculaciones innecesarias
+  const listaExamenFisico = useMemo(() => {
+    return Array.isArray(content) ? content : [];
+  }, [content]);
 
-  // Extraer el texto libre actual (aquel con idExamenFisico o id igual a 0)
-  const itemTextoLibre = listaExamenFisico.find(
-    (item) => Number(item.idExamenFisico ?? item.id) === 0
-  );
+  // 2. Extraer el texto libre actual (aquel con idExamenFisico o id igual a 0)
+  const itemTextoLibre = useMemo(() => {
+    return listaExamenFisico.find(
+      (item) => Number(item.idExamenFisico ?? item.id) === 0
+    );
+  }, [listaExamenFisico]);
 
-  const textoActual = itemTextoLibre
-    ? (itemTextoLibre.nombreExamenFisico || itemTextoLibre.descripcion || "")
-    : (typeof content === 'string' ? content : "");
+  const textoActual = useMemo(() => {
+    if (itemTextoLibre) {
+      return itemTextoLibre.nombreExamenFisico || itemTextoLibre.descripcion || "";
+    }
+    return typeof content === 'string' ? content : "";
+  }, [itemTextoLibre, content]);
 
-  // Emitir la lista actualizada conservando registros con id > 0 (catálogo)
-  const actualizarTextoLibre = (nuevoTexto) => {
+  // 3. Emitir la lista actualizada conservando registros con id > 0 (catálogo)
+  const actualizarTextoLibre = useCallback((nuevoTexto) => {
     const soloCatalogo = listaExamenFisico.filter(
       (item) => Number(item.idExamenFisico ?? item.id) > 0
     );
 
-    let listaActualizada = [...soloCatalogo];
+    const listaActualizada = [...soloCatalogo];
 
     if (nuevoTexto.trim() !== '') {
       listaActualizada.push({
@@ -39,16 +51,31 @@ const AtencionMedicaExamenFisicoPanel = ({ content = [], onContentChange, onModa
     }
 
     onContentChange(listaActualizada);
-  };
+  }, [listaExamenFisico, onContentChange]);
 
-  // Inicialización del Hook de Voz
+  // 4. Inicialización del Hook de Voz
   const { startListening, stopListening, isListening, error } = useVoiceRecognition(
     (transcript) => {
-      const nuevoContenido = textoActual ? `${textoActual} ${transcript}` : transcript;
+      const nuevoContenido = textoActual 
+        ? `${textoActual.trim()} ${transcript}` 
+        : transcript;
       actualizarTextoLibre(nuevoContenido);
     },
     onModalMessage
   );
+
+  // Auto-ajuste de altura cuando cambia el contenido (escritura, dictado o carga inicial)
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+      textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
+    }
+  }, [textoActual]);
+
+  const handleInput = (e) => {
+    e.target.style.height = 'auto';
+    e.target.style.height = `${e.target.scrollHeight}px`;
+  };
 
   return (
     <div style={Styles.medicalSection}>
@@ -57,101 +84,109 @@ const AtencionMedicaExamenFisicoPanel = ({ content = [], onContentChange, onModa
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
-        marginBottom: '12px'
+        marginBottom: '6px'
       }}>
-        <h3 style={{ ...Styles.sectionTitle, margin: 0, fontSize: '16px', color: '#1e293b', fontWeight: '600' }}>
+        <label style={{ 
+          fontSize: '11px', 
+          fontWeight: '600', 
+          color: '#475569', 
+          letterSpacing: '0.025em'
+        }}>
           {title}
-        </h3>
-        
-        {/* Botón de Dictado por Voz en la Cabecera */}
+        </label>
+
+        {/* Botón de Dictado por Voz Compacto */}
         <button
           type="button"
           onClick={isListening ? stopListening : startListening}
           style={{
-            display: 'flex',
+            display: 'inline-flex',
             alignItems: 'center',
-            gap: '6px',
+            gap: '4px',
             backgroundColor: isListening ? '#fef2f2' : '#ffffff',
             border: isListening ? '1px solid #fca5a5' : '1px solid #cbd5e1',
-            borderRadius: '20px',
-            padding: '6px 14px',
+            borderRadius: '12px',
+            padding: '2px 8px',
             color: isListening ? '#ef4444' : '#2563eb',
-            fontSize: '13px',
+            fontSize: '11px',
             fontWeight: '500',
             cursor: 'pointer',
-            transition: 'all 0.2s ease',
-            boxShadow: isListening ? '0 0 8px rgba(239, 68, 68, 0.2)' : 'none'
+            transition: 'all 0.15s ease',
+            boxShadow: isListening ? '0 0 6px rgba(239, 68, 68, 0.2)' : 'none'
           }}
         >
           {isListening ? (
             <>
-              <MicOff size={14} strokeWidth={2.5} />
-              <span style={{ fontWeight: '600' }}>Detener Dictado</span>
+              <MicOff size={12} strokeWidth={2.5} className="animate-pulse" />
+              <span style={{ fontWeight: '600' }}>Detener</span>
             </>
           ) : (
             <>
-              <Mic size={14} strokeWidth={2.5} />
-              <span>Dictar por voz</span>
+              <Mic size={12} strokeWidth={2.5} />
+              <span>Dictar</span>
             </>
           )}
         </button>
       </div>
 
-      {/* Contenedor del Área de Texto */}
+      {/* Contenedor del Área de Texto Compacta */}
       <div style={{ position: 'relative', width: '100%' }}>
         <textarea
+          ref={textareaRef}
+          rows={1}
           style={{
             width: '100%',
-            minHeight: '120px',
-            padding: '12px 14px',
-            borderRadius: '8px',
+            minHeight: '38px',
+            padding: '6px 45px 6px 10px',
+            borderRadius: '6px',
             border: isListening ? '1.5px solid #f87171' : '1px solid #cbd5e1',
-            backgroundColor: isListening ? '#fffdfd' : '#ffffff',
-            fontSize: '13px',
-            color: '#334155',
-            lineHeight: '1.5',
+            backgroundColor: isListening ? '#fffdfd' : '#f8fafc',
+            fontSize: '12px',
+            color: '#1e293b',
+            lineHeight: '1.4',
             outline: 'none',
-            resize: 'vertical',
+            resize: 'none',
+            overflowY: 'hidden',
             fontFamily: 'inherit',
-            transition: 'border-color 0.2s ease'
+            transition: 'border-color 0.15s ease, background-color 0.15s ease'
           }}
+          onInput={handleInput}
           value={textoActual}
           onChange={(e) => actualizarTextoLibre(e.target.value)}
-          placeholder="Registre la evaluación de sistemas (cabeza, cuello, tórax, abdomen, extremidades), hallazgos patológicos relevantes o constantes vitales anotadas..."
-          rows="5"
+          placeholder="Registre la evaluación de sistemas (cabeza, cuello, tórax, abdomen, extremidades), hallazgos patológicos relevantes o constantes vitales..."
         />
 
-        {/* Indicador de extensión */}
+        {/* Indicador visual de caracteres dentro del campo */}
         <div style={{
           position: 'absolute',
-          bottom: '10px',
-          right: '12px',
+          bottom: '6px',
+          right: '8px',
           display: 'flex',
           alignItems: 'center',
-          gap: '4px',
+          gap: '3px',
           pointerEvents: 'none',
-          opacity: 0.6
+          opacity: 0.5
         }}>
-          <Activity size={12} color="#64748b" />
-          <span style={{ fontSize: '10px', color: '#64748b', fontWeight: '500' }}>
-            {textoActual ? `${textoActual.length} caracteres` : 'Vacío'}
+          <Activity size={10} color="#64748b" />
+          <span style={{ fontSize: '9.5px', color: '#64748b', fontWeight: '500' }}>
+            {textoActual ? `${textoActual.length}` : '0'}
           </span>
         </div>
       </div>
 
-      {/* Alerta de Errores */}
+      {/* Manejo de Errores de Micrófono */}
       {error && (
         <div style={{
-          marginTop: '8px',
-          padding: '6px 12px',
+          marginTop: '4px',
+          padding: '4px 8px',
           backgroundColor: '#fef2f2',
           border: '1px solid #fee2e2',
-          borderRadius: '6px',
+          borderRadius: '4px',
           color: '#b91c1c',
-          fontSize: '11px',
+          fontSize: '10.5px',
           fontWeight: '500'
         }}>
-          ⚠️ {error}
+          ⚠ {error}
         </div>
       )}
     </div>

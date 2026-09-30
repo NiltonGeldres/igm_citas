@@ -1,156 +1,207 @@
 // src/components/AtencionMedica/AtencionMedicaAltaPanel.js
-
-import Styles from '../../../Styles'; 
-import useVoiceRecognition from "../../../hooks/useVoiceRecognition"; 
-import { Mic, MicOff, LogOut } from 'lucide-react';
+import React, { useMemo, useCallback, useRef, useEffect } from 'react';
+import Styles from '../../../Styles';
+import useVoiceRecognition from '../../../hooks/useVoiceRecognition';
+import { Mic, MicOff, FileText } from 'lucide-react';
 
 /**
- * Componente unificado para el Plan de Alta Médica e Indicaciones de Egreso.
- * Adaptado para gestionar una lista de objetos [{ idAlta, descripcionAlta }].
+ * Componente para el Panel de Alta y Destino (Estructura compacta uniformizada)
  */
-const AtencionMedicaAltaPanel = ({ title = "Plan de Alta / Indicaciones Generales", content = [], onContentChange, onModalMessage }) => {
+const AtencionMedicaAltaPanel = ({
+  title = 'Panel Alta',
+  content = [],
+  onContentChange,
+  onModalMessage
+}) => {
+  const textareaRef = useRef(null);
 
-  // Garantizar que 'content' sea procesado como un arreglo
-  const listaAlta = Array.isArray(content) ? content : [];
+  // 1. Memorizar la lista normalizada para evitar recalculaciones
+  const listaAlta = useMemo(() => {
+    return Array.isArray(content) ? content : [];
+  }, [content]);
 
-  // Extraer el texto libre actual (aquel con idAlta o id igual a 0)
-  const itemTextoLibre = listaAlta.find(
-    (item) => Number(item.idAlta ?? item.id) === 0
+  // 2. Obtener la referencia del texto libre actual (idAlta/id === 0)
+  const itemTextoLibre = useMemo(() => {
+    return listaAlta.find(
+      (item) => Number(item.idAlta ?? item.id) === 0
+    );
+  }, [listaAlta]);
+
+  const textoActual = useMemo(() => {
+    if (itemTextoLibre) {
+      return (
+        itemTextoLibre.descripcionAlta ||
+        itemTextoLibre.descripcion ||
+        itemTextoLibre.nombreAlta ||
+        ''
+      );
+    }
+    return typeof content === 'string' ? content : '';
+  }, [itemTextoLibre, content]);
+
+  // 3. Función optimizada para actualizar el estado manteniendo el catálogo
+  const actualizarTextoLibre = useCallback(
+    (nuevoTexto) => {
+      const soloCatalogo = listaAlta.filter(
+        (item) => Number(item.idAlta ?? item.id) > 0
+      );
+
+      const listaActualizada = [...soloCatalogo];
+
+      if (nuevoTexto.trim() !== '') {
+        listaActualizada.push({
+          idAlta: 0,
+          descripcionAlta: nuevoTexto
+        });
+      }
+
+      onContentChange(listaActualizada);
+    },
+    [listaAlta, onContentChange]
   );
 
-  const textoActual = itemTextoLibre
-    ? (itemTextoLibre.descripcionAlta || itemTextoLibre.descripcion || itemTextoLibre.nombreAlta || "")
-    : (typeof content === 'string' ? content : "");
-
-  // Emitir la lista actualizada reservando entradas de catálogo (id > 0)
-  const actualizarTextoLibre = (nuevoTexto) => {
-    const soloCatalogo = listaAlta.filter(
-      (item) => Number(item.idAlta ?? item.id) > 0
-    );
-
-    let listaActualizada = [...soloCatalogo];
-
-    if (nuevoTexto.trim() !== '') {
-      listaActualizada.push({
-        idAlta: 0,
-        descripcionAlta: nuevoTexto
-      });
-    }
-
-    onContentChange(listaActualizada);
-  };
-
-  // Inicialización del Hook de Reconocimiento de Voz
+  // 4. Integración del dictado por voz
   const { startListening, stopListening, isListening, error } = useVoiceRecognition(
     (transcript) => {
-      const nuevoContenido = textoActual ? `${textoActual} ${transcript}` : transcript;
+      const nuevoContenido = textoActual
+        ? `${textoActual.trim()} ${transcript}`
+        : transcript;
       actualizarTextoLibre(nuevoContenido);
     },
     onModalMessage
   );
 
+  // Re-calcular la altura dinámicamente tanto al escribir como al dictar o cargar datos
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+      textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
+    }
+  }, [textoActual]);
+
+  const handleInput = (e) => {
+    e.target.style.height = 'auto';
+    e.target.style.height = `${e.target.scrollHeight}px`;
+  };
+
   return (
     <div style={Styles.medicalSection}>
-      {/* Cabecera Uniformizada de la Suite */}
-      <div style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: '12px'
-      }}>
-        <h3 style={{ ...Styles.sectionTitle, margin: 0, fontSize: '16px', color: '#1e293b', fontWeight: '600' }}>
+      {/* Cabecera Uniformizada del Panel (Mapeada a la línea compacta) */}
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          marginBottom: '6px'
+        }}
+      >
+        <label
+          style={{
+            fontSize: '11px',
+            fontWeight: '600',
+            color: '#475569',
+            letterSpacing: '0.025em'
+          }}
+        >
           {title}
-        </h3>
-        
-        {/* Botón de Dictado por Voz en la Cabecera */}
+        </label>
+
+        {/* Botón de Dictado por Voz Compacto */}
         <button
           type="button"
           onClick={isListening ? stopListening : startListening}
           style={{
-            display: 'flex',
+            display: 'inline-flex',
             alignItems: 'center',
-            gap: '6px',
+            gap: '4px',
             backgroundColor: isListening ? '#fef2f2' : '#ffffff',
             border: isListening ? '1px solid #fca5a5' : '1px solid #cbd5e1',
-            borderRadius: '20px',
-            padding: '6px 14px',
+            borderRadius: '12px',
+            padding: '2px 8px',
             color: isListening ? '#ef4444' : '#2563eb',
-            fontSize: '13px',
+            fontSize: '11px',
             fontWeight: '500',
             cursor: 'pointer',
-            transition: 'all 0.2s ease',
-            boxShadow: isListening ? '0 0 8px rgba(239, 68, 68, 0.2)' : 'none'
+            transition: 'all 0.15s ease',
+            boxShadow: isListening ? '0 0 6px rgba(239, 68, 68, 0.2)' : 'none'
           }}
         >
           {isListening ? (
             <>
-              <MicOff size={14} strokeWidth={2.5} />
-              <span style={{ fontWeight: '600' }}>Detener Dictado</span>
+              <MicOff size={12} strokeWidth={2.5} className="animate-pulse" />
+              <span style={{ fontWeight: '600' }}>Detener</span>
             </>
           ) : (
             <>
-              <Mic size={14} strokeWidth={2.5} />
-              <span>Dictar por voz</span>
+              <Mic size={12} strokeWidth={2.5} />
+              <span>Dictar</span>
             </>
           )}
         </button>
       </div>
 
-      {/* Contenedor del Área de Texto */}
+      {/* Contenedor del Área de Texto Compacta */}
       <div style={{ position: 'relative', width: '100%' }}>
         <textarea
+          ref={textareaRef}
+          rows={1}
           style={{
             width: '100%',
-            minHeight: '120px',
-            padding: '12px 14px',
-            borderRadius: '8px',
+            minHeight: '38px',
+            padding: '6px 45px 6px 10px',
+            borderRadius: '6px',
             border: isListening ? '1.5px solid #f87171' : '1px solid #cbd5e1',
-            backgroundColor: isListening ? '#fffdfd' : '#ffffff',
-            fontSize: '13px',
-            color: '#334155',
-            lineHeight: '1.5',
+            backgroundColor: isListening ? '#fffdfd' : '#f8fafc',
+            fontSize: '12px',
+            color: '#1e293b',
+            lineHeight: '1.4',
             outline: 'none',
-            resize: 'vertical',
+            resize: 'none',
+            overflowY: 'hidden',
             fontFamily: 'inherit',
-            transition: 'border-color 0.2s ease'
+            transition: 'border-color 0.15s ease, background-color 0.15s ease'
           }}
+          onInput={handleInput}
           value={textoActual}
           onChange={(e) => actualizarTextoLibre(e.target.value)}
-          placeholder="Escriba o dicte los criterios de alta, signos de alarma, fecha de próximo control y recomendaciones generales para el paciente..."
-          rows="5"
+          placeholder="Sacar cita, indicaciones médicas generales..."
         />
 
-        {/* Indicador de extensión e ícono */}
-        <div style={{
-          position: 'absolute',
-          bottom: '10px',
-          right: '12px',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '4px',
-          pointerEvents: 'none',
-          opacity: 0.6
-        }}>
-          <LogOut size={12} color="#64748b" />
-          <span style={{ fontSize: '10px', color: '#64748b', fontWeight: '500' }}>
-            {textoActual ? `${textoActual.length} caracteres` : 'Vacío'}
+        {/* Indicador visual de caracteres compacto dentro del campo */}
+        <div
+          style={{
+            position: 'absolute',
+            bottom: '6px',
+            right: '8px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '3px',
+            pointerEvents: 'none',
+            opacity: 0.5
+          }}
+        >
+          <FileText size={10} color="#64748b" />
+          <span style={{ fontSize: '9.5px', color: '#64748b', fontWeight: '500' }}>
+            {textoActual ? `${textoActual.length}` : '0'}
           </span>
         </div>
       </div>
 
-      {/* Caja de control de errores del Web Speech API */}
+      {/* Manejo de Errores de Micrófono */}
       {error && (
-        <div style={{
-          marginTop: '8px',
-          padding: '6px 12px',
-          backgroundColor: '#fef2f2',
-          border: '1px solid #fee2e2',
-          borderRadius: '6px',
-          color: '#b91c1c',
-          fontSize: '11px',
-          fontWeight: '500'
-        }}>
-          ⚠️ {error}
+        <div
+          style={{
+            marginTop: '4px',
+            padding: '4px 8px',
+            backgroundColor: '#fef2f2',
+            border: '1px solid #fee2e2',
+            borderRadius: '4px',
+            color: '#b91c1c',
+            fontSize: '10.5px',
+            fontWeight: '500'
+          }}
+        >
+          ⚠ {error}
         </div>
       )}
     </div>

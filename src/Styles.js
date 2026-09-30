@@ -45,8 +45,8 @@ const Styles = {
   },
   medicalSection: {
     backgroundColor: '#ffffff',
-    padding: '25px',
-    marginBottom: '5px', // Se mantiene el valor que me proporcionaste
+    padding: '1px',
+    marginBottom: '0px', // Se mantiene el valor que me proporcionaste
     boxShadow: '0 4px 12px rgba(204, 226, 252, 0.06)',
     width: '100%',
     boxSizing: 'border-box',

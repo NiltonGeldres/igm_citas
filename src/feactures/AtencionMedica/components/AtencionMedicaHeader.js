@@ -1,10 +1,28 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { User, RefreshCw, Cloud, Calendar } from 'lucide-react';
 import { formatCapitalize } from '../utils/textFormatter';
 import TabNavigation from './TabNavigation';
 
+// Hook interno para detectar si la pantalla es móvil (< 768px)
+function useIsMobile() {
+  const [isMobile, setIsMobile] = useState(
+    typeof window !== 'undefined' ? window.innerWidth < 768 : false
+  );
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  return isMobile;
+}
+
 function AtencionMedicaHeader({ patientData, estadoGuardado, onOpenAgenda, activeTab, setActiveTab }) {
- console.log("DATA DEL PACIENTE:   "+JSON.stringify(patientData)) 
+  const isMobile = useIsMobile();
+
+  console.log("DATA DEL PACIENTE:   " + JSON.stringify(patientData));
+
   return (
     <div className="fixed-header-wrapper-hce" style={{ padding: '8px 12px 0 12px' }}>
       {/* TARJETA UNIFICADA */}
@@ -76,10 +94,10 @@ function AtencionMedicaHeader({ patientData, estadoGuardado, onOpenAgenda, activ
                   </div>
                 </div>
 
-                {/* Etiquetas Demográficas más Visibles */}
+                {/* Etiquetas Demográficas */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
                   <span style={{ backgroundColor: '#f1f5f9', color: '#334155', padding: '3px 8px', borderRadius: '5px', fontSize: '12px', fontWeight: '500' }}>
-                    <strong>Nro Atencion:</strong> {patientData.idAtencion ? patientData.idAtencion : 'N/A'}
+                    <strong>Nro Atención:</strong> {patientData.idAtencion ? patientData.idAtencion : 'N/A'}
                   </span>
                   <span style={{ backgroundColor: '#f1f5f9', color: '#334155', padding: '3px 8px', borderRadius: '5px', fontSize: '12px', fontWeight: '500' }}>
                     <strong>Sexo:</strong> {patientData.sexo ? formatCapitalize(patientData.sexo) : 'N/A'}
@@ -123,15 +141,17 @@ function AtencionMedicaHeader({ patientData, estadoGuardado, onOpenAgenda, activ
           )}
         </div>
 
-        {/* LÍNEA DIVISORIA */}
-        <div style={{ borderTop: '1px solid #f1f5f9' }} />
-
-        {/* SECCIÓN INFERIOR: Pestañas de Navegación */}
-        <TabNavigation
-          activeTab={activeTab}
-          onSelectTab={setActiveTab}
-          isDisabled={!patientData?.id}
-        />
+        {/* SECCIÓN INFERIOR: Pestañas de Navegación (ÚNICAMENTE VISIBLE EN MÓVIL) */}
+        {isMobile && (
+          <>
+            <div style={{ borderTop: '1px solid #f1f5f9' }} />
+            <TabNavigation
+              activeTab={activeTab}
+              onSelectTab={setActiveTab}
+              isDisabled={!patientData?.id}
+            />
+          </>
+        )}
       </div>
     </div>
   );

@@ -1,49 +1,79 @@
 // src/components/AtencionExamen/AtencionMedicaExamen.js
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import AutoCompleteInput from '../common/AutoCompleteInput'; 
 import Styles from '../../../Styles'; 
-import { Trash2, Layers, CheckSquare, Square } from 'lucide-react'; 
+import { Trash2, Layers, CheckSquare, Square, Search, X } from 'lucide-react'; 
 import { AtencionMedicaExamenService } from './AtencionMedicaExamenService';
 import { v4 as uuidv4 } from 'uuid';
 
-function AtencionMedicaExamenPanel({ content = [], onContentChange, onModalMessage, diagnosticosDisponibles = [] }) {
+function AtencionMedicaExamenPanel({ 
+  content = [], 
+  onContentChange, 
+  onModalMessage, 
+  diagnosticosDisponibles = [] 
+}) {
+  const title = "Plan de Trabajo / Exámenes";
   const [mostrarBuscador, setMostrarBuscador] = useState(false);
-  const [tipoBusqueda, setTipoBusqueda] = useState('INDIVIDUAL'); // 'INDIVIDUAL' o 'PAQUETE'
+  const [tipoBusqueda, setTipoBusqueda] = useState('INDIVIDUAL'); // 'INDIVIDUAL' | 'PAQUETE'
   const [dropdownAbiertoId, setDropdownAbiertoId] = useState(null); 
   const [paquetesDisponibles, setPaquetesDisponibles] = useState([]);
   const [cargandoPaquete, setCargandoPaquete] = useState(false);
 
-  // 1. Cargar paquetes al montar el componente
+  const searchRef = useRef(null);
+  const dropdownRef = useRef(null);
+
+  // Normalización memorizada de contenidos
+  const listaExamenes = useMemo(() => {
+    return Array.isArray(content) ? content : [];
+  }, [content]);
+
+  // Cargar paquetes al montar
   useEffect(() => {
+    let isMounted = true;
     const cargarPaquetes = async () => {
       try {
         const lista = await AtencionMedicaExamenService.obtenerListaPaquetes();
-        setPaquetesDisponibles(lista);
+        if (isMounted) setPaquetesDisponibles(lista || []);
       } catch (error) {
         console.error("Error al cargar lista de paquetes:", error);
       }
     };
     cargarPaquetes();
+    return () => { isMounted = false; };
   }, []);
 
-  // 2. Función para el AutoCompleteInput
-  const fetchExamSuggestions = async (query) => {
+  // Cierre de dropdowns y buscador al hacer clic fuera del componente
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (searchRef.current && !searchRef.current.contains(event.target)) {
+        setMostrarBuscador(false);
+      }
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setDropdownAbiertoId(null);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const fetchExamSuggestions = useCallback(async (query) => {
     try {
       return await AtencionMedicaExamenService.buscarExamenesCatalogo(query);
     } catch (error) {
       if (onModalMessage) onModalMessage('Error al conectar con el catálogo de exámenes.');
       return [];
     }
-  };
+  }, [onModalMessage]);
 
-  // 3. AGREGAR EXAMEN INDIVIDUAL
-  const handleAddExam = (examItem) => {
-    // Normalización de ID de producto y campos devueltos por el endpoint del catálogo
+  // Agregar examen individual
+  const handleAddExam = useCallback((examItem) => {
+    if (!examItem) return;
+
     const idProdReal = examItem.idProducto || examItem.id;
     const codigoReal = examItem.codigo || examItem.codigoExamen || 'S/C';
     const nombreReal = examItem.nombre || examItem.examen || examItem.label;
 
-    const existingExam = content.find(item => 
+    const existingExam = listaExamenes.find(item => 
       String(item.idProducto) === String(idProdReal)
     );
 
@@ -55,20 +85,20 @@ function AtencionMedicaExamenPanel({ content = [], onContentChange, onModalMessa
     }
 
     const nuevoExamen = {
-      id: uuidv4(),             // ID local para la key de React
-      idProducto: idProdReal,   // ID numérico para la API
-      codigoExamen: codigoReal, // Código MINSA / CPT para mostrar en la UI
-      label: nombreReal,        // Nombre del examen para mostrar en UI
-      idDiagnostico: null,      // ID numérico del Diagnóstico (1 a 1 según requerimiento de API)
-      codigoCIE: ''             // Código CIE para apoyo visual en UI
+      id: uuidv4(),
+      idProducto: idProdReal,
+      codigoExamen: codigoReal,
+      label: nombreReal,
+      idDiagnostico: null,
+      codigoCIE: ''
     };
 
-    onContentChange([...content, nuevoExamen]);
+    onContentChange([...listaExamenes, nuevoExamen]);
     setMostrarBuscador(false);
-  };
+  }, [listaExamenes, onContentChange, onModalMessage]);
 
-  // 4. AGREGAR EN BLOQUE POR PAQUETE
-  const handleCargarPaquete = async (e) => {
+  // Cargar exámenes por paquete
+  const handleCargarPaquete = useCallback(async (e) => {
     const paqueteId = e.target.value;
     if (!paqueteId) return;
 
@@ -88,7 +118,7 @@ function AtencionMedicaExamenPanel({ content = [], onContentChange, onModalMessa
       }
 
       let nuevosExamenesAgregados = 0;
-      const listaActualizada = [...content];
+      const listaActualizada = [...listaExamenes];
 
       examenesDelPaquete.forEach(examItem => {
         const idProdReal = examItem.idProducto || examItem.id;
@@ -96,7 +126,7 @@ function AtencionMedicaExamenPanel({ content = [], onContentChange, onModalMessa
         const nombreReal = examItem.nombre || examItem.examen || examItem.label;
 
         const yaExiste = listaActualizada.some(item => String(item.idProducto) === String(idProdReal));
-        
+
         if (!yaExiste) {
           listaActualizada.push({
             id: uuidv4(),
@@ -123,170 +153,183 @@ function AtencionMedicaExamenPanel({ content = [], onContentChange, onModalMessa
       setCargandoPaquete(false);
       e.target.value = "";
     }
-  };
+  }, [listaExamenes, paquetesDisponibles, onContentChange, onModalMessage]);
 
-  // 5. SELECCIONAR DIAGNÓSTICO (Relación 1 a 1)
-  const handleSelectDiagnostico = (examId, diagObj) => {
-    const listaActualizada = content.map(item => {
+  // Vinculación de Diagnóstico (Relación 1 a 1)
+  const handleSelectDiagnostico = useCallback((examId, diagObj) => {
+    const listaActualizada = listaExamenes.map(item => {
       if (item.id === examId) {
-        // Si vuelve a presionar el mismo diagnóstico, lo desvincula
-        if (item.idDiagnostico === diagObj.idDiagnostico) {
+        const targetDiagId = diagObj.idDiagnostico || diagObj.id;
+        if (item.idDiagnostico === targetDiagId) {
           return { ...item, idDiagnostico: null, codigoCIE: '' };
         }
-        // Asigna el nuevo idDiagnostico y código CIE
         return { 
           ...item, 
-          idDiagnostico: diagObj.idDiagnostico || diagObj.id, 
-          codigoCIE: diagObj.codigoCIE || diagObj.codigo 
+          idDiagnostico: targetDiagId, 
+          codigoCIE: diagObj.codigoCIE || diagObj.codigo || 'S/C' 
         };
       }
       return item;
     });
     onContentChange(listaActualizada);
-    setDropdownAbiertoId(null); // Cerrar dropdown tras seleccionar
-  };
+    setDropdownAbiertoId(null);
+  }, [listaExamenes, onContentChange]);
 
-  const handleDeleteExam = (id) => {
-    const listaActualizada = content.filter(item => item.id !== id);
+  const handleDeleteExam = useCallback((id) => {
+    const listaActualizada = listaExamenes.filter(item => item.id !== id);
     onContentChange(listaActualizada);
-  };
+  }, [listaExamenes, onContentChange]);
 
   return (
     <div style={Styles.medicalSection}>
-      {/* Cabecera del Panel */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-        <h3 style={{ ...Styles.sectionTitle, margin: 0, fontSize: '16px', color: '#1e293b', fontWeight: '600' }}>
-          Plan de Trabajo / Exámenes
-        </h3>
-        
-        <button
-          type="button"
-          onClick={() => setMostrarBuscador(!mostrarBuscador)}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '6px',
-            backgroundColor: mostrarBuscador ? '#f1f5f9' : '#ffffff',
-            border: '1px solid #cbd5e1',
-            borderRadius: '20px',
-            padding: '6px 14px',
-            color: '#1d4ed8',
-            fontSize: '13px',
-            fontWeight: '500',
-            cursor: 'pointer'
-          }}
-        >
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1d4ed8" strokeWidth="2.5">
-            <circle cx="11" cy="11" r="8"></circle>
-            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-          </svg>
-          {mostrarBuscador ? 'Cerrar opciones' : 'Añadir examen o paquete'}
-        </button>
-      </div>
-
-      {/* Caja de Herramientas */}
-      {mostrarBuscador && (
-        <div style={{ 
-          display: 'flex', 
-          flexDirection: 'column',
-          gap: '12px', 
-          marginBottom: '16px', 
-          backgroundColor: '#f8fafc',
-          padding: '14px',
-          borderRadius: '8px',
-          border: '1px solid #e2e8f0'
+      {/* Cabecera Principal Compacta */}
+      <div style={{
+        display: 'flex',
+        justify: 'space-between',
+        alignItems: 'center',
+        marginBottom: '6px',
+        minHeight: '24px'
+      }}>
+        <label style={{ 
+          fontSize: '11px', 
+          fontWeight: '600', 
+          color: '#475569', 
+          letterSpacing: '0.025em'
         }}>
-          {/* Selector de modo */}
-          <div style={{ display: 'flex', gap: '4px', borderBottom: '1px solid #e2e8f0', paddingBottom: '8px' }}>
-            <button
-              type="button"
-              onClick={() => setTipoBusqueda('INDIVIDUAL')}
-              style={{
-                padding: '4px 12px',
-                fontSize: '12px',
-                fontWeight: '600',
-                borderRadius: '4px',
-                border: 'none',
-                cursor: 'pointer',
-                backgroundColor: tipoBusqueda === 'INDIVIDUAL' ? '#e0f2fe' : 'transparent',
-                color: tipoBusqueda === 'INDIVIDUAL' ? '#0369a1' : '#64748b'
-              }}
-            >
-              🔍 Examen Individual
-            </button>
-            <button
-              type="button"
-              onClick={() => setTipoBusqueda('PAQUETE')}
-              style={{
-                padding: '4px 12px',
-                fontSize: '12px',
-                fontWeight: '600',
-                borderRadius: '4px',
-                border: 'none',
-                cursor: 'pointer',
-                backgroundColor: tipoBusqueda === 'PAQUETE' ? '#e0f2fe' : 'transparent',
-                color: tipoBusqueda === 'PAQUETE' ? '#0369a1' : '#64748b'
-              }}
-            >
-              📦 Cargar por Paquete
-            </button>
-          </div>
+          {title}
+        </label>
 
-          {/* Buscador de Examen o Selección de Paquete */}
-          {tipoBusqueda === 'INDIVIDUAL' ? (
-            <div>
-              <AutoCompleteInput
-                placeholder="Busque y seleccione un examen del catálogo..."
-                onSelectSuggestion={handleAddExam}
-                fetchSuggestions={fetchExamSuggestions}
-                onModalMessage={onModalMessage} 
-                style={{ padding: '6px 12px', height: '34px', fontSize: '13px' }} 
-              />
+        {/* Botón / Desplegable de Búsqueda */}
+        <div ref={searchRef} style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
+          {mostrarBuscador ? (
+            <div style={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '6px',
+              backgroundColor: '#f8fafc',
+              border: '1px solid #cbd5e1',
+              borderRadius: '6px',
+              padding: '6px',
+              width: '280px',
+              boxShadow: '0 2px 6px rgba(0,0,0,0.05)'
+            }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div style={{ display: 'flex', gap: '4px' }}>
+                  <button
+                    type="button"
+                    onClick={() => setTipoBusqueda('INDIVIDUAL')}
+                    style={{
+                      padding: '2px 6px',
+                      fontSize: '10px',
+                      fontWeight: '600',
+                      borderRadius: '4px',
+                      border: 'none',
+                      cursor: 'pointer',
+                      backgroundColor: tipoBusqueda === 'INDIVIDUAL' ? '#e0f2fe' : 'transparent',
+                      color: tipoBusqueda === 'INDIVIDUAL' ? '#0369a1' : '#64748b'
+                    }}
+                  >
+                    Examen
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setTipoBusqueda('PAQUETE')}
+                    style={{
+                      padding: '2px 6px',
+                      fontSize: '10px',
+                      fontWeight: '600',
+                      borderRadius: '4px',
+                      border: 'none',
+                      cursor: 'pointer',
+                      backgroundColor: tipoBusqueda === 'PAQUETE' ? '#e0f2fe' : 'transparent',
+                      color: tipoBusqueda === 'PAQUETE' ? '#0369a1' : '#64748b'
+                    }}
+                  >
+                    Paquete
+                  </button>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setMostrarBuscador(false)}
+                  style={{ border: 'none', background: 'transparent', color: '#94a3b8', cursor: 'pointer', padding: '0' }}
+                >
+                  <X size={14} />
+                </button>
+              </div>
+
+              {tipoBusqueda === 'INDIVIDUAL' ? (
+                <AutoCompleteInput
+                  placeholder="Escriba el examen..."
+                  onSelectSuggestion={handleAddExam}
+                  fetchSuggestions={fetchExamSuggestions}
+                  onModalMessage={onModalMessage}
+                />
+              ) : (
+                <select
+                  onChange={handleCargarPaquete}
+                  defaultValue=""
+                  disabled={cargandoPaquete}
+                  style={{
+                    width: '100%',
+                    height: '26px',
+                    padding: '0 6px',
+                    borderRadius: '4px',
+                    border: '1px solid #cbd5e1',
+                    backgroundColor: cargandoPaquete ? '#f1f5f9' : '#ffffff',
+                    fontSize: '11px',
+                    color: '#334155',
+                    outline: 'none',
+                    cursor: cargandoPaquete ? 'wait' : 'pointer'
+                  }}
+                >
+                  <option value="" disabled>
+                    {cargandoPaquete ? 'Cargando...' : '-- Seleccionar Paquete --'}
+                  </option>
+                  {paquetesDisponibles.map(pkg => {
+                    const pkgId = pkg.idPaqueteExamen || pkg.id;
+                    return (
+                      <option key={pkgId} value={pkgId}>
+                        {pkg.nombrePaquete}
+                      </option>
+                    );
+                  })}
+                </select>
+              )}
             </div>
           ) : (
-            <div>
-              <select
-                onChange={handleCargarPaquete}
-                defaultValue=""
-                disabled={cargandoPaquete}
-                style={{
-                  width: '100%',
-                  height: '34px',
-                  padding: '0 10px',
-                  borderRadius: '6px',
-                  border: '1px solid #cbd5e1',
-                  backgroundColor: cargandoPaquete ? '#f1f5f9' : '#ffffff',
-                  fontSize: '13px',
-                  color: '#334155',
-                  outline: 'none',
-                  cursor: cargandoPaquete ? 'wait' : 'pointer'
-                }}
-              >
-                <option value="" disabled>
-                  {cargandoPaquete ? 'Cargando detalle del paquete...' : '-- Seleccione un Paquete Clínico Configurado --'}
-                </option>
-                {paquetesDisponibles.map(pkg => {
-                  const pkgId = pkg.idPaqueteExamen || pkg.id;
-                  return (
-                    <option key={pkgId} value={pkgId}>
-                      {pkg.nombrePaquete}
-                    </option>
-                  );
-                })}
-              </select>
-            </div>
+            <button
+              type="button"
+              onClick={() => setMostrarBuscador(true)}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '4px',
+                backgroundColor: '#ffffff',
+                border: '1px solid #cbd5e1',
+                borderRadius: '12px',
+                padding: '2px 8px',
+                color: '#2563eb',
+                fontSize: '11px',
+                fontWeight: '500',
+                cursor: 'pointer',
+                transition: 'all 0.15s ease'
+              }}
+            >
+              <Search size={12} strokeWidth={2.5} />
+              <span>Añadir</span>
+            </button>
           )}
         </div>
-      )}
+      </div>
 
       {/* Lista de Registros */}
-      {content.length > 0 && (
+      {listaExamenes.length > 0 && (
         <div style={{
           border: '1px solid #e2e8f0',
-          borderRadius: '8px',
+          borderRadius: '6px',
           backgroundColor: '#ffffff'
         }}>
-          {content.map((item, index) => {
+          {listaExamenes.map((item, index) => {
             const tieneDxIncompleto = !item.idDiagnostico;
 
             return (
@@ -295,115 +338,137 @@ function AtencionMedicaExamenPanel({ content = [], onContentChange, onModalMessa
                 style={{
                   position: 'relative',
                   display: 'flex',
-                  alignItems: 'flex-start',
-                  padding: '12px 16px',
-                  borderBottom: index === content.length - 1 ? 'none' : '1px solid #e2e8f0',
-                  gap: '14px'
+                  alignItems: 'center',
+                  padding: '5px 8px',
+                  borderBottom: index === listaExamenes.length - 1 ? 'none' : '1px solid #f1f5f9',
+                  gap: '8px'
                 }}
               >
-                {/* Control Lateral */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', height: '24px' }}>
-                  <button
-                    type="button"
-                    onClick={() => handleDeleteExam(item.id)}
-                    style={{
-                      background: 'none',
-                      border: 'none',
-                      cursor: 'pointer',
-                      padding: '4px',
-                      color: '#f87171', 
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center'
-                    }}
-                  >
-                    <Trash2 size={15} strokeWidth={2.5} />
-                  </button>
-
-                  <div style={{
-                    backgroundColor: '#f1f5f9',
-                    color: '#64748b',
-                    fontWeight: '600',
-                    fontSize: '12px',
-                    padding: '2px 6px',
+                {/* Action Button: Eliminar */}
+                <button
+                  type="button"
+                  onClick={() => handleDeleteExam(item.id)}
+                  title="Eliminar examen"
+                  style={{
+                    border: 'none',
+                    background: 'transparent',
+                    color: '#94a3b8',
+                    cursor: 'pointer',
+                    padding: '2px',
+                    display: 'flex',
+                    alignItems: 'center',
                     borderRadius: '4px',
-                    minWidth: '22px',
-                    textAlign: 'center',
-                    border: '1px solid #e2e8f0'
-                  }}>
-                    {index + 1}
-                  </div>
-                </div>
+                    transition: 'all 0.15s ease'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = '#fef2f2';
+                    e.currentTarget.style.color = '#ef4444';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = 'transparent';
+                    e.currentTarget.style.color = '#94a3b8';
+                  }}
+                >
+                  <Trash2 size={13} />
+                </button>
+
+                {/* Badge Correlativo */}
+                <span style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justify: 'center',
+                  width: '18px',
+                  height: '18px',
+                  borderRadius: '4px',
+                  fontSize: '10px',
+                  fontWeight: '700',
+                  backgroundColor: '#f1f5f9',
+                  color: '#64748b',
+                  flexShrink: 0
+                }}>
+                  {index + 1}
+                </span>
 
                 {/* Bloque Clínico */}
-                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '2px', minWidth: 0 }}>
                   
-                  {/* FILA 1: Descripción Completa */}
-                  <div style={{ fontSize: '14px', color: '#334155', fontWeight: '500', lineHeight: '1.3' }}>
+                  {/* Fila 1: Descripción */}
+                  <div style={{ 
+                    fontSize: '12px', 
+                    color: '#1e293b', 
+                    fontWeight: '500', 
+                    lineHeight: '1.3',
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis'
+                  }}>
                     {item.label}
                   </div>
                   
-                  {/* FILA 2: Metadata y Vinculación */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+                  {/* Fila 2: Metadata y Vinculación */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
                     
+                    {/* Código de Examen */}
                     <span style={{ 
                       color: '#475569', 
                       backgroundColor: '#f1f5f9', 
-                      padding: '2px 6px', 
+                      padding: '1px 5px', 
                       borderRadius: '4px', 
-                      fontSize: '11px',
+                      fontSize: '10px',
                       fontWeight: '600',
-                      border: '1px solid #e2e8f0'
+                      border: '1px solid #e2e8f0',
+                      flexShrink: 0
                     }}>
                       Cod: {item.codigoExamen}
                     </span>
 
-                    {/* Desplegable de Selección de Diagnóstico (1 a 1) */}
-                    <div style={{ position: 'relative' }}>
+                    {/* Botón Vinculador de Diagnóstico */}
+                    <div style={{ position: 'relative' }} ref={dropdownAbiertoId === item.id ? dropdownRef : null}>
                       <button
                         type="button"
                         onClick={() => setDropdownAbiertoId(dropdownAbiertoId === item.id ? null : item.id)}
                         style={{
-                          display: 'flex',
+                          display: 'inline-flex',
                           alignItems: 'center',
-                          gap: '4px',
-                          padding: '3px 8px',
-                          borderRadius: '6px',
+                          gap: '3px',
+                          padding: '1px 5px',
+                          borderRadius: '4px',
                           backgroundColor: tieneDxIncompleto ? '#fef2f2' : '#f0fdf4',
                           border: tieneDxIncompleto ? '1px solid #fca5a5' : '1px solid #bbf7d0',
                           color: tieneDxIncompleto ? '#dc2626' : '#16a34a',
-                          fontSize: '11px',
+                          fontSize: '10px',
                           fontWeight: '500',
                           cursor: 'pointer'
                         }}
                       >
-                        <Layers size={12} />
+                        <Layers size={10} />
                         {tieneDxIncompleto 
-                          ? 'Vincular Diagnóstico (Requerido)' 
-                          : `Dx Vinculado: [${item.codigoCIE}]`}
+                          ? 'Vincular Dx (Requerido)' 
+                          : `Dx: [${item.codigoCIE}]`}
                       </button>
 
+                      {/* Dropdown de Diagnósticos Disponibles */}
                       {dropdownAbiertoId === item.id && (
                         <div style={{
                           position: 'absolute',
-                          top: '24px',
+                          top: '20px',
                           left: 0,
                           zIndex: 100,
                           backgroundColor: '#ffffff',
                           border: '1px solid #cbd5e1',
-                          borderRadius: '8px',
+                          borderRadius: '6px',
                           boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-                          padding: '8px',
-                          width: '280px',
-                          maxHeight: '180px',
+                          padding: '6px',
+                          width: '250px',
+                          maxHeight: '160px',
                           overflowY: 'auto'
                         }}>
-                          <div style={{ fontSize: '10px', color: '#64748b', fontWeight: '600', marginBottom: '6px', paddingBottom: '4px', borderBottom: '1px solid #f1f5f9' }}>
+                          <div style={{ fontSize: '10px', color: '#64748b', fontWeight: '600', marginBottom: '4px', paddingBottom: '3px', borderBottom: '1px solid #f1f5f9' }}>
                             Seleccione el diagnóstico asociado:
                           </div>
                           {diagnosticosDisponibles.length === 0 ? (
-                            <div style={{ fontSize: '11px', color: '#94a3b8', padding: '6px', textAlign: 'center' }}>
-                              ⚠️ Registre diagnósticos en el panel correspondiente.
+                            <div style={{ fontSize: '10px', color: '#94a3b8', padding: '4px', textAlign: 'center' }}>
+                              ⚠️ Registre diagnósticos en el panel superior.
                             </div>
                           ) : (
                             diagnosticosDisponibles.map((diag) => {
@@ -418,16 +483,16 @@ function AtencionMedicaExamenPanel({ content = [], onContentChange, onModalMessa
                                   style={{
                                     display: 'flex',
                                     alignItems: 'center',
-                                    gap: '8px',
-                                    padding: '5px',
+                                    gap: '6px',
+                                    padding: '4px',
                                     borderRadius: '4px',
                                     cursor: 'pointer',
                                     backgroundColor: seleccionado ? '#eff6ff' : 'transparent',
-                                    fontSize: '12px',
+                                    fontSize: '11px',
                                     color: '#334155'
                                   }}
                                 >
-                                  {seleccionado ? <CheckSquare size={13} color="#2563eb" /> : <Square size={13} color="#94a3b8" />}
+                                  {seleccionado ? <CheckSquare size={12} color="#2563eb" /> : <Square size={12} color="#94a3b8" />}
                                   <span style={{ fontWeight: '600', color: '#1e3a8a' }}>[{codigo}]</span>
                                   <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                                     {diag.label || diag.diagnostico || diag.descripcion}
@@ -440,7 +505,7 @@ function AtencionMedicaExamenPanel({ content = [], onContentChange, onModalMessa
                       )}
                     </div>
 
-                    {/* Badge del Diagnóstico Vinculado */}
+                    {/* Desvincular Diagnóstico rápido */}
                     {item.idDiagnostico && (
                       <span 
                         onClick={() => handleSelectDiagnostico(item.id, { idDiagnostico: item.idDiagnostico })}
@@ -450,20 +515,21 @@ function AtencionMedicaExamenPanel({ content = [], onContentChange, onModalMessa
                           color: '#2563eb',
                           border: '1px solid #bfdbfe',
                           borderRadius: '4px',
-                          padding: '1px 6px',
-                          fontSize: '11px',
+                          padding: '0 4px',
+                          fontSize: '10px',
                           fontWeight: '600',
                           cursor: 'pointer',
                           display: 'inline-flex',
                           alignItems: 'center'
                         }}
                       >
-                        {item.codigoCIE} <span style={{ marginLeft: '4px', color: '#ef4444' }}>×</span>
+                        {item.codigoCIE} <span style={{ marginLeft: '3px', color: '#ef4444' }}>×</span>
                       </span>
                     )}
 
                   </div>
                 </div>
+
               </div>
             );
           })}
@@ -474,429 +540,3 @@ function AtencionMedicaExamenPanel({ content = [], onContentChange, onModalMessa
 }
 
 export default AtencionMedicaExamenPanel;
-
-/*
-// src/components/AtencionExamen/AtencionMedicaExamen.js
-import React, { useState, useEffect } from 'react';
-import AutoCompleteInput from '../common/AutoCompleteInput'; 
-import Styles from '../../../Styles'; 
-import { Trash2, Layers, CheckSquare, Square } from 'lucide-react'; 
-import { AtencionMedicaExamenService } from './AtencionMedicaExamenService';
-import { v4 as uuidv4 } from 'uuid';
-
-function AtencionMedicaExamen({ content = [], onContentChange, onModalMessage, diagnosticosDisponibles = [] }) {
-  const [mostrarBuscador, setMostrarBuscador] = useState(false);
-  const [tipoBusqueda, setTipoBusqueda] = useState('INDIVIDUAL'); // 'INDIVIDUAL' o 'PAQUETE'
-  const [dropdownAbiertoId, setDropdownAbiertoId] = useState(null); 
-  const [paquetesDisponibles, setPaquetesDisponibles] = useState([]);
-
-  // Cargar paquetes al montar el componente
-  useEffect(() => {
-    const cargarPaquetes = async () => {
-      const pkgs = await AtencionMedicaExamenService.obtenerPaquetesDisponibles();
-      setPaquetesDisponibles(pkgs);
-    };
-    cargarPaquetes();
-  }, []);
-
-  const fetchExamSuggestions = async (query) => {
-    try {
-      return await AtencionMedicaExamenService.buscarExamenesCatalogo(query);
-    } catch (error) {
-      if (onModalMessage) onModalMessage('Error al conectar con el catálogo de exámenes.');
-      return [];
-    }
-  };
-
-  // AGREGAR EXAMEN INDIVIDUAL
-  const handleAddExam = (examItem) => {
-    const existingExam = content.find(item => item.codigoExamen === examItem.codigoExamen);
-
-    if (existingExam) {
-      if (onModalMessage) {
-        onModalMessage(`El examen "${examItem.label}" ya se encuentra en el plan de trabajo.`);
-      }
-      return;
-    }
-
-    const nuevoExamen = {
-      id: uuidv4(),
-      label: examItem.label,
-      examen: examItem.label,
-      codigoExamen: examItem.codigoExamen || 'S/C',
-      tipoExamen: examItem.tipoExamen || '',
-      diagnosticosAsociados: [] 
-    };
-
-    onContentChange([...content, nuevoExamen]);
-    setMostrarBuscador(false);
-  };
-
-  // AGREGAR EN BLOQUE POR PAQUETE
-  const handleCargarPaquete = (e) => {
-    const paqueteId = e.target.value;
-    if (!paqueteId) return;
-
-    const paqueteSeleccionado = paquetesDisponibles.find(pkg => pkg.id === paqueteId);
-    if (!paqueteSeleccionado) return;
-
-    let nuevosExamenesAgregados = 0;
-    const listaActualizada = [...content];
-
-    paqueteSeleccionado.examenesAsociados.forEach(examItem => {
-      const yaExiste = listaActualizada.some(item => item.codigoExamen === examItem.codigoExamen);
-      
-      if (!yaExiste) {
-        listaActualizada.push({
-          id: uuidv4(),
-          label: examItem.label,
-          examen: examItem.label,
-          codigoExamen: examItem.codigoExamen || 'S/C',
-          tipoExamen: examItem.tipoExamen || '',
-          diagnosticosAsociados: []
-        });
-        nuevosExamenesAgregados++;
-      }
-    });
-
-    onContentChange(listaActualizada);
-    setMostrarBuscador(false);
-    e.target.value = ""; // Resetear select
-
-    if (onModalMessage && nuevosExamenesAgregados > 0) {
-      onModalMessage(`Se añadieron ${nuevosExamenesAgregados} exámenes del paquete "${paqueteSeleccionado.nombrePaquete}".`);
-    }
-  };
-
-  const handleToggleDiagnostico = (examId, codigoCIE) => {
-    const listaActualizada = content.map(item => {
-      if (item.id === examId) {
-        const yaAsociado = item.diagnosticosAsociados.includes(codigoCIE);
-        const nuevosDx = yaAsociado
-          ? item.diagnosticosAsociados.filter(code => code !== codigoCIE) 
-          : [...item.diagnosticosAsociados, codigoCIE]; 
-        return { ...item, diagnosticosAsociados: nuevosDx };
-      }
-      return item;
-    });
-    onContentChange(listaActualizada);
-  };
-
-  const handleDeleteExam = (id) => {
-    const listaActualizada = content.filter(item => item.id !== id);
-    onContentChange(listaActualizada);
-  };
-
-  return (
-    <div style={Styles.medicalSection}>
-      <div style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: '16px'
-      }}>
-        <h3 style={{ ...Styles.sectionTitle, margin: 0, fontSize: '16px', color: '#1e293b', fontWeight: '600' }}>
-          Plan de Trabajo / Exámenes
-        </h3>
-        
-        <button
-          type="button"
-          onClick={() => setMostrarBuscador(!mostrarBuscador)}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '6px',
-            backgroundColor: mostrarBuscador ? '#f1f5f9' : '#ffffff',
-            border: '1px solid #cbd5e1',
-            borderRadius: '20px',
-            padding: '6px 14px',
-            color: '#1d4ed8',
-            fontSize: '13px',
-            fontWeight: '500',
-            cursor: 'pointer'
-          }}
-        >
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1d4ed8" strokeWidth="2.5">
-            <circle cx="11" cy="11" r="8"></circle>
-            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-          </svg>
-          {mostrarBuscador ? 'Cerrar opciones' : 'Añadir examen o paquete'}
-        </button>
-      </div>
-
-      {mostrarBuscador && (
-        <div style={{ 
-          display: 'flex', 
-          flexDirection: 'column',
-          gap: '12px', 
-          marginBottom: '16px', 
-          backgroundColor: '#f8fafc',
-          padding: '14px',
-          borderRadius: '8px',
-          border: '1px solid #e2e8f0'
-        }}>
-          <div style={{ display: 'flex', gap: '4px', borderBottom: '1px solid #e2e8f0', paddingBottom: '8px' }}>
-            <button
-              type="button"
-              onClick={() => setTipoBusqueda('INDIVIDUAL')}
-              style={{
-                padding: '4px 12px',
-                fontSize: '12px',
-                fontWeight: '600',
-                borderRadius: '4px',
-                border: 'none',
-                cursor: 'pointer',
-                backgroundColor: tipoBusqueda === 'INDIVIDUAL' ? '#e0f2fe' : 'transparent',
-                color: tipoBusqueda === 'INDIVIDUAL' ? '#0369a1' : '#64748b'
-              }}
-            >
-              🔍 Examen Individual
-            </button>
-            <button
-              type="button"
-              onClick={() => setTipoBusqueda('PAQUETE')}
-              style={{
-                padding: '4px 12px',
-                fontSize: '12px',
-                fontWeight: '600',
-                borderRadius: '4px',
-                border: 'none',
-                cursor: 'pointer',
-                backgroundColor: tipoBusqueda === 'PAQUETE' ? '#e0f2fe' : 'transparent',
-                color: tipoBusqueda === 'PAQUETE' ? '#0369a1' : '#64748b'
-              }}
-            >
-              📦 Cargar por Paquete (Preoperatorio...)
-            </button>
-          </div>
-
-          {tipoBusqueda === 'INDIVIDUAL' ? (
-            <div>
-              <AutoCompleteInput
-                placeholder="Busque y seleccione un examen del catálogo..."
-                onSelectSuggestion={handleAddExam}
-                fetchSuggestions={fetchExamSuggestions}
-                onModalMessage={onModalMessage} 
-                style={{ padding: '6px 12px', height: '34px', fontSize: '13px' }} 
-              />
-            </div>
-          ) : (
-            <div>
-              <select
-                onChange={handleCargarPaquete}
-                defaultValue=""
-                style={{
-                  width: '100%',
-                  height: '34px',
-                  padding: '0 10px',
-                  borderRadius: '6px',
-                  border: '1px solid #cbd5e1',
-                  backgroundColor: '#ffffff',
-                  fontSize: '13px',
-                  color: '#334155',
-                  outline: 'none',
-                  cursor: 'pointer'
-                }}
-              >
-                <option value="" disabled>-- Seleccione un Paquete Clínico Configurado --</option>
-                {paquetesDisponibles.map(pkg => (
-                  <option key={pkg.id} value={pkg.id}>
-                    {pkg.nombrePaquete} ({pkg.examenesAsociados?.length || 0} exámenes)
-                  </option>
-                ))}
-              </select>
-            </div>
-          )}
-        </div>
-      )}
-
-      {content.length > 0 && (
-        <div style={{
-          border: '1px solid #e2e8f0',
-          borderRadius: '8px',
-          backgroundColor: '#ffffff'
-        }}>
-          {content.map((item, index) => {
-            const tieneDxIncompleto = item.diagnosticosAsociados.length === 0;
-
-            return (
-              <div 
-                key={item.id} 
-                style={{
-                  position: 'relative',
-                  display: 'flex',
-                  alignItems: 'flex-start',
-                  padding: '12px 16px',
-                  borderBottom: index === content.length - 1 ? 'none' : '1px solid #e2e8f0',
-                  gap: '14px'
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', height: '24px' }}>
-                  <button
-                    type="button"
-                    onClick={() => handleDeleteExam(item.id)}
-                    style={{
-                      background: 'none',
-                      border: 'none',
-                      cursor: 'pointer',
-                      padding: '4px',
-                      color: '#f87171', 
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center'
-                    }}
-                  >
-                    <Trash2 size={15} strokeWidth={2.5} />
-                  </button>
-
-                  <div style={{
-                    backgroundColor: '#f1f5f9',
-                    color: '#64748b',
-                    fontWeight: '600',
-                    fontSize: '12px',
-                    padding: '2px 6px',
-                    borderRadius: '4px',
-                    minWidth: '22px',
-                    textAlign: 'center',
-                    border: '1px solid #e2e8f0'
-                  }}>
-                    {index + 1}
-                  </div>
-                </div>
-
-                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                  
-                  <div style={{ fontSize: '14px', color: '#334155', fontWeight: '500', lineHeight: '1.3' }}>
-                    {item.label || item.examen}
-                  </div>
-                  
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
-                    
-                    <span style={{ 
-                      color: '#475569', 
-                      backgroundColor: '#f1f5f9', 
-                      padding: '2px 6px', 
-                      borderRadius: '4px', 
-                      fontSize: '11px',
-                      fontWeight: '600',
-                      border: '1px solid #e2e8f0'
-                    }}>
-                      Cod: {item.codigoExamen}
-                    </span>
-
-                    <div style={{ position: 'relative' }}>
-                      <button
-                        type="button"
-                        onClick={() => setDropdownAbiertoId(dropdownAbiertoId === item.id ? null : item.id)}
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '4px',
-                          padding: '3px 8px',
-                          borderRadius: '6px',
-                          backgroundColor: tieneDxIncompleto ? '#fef2f2' : '#f0fdf4',
-                          border: tieneDxIncompleto ? '1px solid #fca5a5' : '1px solid #bbf7d0',
-                          color: tieneDxIncompleto ? '#dc2626' : '#16a34a',
-                          fontSize: '11px',
-                          fontWeight: '500',
-                          cursor: 'pointer'
-                        }}
-                      >
-                        <Layers size={12} />
-                        {tieneDxIncompleto 
-                          ? 'Vincular Diagnósticos (0)' 
-                          : `Dx Vinculados (${item.diagnosticosAsociados.length})`}
-                      </button>
-
-                      {dropdownAbiertoId === item.id && (
-                        <div style={{
-                          position: 'absolute',
-                          top: '24px',
-                          left: 0,
-                          zIndex: 100,
-                          backgroundColor: '#ffffff',
-                          border: '1px solid #cbd5e1',
-                          borderRadius: '8px',
-                          boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-                          padding: '8px',
-                          width: '260px',
-                          maxHeight: '180px',
-                          overflowY: 'auto'
-                        }}>
-                          <div style={{ fontSize: '10px', color: '#64748b', fontWeight: '600', marginBottom: '6px', paddingBottom: '4px', borderBottom: '1px solid #f1f5f9' }}>
-                            Seleccione los diagnósticos asociados:
-                          </div>
-                          {diagnosticosDisponibles.length === 0 ? (
-                            <div style={{ fontSize: '11px', color: '#94a3b8', padding: '6px', textAlign: 'center' }}>
-                              ⚠️ Registre diagnósticos en el panel correspondiente.
-                            </div>
-                          ) : (
-                            diagnosticosDisponibles.map((diag) => {
-                              const codigo = diag.codigoCIE || 'S/C';
-                              const seleccionado = item.diagnosticosAsociados.includes(codigo);
-                              return (
-                                <div
-                                  key={diag.id}
-                                  onClick={() => handleToggleDiagnostico(item.id, codigo)}
-                                  style={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: '8px',
-                                    padding: '5px',
-                                    borderRadius: '4px',
-                                    cursor: 'pointer',
-                                    backgroundColor: seleccionado ? '#eff6ff' : 'transparent',
-                                    fontSize: '12px',
-                                    color: '#334155'
-                                  }}
-                                >
-                                  {seleccionado ? <CheckSquare size={13} color="#2563eb" /> : <Square size={13} color="#94a3b8" />}
-                                  <span style={{ fontWeight: '600', color: '#1e3a8a' }}>[{codigo}]</span>
-                                  <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                                    {diag.label || diag.diagnostico}
-                                  </span>
-                                </div>
-                              );
-                            })
-                          )}
-                        </div>
-                      )}
-                    </div>
-
-                    <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
-                      {item.diagnosticosAsociados.map(code => (
-                        <span 
-                          key={code}
-                          onClick={() => handleToggleDiagnostico(item.id, code)}
-                          title="Eliminar vinculación"
-                          style={{
-                            backgroundColor: '#eff6ff',
-                            color: '#2563eb',
-                            border: '1px solid #bfdbfe',
-                            borderRadius: '4px',
-                            padding: '1px 5px',
-                            fontSize: '11px',
-                            fontWeight: '600',
-                            cursor: 'pointer',
-                            display: 'inline-flex',
-                            alignItems: 'center'
-                          }}
-                        >
-                          {code} <span style={{ marginLeft: '4px', color: '#ef4444', fontWeight: '400' }}>×</span>
-                        </span>
-                      ))}
-                    </div>
-
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
-    </div>
-  );
-}
-
-export default AtencionMedicaExamen;
-*/
