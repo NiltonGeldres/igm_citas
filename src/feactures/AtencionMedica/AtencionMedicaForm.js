@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { RefreshCw, Calendar, ArrowRight, ArrowLeft, X, Save } from 'lucide-react';
 
 import MessageModal from './common/MessageModal';
@@ -28,6 +28,33 @@ const TABS_ORDER = [
   'discharge',
   'signature'
 ];
+const cardStylePCFixed = {
+  backgroundColor: '#ffffff',
+  border: '1px solid #e2e8f0',
+  borderRadius: '12px',
+  padding: '16px',
+  boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
+  display: 'flex',
+  flexDirection: 'column',
+  height: '350px' // Altura fija uniforme para las 6 tarjetas en PC
+};
+
+const cardHeaderStyle = {
+  display: 'flex',
+  justifyContent: 'space-between',
+  alignItems: 'center',
+  marginBottom: '8px'
+};
+
+const pkiBadgeStyle = {
+  backgroundColor: '#f0fdf4',
+  color: '#166534',
+  fontSize: '11px',
+  fontWeight: '600',
+  padding: '2px 8px',
+  borderRadius: '12px',
+  border: '1px solid #bbf7d0'
+};
 
 // Hook auxiliar para detectar si la pantalla es móvil (< 768px)
 function useIsMobile() {
@@ -275,18 +302,21 @@ function AtencionMedicaForm() {
                 </button>
               </div>
             </div>
-          ) : (
-            /* ================= VISTA ESCRITORIO / PC (3 Columnas Grid con Orden Clínico Secuencial) ================= */
+) : (
+            /* ================= VISTA ESCRITORIO / PC (Grid Simétrico de 3 Columnas x 2 Filas + Firma) ================= */
             <div style={{
               display: 'grid',
               gridTemplateColumns: 'repeat(3, 1fr)',
               gap: '16px',
-              alignItems: 'start'
+              alignItems: 'stretch'
             }}>
-              {/* COLUMNA 1: TRIAJE Y ANAMNESIS/EXAMEN FÍSICO */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                <div style={cardStyle}>
+
+              {/* 1. TRIAJE & SIGNOS VITALES */}
+              <div style={cardStylePCFixed}>
+                <div style={cardHeaderStyle}>
                   <h3 style={titleStyle}><span style={dotStyle} /> 1. TRIAJE & SIGNOS VITALES</h3>
+                </div>
+                <div style={{ flex: 1, overflowY: 'auto' }}>
                   {cargandoTriaje ? (
                     <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '20px', color: '#64748b' }}>
                       <RefreshCw size={16} className="spinner-sync" style={{ marginRight: '8px' }} />
@@ -302,42 +332,52 @@ function AtencionMedicaForm() {
                     /> 
                   )}
                 </div>
+              </div>
 
-                <div style={cardStyle}>
+              {/* 2. ANAMNESIS / EXAMEN FÍSICO */}
+              <div style={cardStylePCFixed}>
+                <div style={cardHeaderStyle}>
                   <h3 style={titleStyle}><span style={dotStyle} /> 2. ANAMNESIS / EXAMEN FÍSICO</h3>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                    <AtencionMedicaSintomaPanel
-                      content={sectionsData.PanelSintomas}
-                      onContentChange={(newList) => handleSectionContentChange('PanelSintomas', newList)}
-                      onModalMessage={showModalMessage}
-                    />
-                    <AtencionMedicaAntecedentePanel
-                      content={sectionsData.PanelAntecedentes}
-                      onContentChange={(newList) => handleSectionContentChange('PanelAntecedentes', newList)}
-                      onModalMessage={showModalMessage}
-                    />
-                    <AtencionMedicaExamenFisicoPanel
-                      content={sectionsData.PanelExamenFisico}
-                      onContentChange={(newList) => handleSectionContentChange('PanelExamenFisico', newList)}
-                      onModalMessage={showModalMessage}
-                    />
-                  </div>
+                </div>
+                <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '12px', paddingRight: '4px' }}>
+                  <AtencionMedicaSintomaPanel
+                    content={sectionsData.PanelSintomas}
+                    onContentChange={(newList) => handleSectionContentChange('PanelSintomas', newList)}
+                    onModalMessage={showModalMessage}
+                  />
+                  <AtencionMedicaAntecedentePanel
+                    content={sectionsData.PanelAntecedentes}
+                    onContentChange={(newList) => handleSectionContentChange('PanelAntecedentes', newList)}
+                    onModalMessage={showModalMessage}
+                  />
+                  <AtencionMedicaExamenFisicoPanel
+                    content={sectionsData.PanelExamenFisico}
+                    onContentChange={(newList) => handleSectionContentChange('PanelExamenFisico', newList)}
+                    onModalMessage={showModalMessage}
+                  />
                 </div>
               </div>
 
-              {/* COLUMNA 2: DIAGNÓSTICO Y ÓRDENES MÉDICAS */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                <div style={cardStyle}>
+              {/* 3. DIAGNÓSTICOS (CIE-10) */}
+              <div style={cardStylePCFixed}>
+                <div style={cardHeaderStyle}>
                   <h3 style={titleStyle}><span style={dotStyle} /> 3. DIAGNÓSTICOS (CIE-10)</h3>
+                </div>
+                <div style={{ flex: 1, overflowY: 'auto' }}>
                   <AtencionMedicaDiagnosticoPanel
                     content={sectionsData.PanelDiagnostico}
                     onContentChange={(newList) => handleSectionContentChange('PanelDiagnostico', newList)}
                     onModalMessage={showModalMessage}
                   />
                 </div>
+              </div>
 
-                <div style={cardStyle}>
+              {/* 4. ÓRDENES MÉDICAS / PLAN DE TRABAJO */}
+              <div style={cardStylePCFixed}>
+                <div style={cardHeaderStyle}>
                   <h3 style={titleStyle}><span style={dotStyle} /> 4. ÓRDENES MÉDICAS / PLAN DE TRABAJO</h3>
+                </div>
+                <div style={{ flex: 1, overflowY: 'auto' }}>
                   <AtencionMedicaExamenPanel
                     content={sectionsData.PanelPlanTrabajo}
                     onContentChange={(newList) => handleSectionContentChange('PanelPlanTrabajo', newList)}
@@ -347,10 +387,12 @@ function AtencionMedicaForm() {
                 </div>
               </div>
 
-              {/* COLUMNA 3: RECETA Y ALTA */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                <div style={cardStyle}>
+              {/* 5. RECETA MÉDICA */}
+              <div style={cardStylePCFixed}>
+                <div style={cardHeaderStyle}>
                   <h3 style={titleStyle}><span style={dotStyle} /> 5. RECETA MÉDICA</h3>
+                </div>
+                <div style={{ flex: 1, overflowY: 'auto' }}>
                   <AtencionMedicaMedicamentoPanel
                     content={sectionsData.PanelMedicacion}
                     onContentChange={(newList) => handleSectionContentChange('PanelMedicacion', newList)}
@@ -358,9 +400,14 @@ function AtencionMedicaForm() {
                     diagnosticosDisponibles={sectionsData.PanelDiagnostico}
                   />
                 </div>
+              </div>
 
-                <div style={cardStyle}>
+              {/* 6. ALTA Y DESTINO */}
+              <div style={cardStylePCFixed}>
+                <div style={cardHeaderStyle}>
                   <h3 style={titleStyle}><span style={dotStyle} /> 6. ALTA Y DESTINO</h3>
+                </div>
+                <div style={{ flex: 1, overflowY: 'auto' }}>
                   <AtencionMedicaAltaPanel
                     title="Panel Alta"
                     content={sectionsData.PanelAlta}
@@ -370,9 +417,12 @@ function AtencionMedicaForm() {
                 </div>
               </div>
 
-              {/* SECCIÓN INFERIOR COMPLETA (FIRMA) */}
-              <div style={{ gridColumn: '1 / -1', ...cardStyle }}>
-                <h3 style={titleStyle}><span style={dotStyle} /> 7. CIERRE Y FIRMA DIGITAL</h3>
+              {/* 7. CIERRE Y FIRMA DIGITAL (ANCHO COMPLETO INFERIOR) */}
+              <div style={{ gridColumn: '1 / -1', ...cardStyle, display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <div style={cardHeaderStyle}>
+                  <h3 style={titleStyle}><span style={dotStyle} /> 7. CIERRE Y FIRMA DIGITAL</h3>
+                  <span style={pkiBadgeStyle}>Refirma PKI</span>
+                </div>
                 <AtencionMedicaFirmaPanelV1
                   sectionsData={sectionsData}
                   patientData={patientData}
@@ -385,6 +435,7 @@ function AtencionMedicaForm() {
                   refrescarEstadoFirma={refrescarEstadoFirma}
                 /> 
               </div>
+
             </div>
           )
         ) : (
