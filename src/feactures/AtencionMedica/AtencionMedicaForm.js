@@ -13,6 +13,7 @@ import AtencionMedicaMedicamentoPanel from './AtencionMedicaMedicamento/Atencion
 import AtencionMedicaAltaPanel from './AtencionMedicaAlta/AtencionMedicaAltaPanel';
 import AtencionMedicaFirmaPanelV1 from './AtencionMedicaFirma/AtencionMedicaFirmaPanelV1';
 import ModalExitoFirma from './AtencionMedicaFirma/ModalExitoFirma';
+import AtencionMedicaHistoriaClinicaDrawer from './AtencionMedicaHistoriaCllinica/AtencionMedicaHistoriaClinicaDrawer';
 
 import { useAtencionContext } from '../../apps/medicos-app/context/AtencionProvider';
 import AtencionMedicaHeader from './components/AtencionMedicaHeader';
@@ -97,7 +98,16 @@ function AtencionMedicaForm() {
     crearPdfBorrador,
     handleFinalizarFlujoYRegresar,
     showModalMessage,
-    refrescarEstadoFirma
+    refrescarEstadoFirma,
+
+  isHistoriaClinicaOpen,
+  setIsHistoriaClinicaOpen,
+  historiaClinicaData,
+  alertasMedicas,
+  handleOpenHistoriaClinica,
+  handleCopiarAnamnesis,
+  handleCopiarReceta,
+
   } = useAtencionContext();
 
   const isMobile = useIsMobile();
@@ -136,6 +146,7 @@ function AtencionMedicaForm() {
         patientData={patientData}
         estadoGuardado={estadoGuardado}
         onOpenAgenda={() => setIsAgendaOpen(true)}
+        onOpenHistoriaClinica={handleOpenHistoriaClinica}
         activeTab={activeTab}
         setActiveTab={setActiveTab}
       />
@@ -302,7 +313,7 @@ function AtencionMedicaForm() {
                 </button>
               </div>
             </div>
-) : (
+          ) : (
             /* ================= VISTA ESCRITORIO / PC (Grid Simétrico de 3 Columnas x 2 Filas + Firma) ================= */
             <div style={{
               display: 'grid',
@@ -435,6 +446,16 @@ function AtencionMedicaForm() {
                   refrescarEstadoFirma={refrescarEstadoFirma}
                 /> 
               </div>
+
+            <AtencionMedicaHistoriaClinicaDrawer
+              isOpen={isHistoriaClinicaOpen}
+              onClose={() => setIsHistoriaClinicaOpen(false)}
+              patientData={patientData}
+              historiaClinicaData={historiaClinicaData}
+              alertasMedicas={alertasMedicas}
+              onCopiarAnamnesis={handleCopiarAnamnesis}
+              onCopiarReceta={handleCopiarReceta}
+            />
 
             </div>
           )
