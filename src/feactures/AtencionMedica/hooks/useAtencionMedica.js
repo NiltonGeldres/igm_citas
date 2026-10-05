@@ -389,30 +389,41 @@ export const useAtencionMedica = () => {
     }
   }, [patientData?.idAtencion]);
 
-  // 🟢 CONSULTA DE HISTORIA CLÍNICA (USANDO EL SERVICIO DEDICADO)
-  const handleOpenHistoriaClinica = useCallback(async () => {
-    const idPaciente = patientData?.idPaciente || patientData?.id;
+/**
+ * Abre el drawer de Historia Clínica asegurando la extracción limpia del idPaciente.
+ */
+  const handleOpenHistoriaClinica = async (customIdPaciente = null) => {
 
-    if (!idPaciente) {
-      showModalMessage("Seleccione un paciente para consultar su historia clínica.");
+    // 1. Prioridad: ID pasado explícitamente como argumento,
+    // seguido por la propiedad en patientData o citaData
+    const idPacienteObjetivo = patientData?.idPaciente 
+
+    // 2. Validar que exista un ID válido antes de proceder
+    if (!idPacienteObjetivo) {
+      console.warn("⚠️ No se pudo abrir la Historia Clínica: No se encontró un idPaciente válido en el estado actual.", {
+        patientData
+      });
       return;
     }
 
+    setIsHistoriaClinicaOpen(true);
+    setCargandoHistoriaClinica(true);
+
     try {
-      setCargandoHistoriaClinica(true);
-      const response = await AtencionMedicaHistoriaClinicaDrawerService.obtenerHistoriaClinicaPaciente(idPaciente);
-      console.log(JSON.stringify(response))
-      if (response) {
-        setHistoriaClinicaData(response);
-        setIsHistoriaClinicaOpen(true);
+      // 3. Invocar al servicio enviando el idPaciente resuelto
+      const dataPanel = await AtencionMedicaHistoriaClinicaDrawerService.obtenerHistoriaClinicaPaciente(idPacienteObjetivo);
+      console.log("DATA PANEL    "+JSON.stringify(dataPanel))
+      if (dataPanel) {
+        setHistoriaClinicaData(dataPanel);
+      } else {
+        console.warn(`No se encontraron datos para el paciente ID: ${idPacienteObjetivo}`);
       }
     } catch (error) {
-      console.error("Error al obtener la historia clínica:", error);
-      showModalMessage("No se pudo obtener la historia clínica del paciente.");
+      console.error("Error al cargar la historia clínica:", error);
     } finally {
       setCargandoHistoriaClinica(false);
     }
-  }, [patientData?.idPaciente, patientData?.id]);
+  };
 
   const handleCloseHistoriaClinica = () => {
     setIsHistoriaClinicaOpen(false);

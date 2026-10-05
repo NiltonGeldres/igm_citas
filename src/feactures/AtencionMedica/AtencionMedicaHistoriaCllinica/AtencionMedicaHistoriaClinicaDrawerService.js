@@ -4,7 +4,9 @@ import header from "../../../shared/utils/Header";
 import AuthService from "../../../master-data/services/auth.service";
 
 const API_URL = process.env.REACT_APP_URL_API;
-const SERVICE_HISTORIA_CLINICA_OBTENER = API_URL + "/api/v1/atenciones/historia-clinica/paciente";
+
+// Endpoint base según controlador Spring Boot: @GetMapping("/paciente/{idPaciente}/panel-historia")
+const SERVICE_HISTORIA_CLINICA_OBTENER = `${API_URL}/api/v1/atenciones-medicas/paciente`;
 
 // =========================================================================
 // 🚀 CACHÉ EN MEMORIA DEL FRONTEND
@@ -12,74 +14,63 @@ const SERVICE_HISTORIA_CLINICA_OBTENER = API_URL + "/api/v1/atenciones/historia-
 const cacheHistoriaClinica = new Map();
 
 // =========================================================================
-// 🔬 MOCKS DE DESARROLLO (MOCKITO)
+// 🛠️ PARSER DE RESPUESTA BACKEND
 // =========================================================================
-const MOCK_PATIENT_DATA = {
-  idPaciente: 285,
-  nombre: 'Cayo Bohorquez Maria Concepcion',
-  hc: '21447464',
-  edad: '76 años',
-  sexo: 'Femenino',
-  dni: '10293847',
-  grupoSanguineo: 'O+',
-  ram: 'Penicilina'
-};
 
-const MOCK_ALERTAS_MEDICAS = [
-  { tipo: 'RAM', descripcion: 'Alergia a la Penicilina' },
-  { tipo: 'ANTECEDENTE', descripcion: 'Hipertensión Arterial' }
-];
+/**
+ * Parsea y estandariza el JSON recibido del backend.
+ * Soporta tanto objetos JSON procesados como respuestas en String JSON.
+ */
+const formatearRespuestaBackend = (rawJson) => {
+  if (!rawJson) return null;
 
-const MOCK_HISTORIA_CLINICA_PACIENTE = [
-  {
-    idAtencion: 101,
-    fecha: '15/02/2026',
-    origenAtencion: 'CONSULTA EXTERNA',
-    especialidad: 'Reumatología',
-    medico: 'Dr. Roberto Mendoza',
-    codigoCie10: 'M15.3',
-    diagnostico: 'Artrosis secundaria múltiple',
-    anamnesis: 'Paciente refiere dolor persistente en articulaciones interfalángicas bilaterales de 3 meses de evolución.',
-    tratamiento: 'Paracetamol 1g c/8h x 10 días + Condroitin sulfato 800mg/día.',
-    receta: 'Paracetamol 1g V.O. c/8h\nCondroitin Sulfato 800mg V.O. c/24h',
-    signosVitales: {
-      pa: '120/80 mmHg',
-      fc: '72 bpm',
-      temp: '36.5 °C',
-      spo2: '98%',
-      imc: '23.7'
-    }
-  },
-  {
-    idAtencion: 98,
-    fecha: '10/11/2025',
-    origenAtencion: 'CONSULTA EXTERNA',
-    especialidad: 'Medicina Interna',
-    medico: 'Dra. Elena Ramos',
-    codigoCie10: 'I10',
-    diagnostico: 'Hipertensión esencial (primaria)',
-    anamnesis: 'Chequeo de rutina. Paciente asintomática, refiere cumplir con tratamiento de presión.',
-    tratamiento: 'Continuar con Enalapril 10mg c/12h.',
-    receta: 'Enalapril 10mg V.O. c/12h x 30 días',
-    signosVitales: {
-      pa: '130/85 mmHg',
-      fc: '75 bpm',
-      temp: '36.6 °C',
-      spo2: '97%',
-      imc: '23.5'
+  let json = rawJson;
+  if (typeof rawJson === 'string') {
+    try {
+      json = JSON.parse(rawJson);
+    } catch (e) {
+      console.error("Error al parsear el JSON de Historia Clínica:", e);
+      return null;
     }
   }
-];
+
+  const atenciones = Array.isArray(json?.atenciones) ? json.atenciones : [];
+  const especialidades = Array.isArray(json?.especialidades) ? json.especialidades : [];
+
+  // 1. Extraer datos del paciente priorizando la raíz o el primer episodio médico
+  const pacienteBase = json?.paciente || atenciones[0]?.paciente || {};
+
+  // 2. Extraer o derivar alertas médicas (RAM / Alergias / Antecedentes críticos)
+  const alertasMedicas = Array.isArray(json?.alertasMedicas) 
+    ? json.alertasMedicas 
+    : (pacienteBase.ram ? [{ tipo: 'RAM', descripcion: pacienteBase.ram }] : []);
+
+  return {
+    patientData: {
+      idPaciente: json?.idPaciente || atenciones[0]?.idPaciente || null,
+      nombre: pacienteBase.name || pacienteBase.nombre || 'S/N',
+      hc: pacienteBase.hc || 'S/N',
+      edad: pacienteBase.edad ? `${pacienteBase.edad} Años` : 'S/E',
+      sexo: pacienteBase.sexo || 'S/S'
+    },
+    alertasMedicas: alertasMedicas,
+    especialidades: especialidades,
+    atenciones: atenciones,
+    // Propiedad de retrocompatibilidad con vistas anteriores en tu Hook
+    historiaClinicaData: atenciones
+  };
+};
 
 // =========================================================================
 // 📦 SERVICIO PRINCIPAL
 // =========================================================================
 
 /**
- * Obtiene la historia clínica del paciente por su idPaciente.
- * Utiliza caché en memoria y fallback a mocks en desarrollo.
+ * Obtiene el panel de historia clínica del paciente por su idPaciente.
+ * Maneja caché local en memoria e intercepta errores de sesión.
  */
 const obtenerHistoriaClinicaPaciente = async (idPaciente) => {
+  console.log("ID PACIENTE    "+idPaciente)
   if (!idPaciente) return null;
 
   const idKey = String(idPaciente);
@@ -89,60 +80,39 @@ const obtenerHistoriaClinicaPaciente = async (idPaciente) => {
     return cacheHistoriaClinica.get(idKey);
   }
 
-  const isProduction = process.env.REACT_APP_NODE_ENV === 'production1';
-  let resultado = null;
+  try {
+    // GET /api/v1/atenciones/paciente/{idPaciente}/panel-historia
+    const urlEndpoint = `${SERVICE_HISTORIA_CLINICA_OBTENER}/${idKey}/panel-historia`;
+    console.log("urlEndpoint   "+urlEndpoint)
 
-  if (isProduction) {
-    try {
-      const response = await axios.get(SERVICE_HISTORIA_CLINICA_OBTENER, {
-        params: { idPaciente: idKey },
-        headers: header()
-      });
-
-      let resultadoJson = response.data;
-      if (typeof resultadoJson === 'string') {
-        try { resultadoJson = JSON.parse(resultadoJson); } catch (e) {}
-      }
-
-      // Estructura esperada de respuesta API
-      resultado = {
-        patientData: resultadoJson?.patientData || resultadoJson?.paciente || {},
-        alertasMedicas: resultadoJson?.alertasMedicas || resultadoJson?.alertas || [],
-        historiaClinicaData: Array.isArray(resultadoJson?.data) 
-          ? resultadoJson.data 
-          : (Array.isArray(resultadoJson) ? resultadoJson : [])
-      };
-
-    } catch (error) {
-      if (error.response && error.response.status === 403) {
-        AuthService.logout();
-        window.location.href = "/login";
-      }
-      console.error(`❌ Error al obtener historia clínica del paciente ${idKey}:`, error);
-      return null;
-    }
-  } else {
-    // Modo Desarrollo: Retorna mock en promesa simulada
-    resultado = await new Promise((resolve) => {
-      setTimeout(() => {
-        resolve({
-          patientData: MOCK_PATIENT_DATA,
-          alertasMedicas: MOCK_ALERTAS_MEDICAS,
-          historiaClinicaData: MOCK_HISTORIA_CLINICA_PACIENTE
-        });
-      }, 300);
+    const response = await axios.get(urlEndpoint, {
+      headers: header()
     });
-  }
 
-  // ⚡ 2. Guardar en Caché tras respuesta exitosa
-  if (resultado) {
-    cacheHistoriaClinica.set(idKey, resultado);
-  }
+    console.log("HISTORIA   "+JSON.stringify(response))
+    const resultado = formatearRespuestaBackend(response.data);
 
-  return resultado;
+    // ⚡ 2. Guardar en Caché tras respuesta exitosa
+    if (resultado) {
+      cacheHistoriaClinica.set(idKey, resultado);
+    }
+
+    return resultado;
+
+  } catch (error) {
+    if (error.response && error.response.status === 403) {
+      AuthService.logout();
+      window.location.href = "/login";
+    }
+    console.error(`❌ Error al obtener historia clínica del paciente ${idKey}:`, error);
+    return null;
+  }
 };
 
-// Limpieza manual de caché cuando sea necesario
+/**
+ * Limpia la caché local en memoria.
+ * Útil para forzar una recarga tras registrar una nueva atención médica.
+ */
 const limpiarCacheLocal = () => {
   cacheHistoriaClinica.clear();
 };
