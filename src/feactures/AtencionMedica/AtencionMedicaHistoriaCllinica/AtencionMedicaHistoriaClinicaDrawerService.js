@@ -8,6 +8,7 @@ const API_URL = process.env.REACT_APP_URL_API;
 // Endpoint base según controlador Spring Boot: @GetMapping("/paciente/{idPaciente}/panel-historia")
 const SERVICE_HISTORIA_CLINICA_OBTENER = `${API_URL}/api/v1/atenciones-medicas/paciente`;
 
+const SERVICE_DOCUMENTO_PRESIGNED_URL = `${API_URL}/api/v1/atenciones-medicas/documento-presigned-url`;
 // =========================================================================
 // 🚀 CACHÉ EN MEMORIA DEL FRONTEND
 // =========================================================================
@@ -109,6 +110,40 @@ const obtenerHistoriaClinicaPaciente = async (idPaciente) => {
   }
 };
 
+  /**
+   * Solicita la Presigned URL a demanda de un documento específico de una atención médica.
+   * @param {Object} payload - { idAtencion, nroHistoriaClinica, tipoDocumento }
+   * @returns {Promise<Object|null>} { tipoDocumento, presignedUrl }
+   */
+  const obtenerPresignedUrlDocumento = async ({ idAtencion, nroHistoriaClinica, tipoDocumento }) => {
+    if (!idAtencion || !tipoDocumento) {
+      console.error("❌ idAtencion y tipoDocumento son obligatorios");
+      return null;
+    }
+
+    try {
+      const payload = {
+        idAtencion,
+        nroHistoriaClinica,
+        tipoDocumento
+      };
+
+      const response = await axios.post(SERVICE_DOCUMENTO_PRESIGNED_URL, payload, {
+        headers: header()
+      });
+
+      return response.data; // Devuelve { tipoDocumento, presignedUrl }
+
+    } catch (error) {
+      if (error.response && error.response.status === 403) {
+        AuthService.logout();
+        window.location.href = "/login";
+      }
+      console.error(`❌ Error al obtener Presigned URL para ${tipoDocumento} de la atención ${idAtencion}:`, error);
+      return null;
+    }
+  };
+
 /**
  * Limpia la caché local en memoria.
  * Útil para forzar una recarga tras registrar una nueva atención médica.
@@ -119,5 +154,6 @@ const limpiarCacheLocal = () => {
 
 export const AtencionMedicaHistoriaClinicaDrawerService = {
   obtenerHistoriaClinicaPaciente,
-  limpiarCacheLocal
+  limpiarCacheLocal,
+  obtenerPresignedUrlDocumento,
 };

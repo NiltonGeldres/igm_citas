@@ -1,8 +1,9 @@
 import React, { useState, useMemo } from 'react';
 import { 
   X, Search, FileText, AlertTriangle, CheckCircle2, 
-  ExternalLink, FileCheck 
+  ExternalLink, FileCheck, Loader2 
 } from 'lucide-react';
+import { AtencionMedicaHistoriaClinicaDrawerService } from './AtencionMedicaHistoriaClinicaDrawerService';
 
 export default function AtencionMedicaHistoriaClinicaDrawer({
   isOpen,
@@ -15,6 +16,10 @@ export default function AtencionMedicaHistoriaClinicaDrawer({
 }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [especialidadFiltro, setEspecialidadFiltro] = useState('TODAS');
+  
+  // Estado para controlar qué botón/documento está solicitando la Presigned URL
+  // Formato: "idAtencion-tipoDocumento" (ej. "284-historia")
+  const [loadingDoc, setLoadingDoc] = useState(null);
 
   // Normalizar lista de atenciones
   const listaAtenciones = useMemo(() => {
@@ -101,6 +106,34 @@ export default function AtencionMedicaHistoriaClinicaDrawer({
     }
 
     return <span style={{ color: '#334155' }}>{String(antecedentes)}</span>;
+  };
+
+  /**
+   * Solicita la Presigned URL a demanda y abre el PDF en una nueva pestaña
+   */
+  const handleVerDocumento = async (idAtencion, tipoDocumento) => {
+    const keyLoading = `${idAtencion}-${tipoDocumento}`;
+    try {
+      setLoadingDoc(keyLoading);
+
+      const nroHistoria = infoPaciente?.hc || infoPaciente?.nroHistoriaClinica ;
+      const respuesta = await AtencionMedicaHistoriaClinicaDrawerService.obtenerPresignedUrlDocumento({
+        idAtencion: idAtencion,
+        nroHistoriaClinica: nroHistoria,
+        tipoDocumento: tipoDocumento
+      });
+
+      if (respuesta && respuesta.presignedUrl) {
+        window.open(respuesta.presignedUrl, '_blank', 'noopener,noreferrer');
+      } else {
+        alert('No se pudo obtener la URL de acceso al documento.');
+      }
+    } catch (error) {
+      console.error(`Error al abrir ${tipoDocumento}:`, error);
+      alert('Ocurrió un error al intentar abrir el documento.');
+    } finally {
+      setLoadingDoc(null);
+    }
   };
 
   if (!isOpen) return null;
@@ -208,7 +241,7 @@ export default function AtencionMedicaHistoriaClinicaDrawer({
         </select>
       </div>
 
-      {/* CONTENEDOR CON SCROLL ACTIVO (flex: 1, minHeight: 0, overflowY: auto) */}
+      {/* CONTENEDOR CON SCROLL ACTIVO */}
       <div style={{ 
         flex: 1, 
         minHeight: 0, 
@@ -224,6 +257,7 @@ export default function AtencionMedicaHistoriaClinicaDrawer({
           </div>
         ) : (
           atencionesFiltradas.map((item, index) => {
+            const idAtencionActual = item.idAtencion || item.idCita;
             const fechaAtencion = item.fechaAtencion || item.tsIngreso || item.fecha;
             const medico = item.nombreMedicoIngreso || item.medico || 'Médico no especificado';
             const especialidad = item.nombreEspecialidad || item.especialidad || 'Consulta Externa';
@@ -247,12 +281,8 @@ export default function AtencionMedicaHistoriaClinicaDrawer({
               ? item.alta.map(a => a.nombreAlta || a.descripcion).join(', ') 
               : (typeof item.tratamiento === 'string' ? item.tratamiento : item.indicacionesAlta || null);
 
-            const pdfHistoria = item.pdfRutaHistoriaFirmado || item.pdfRutaHistoria || item.pdfHistoria;
-            const pdfReceta = item.pdfRutaRecetaFirmado || item.pdfRutaReceta || item.pdfReceta;
-            const pdfOrdenes = item.pdfRutaOrdenesFirmado || item.pdfRutaOrdenes || item.pdfOrdenes;
-
             return (
-              <div key={item.idAtencion || item.idCita || index} style={{
+              <div key={idAtencionActual || index} style={{
                 backgroundColor: '#ffffff',
                 borderRadius: '8px',
                 border: '1px solid #cbd5e1',
@@ -266,7 +296,7 @@ export default function AtencionMedicaHistoriaClinicaDrawer({
                   borderBottom: '1px solid #e2e8f0',
                   padding: '10px 16px',
                   display: 'flex',
-                  justifyContent: 'space-between',
+                  justify: 'space-between',
                   alignItems: 'center'
                 }}>
                   <div>
@@ -463,31 +493,76 @@ export default function AtencionMedicaHistoriaClinicaDrawer({
 
                 </div>
 
-                {/* PIE DE TARJETA - ENLACES A DOCUMENTOS PDF */}
-                {(pdfHistoria || pdfReceta || pdfOrdenes) && (
+                {/* PIE DE TARJETA - BOTONES DE ACCESO A DEMANDA A DOCUMENTOS PDF */}
+                {idAtencionActual && (
                   <div style={{
                     backgroundColor: '#f8fafc',
                     borderTop: '1px solid #e2e8f0',
                     padding: '8px 16px',
                     display: 'flex',
-                    gap: '16px',
+                    gap: '12px',
+                    flexWrap: 'wrap',
                     alignItems: 'center'
                   }}>
-                    {pdfHistoria && (
-                      <a href={pdfHistoria} target="_blank" rel="noopener noreferrer" style={pdfLinkStyle}>
-                        <ExternalLink size={13} /> PDF Historia
-                      </a>
-                    )}
-                    {pdfReceta && (
-                      <a href={pdfReceta} target="_blank" rel="noopener noreferrer" style={pdfLinkStyle}>
-                        <ExternalLink size={13} /> PDF Receta
-                      </a>
-                    )}
-                    {pdfOrdenes && (
-                      <a href={pdfOrdenes} target="_blank" rel="noopener noreferrer" style={pdfLinkStyle}>
-                        <ExternalLink size={13} /> PDF Órdenes
-                      </a>
-                    )}
+                    {/* Botón Historia */}
+                    <button
+                      type="button"
+                      disabled={loadingDoc === `${idAtencionActual}-historia`}
+                      onClick={() => handleVerDocumento(idAtencionActual, 'historia')}
+                      style={pdfBtnStyle}
+                    >
+                      {loadingDoc === `${idAtencionActual}-historia` ? (
+                        <Loader2 size={13} className="animate-spin" />
+                      ) : (
+                        <ExternalLink size={13} />
+                      )}
+                      PDF Historia
+                    </button>
+
+                    {/* Botón Receta */}
+                    <button
+                      type="button"
+                      disabled={loadingDoc === `${idAtencionActual}-receta`}
+                      onClick={() => handleVerDocumento(idAtencionActual, 'receta')}
+                      style={pdfBtnStyle}
+                    >
+                      {loadingDoc === `${idAtencionActual}-receta` ? (
+                        <Loader2 size={13} className="animate-spin" />
+                      ) : (
+                        <ExternalLink size={13} />
+                      )}
+                      PDF Receta
+                    </button>
+
+                    {/* Botón Órdenes */}
+                    <button
+                      type="button"
+                      disabled={loadingDoc === `${idAtencionActual}-orden`}
+                      onClick={() => handleVerDocumento(idAtencionActual, 'orden')}
+                      style={pdfBtnStyle}
+                    >
+                      {loadingDoc === `${idAtencionActual}-orden` ? (
+                        <Loader2 size={13} className="animate-spin" />
+                      ) : (
+                        <ExternalLink size={13} />
+                      )}
+                      PDF Órdenes
+                    </button>
+
+                    {/* Botón Indicaciones */}
+                    <button
+                      type="button"
+                      disabled={loadingDoc === `${idAtencionActual}-indicaciones`}
+                      onClick={() => handleVerDocumento(idAtencionActual, 'indicaciones')}
+                      style={pdfBtnStyle}
+                    >
+                      {loadingDoc === `${idAtencionActual}-indicaciones` ? (
+                        <Loader2 size={13} className="animate-spin" />
+                      ) : (
+                        <ExternalLink size={13} />
+                      )}
+                      PDF Indicaciones
+                    </button>
                   </div>
                 )}
 
@@ -504,7 +579,7 @@ export default function AtencionMedicaHistoriaClinicaDrawer({
         borderTop: '1px solid #cbd5e1',
         display: 'flex',
         alignItems: 'center',
-        justifyContent: 'space-between',
+        justify: 'space-between',
         flexShrink: 0
       }}>
         <span style={{ fontSize: '12px', color: '#64748b' }}>
@@ -574,12 +649,16 @@ const copyButtonStyle = {
   cursor: 'pointer'
 };
 
-const pdfLinkStyle = {
+const pdfBtnStyle = {
   display: 'inline-flex',
   alignItems: 'center',
   gap: '4px',
+  backgroundColor: 'transparent',
+  border: 'none',
   color: '#006699',
   fontSize: '11.5px',
   fontWeight: '600',
-  textDecoration: 'none'
+  cursor: 'pointer',
+  padding: '2px 6px',
+  borderRadius: '4px'
 };
