@@ -104,6 +104,7 @@ const login = async (user, password) => {
 
         if (response.data && response.data.jwtToken) {
             const decoded = jwtDecode(response.data.jwtToken);
+            console.log("DECODE   :"+JSON.stringify(decoded));
             const perfil = {
                 username: decoded.sub,
                 rol: decoded.rol.authority,
@@ -138,16 +139,12 @@ const obtenerDatosGlobales = (token) => {
 
 
 const logout = () => {
-    console.log("Inngreso logout USERNAAME"+sessionStorage.getItem('username'))
     sessionStorage.clear();
     sessionStorage.removeItem('username'); // Username guardado aparte
     sessionStorage.removeItem('authority'); // Autoridad/rol guardado aparte
     sessionStorage.removeItem('user_profile'); // Objeto de perfil completo
     sessionStorage.removeItem('user');
     localStorage.removeItem('username');
-    console.log("Inngreso logout USERNAAME borrado"+sessionStorage.getItem('username'))
-    
-
 }
 
 const actualizaUsuario = (usuarioData) => {

@@ -19,7 +19,6 @@ const format_yyyymmdd = (d) => {
 
 /** convertir  fecha atexto dias mes año */
 const format_ddmmyyyy = (d) => {
-    console.log(" fechas en formato"+d);
     let mes =( (d.getMonth()+1) < 10) ? '0' + (d.getMonth()+1) : (d.getMonth()+1);
     let dia = ( d.getDate() < 10) ? '0' + d.getDate() : d.getDate() ;
     let anio = (d.getFullYear().toString());
@@ -29,7 +28,6 @@ const format_ddmmyyyy = (d) => {
 
 /** convertir fecha a texgto con "/"  */
 const format_dd_mm_yyyy = (d) => {
-    console.log(" fechas en formato"+d);
     let mes =( (d.getMonth()+1) < 10) ? '0' + (d.getMonth()+1) : (d.getMonth()+1);
     let dia = ( d.getDate() < 10) ? '0' + d.getDate() : d.getDate() ;
     let anio = (d.getFullYear().toString());
@@ -53,7 +51,6 @@ const format_fecha = (d) => {
 };*/
 
 const format_fecha = (d) => {
-    console.log("Fecha   en conversion "+d)
     let fecha = "---"; 
     
     // 💡 Validamos que 'd' exista, no sea un string de nulos, y sea estrictamente de tipo string

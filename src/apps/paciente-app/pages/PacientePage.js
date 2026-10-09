@@ -124,6 +124,8 @@ export default function PacientePage({  direccionClinica = "Sede Central" , onLo
   const obtenerCitas = useCallback(async (idPaciente, fecha) => {  
       setCargando(true);
       try {
+        console.log("IDREFERENCIA "+user.idReferencia + "... FECHA" + fechaFiltro);
+
         const data = await citaService.getCitaPacienteListarPendientes(user.idReferencia, fechaFiltro);
         setMisCitas(data);
       } catch (error) {
