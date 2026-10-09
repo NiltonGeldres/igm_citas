@@ -39,6 +39,7 @@ const ejecutarAPI = async (endpoint, params = {}) => {
 };
 
 const obtenerEntidadesPorNombre = async (nombre) => {
+    console.log("Nombre    "+nombre)
     const params = mapearEntidadRequest(nombre);
     return await ejecutarAPI(SERVICE_ENTIDAD_POR_NOMBRE, params);
 };

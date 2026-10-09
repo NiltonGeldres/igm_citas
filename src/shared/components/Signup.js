@@ -73,6 +73,7 @@ const Signup = () => {
         try {
             const res = await EntidadService.obtenerEntidadesPorNombre(texto); 
             console.log(JSON.stringify(res))
+
             // IMPORTANTE: Si tu Service ya devuelve la data transformada, res es el array.
             // Si no, usa res.data. Aquí usamos un fallback seguro:
             const lista = Array.isArray(res) ? res : (res.data || []);

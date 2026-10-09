@@ -31,29 +31,17 @@ export default function ProgramacionHorario() {
     const [turnosMasivosSeleccionados, setTurnosMasivosSeleccionados] = useState([]);
     const [diasMasivosSeleccionados, setDiasMasivosSeleccionados] = useState([]);
     const [datosOriginalesBackend, setDatosOriginalesBackend] = useState([]);
-    
- //   const [idEntidad, setIdEntidad] = useState(''); 
-  //  const [descripcionEntidad, setDescipcionEntidad] = useState(""); 
     const [idEspecialidad, setIdEspecialidad] = useState(''); 
     const [descripcionEspecialidad, setDescripcionEspecialidad] = useState(""); 
     const [tiempoPromedioAtencion, setTiempoPromedioAtencion] = useState(""); 
     const [idServicio, setIdServicio] = useState(""); 
     const [descripcionServicio, setDescripcionServicio] = useState(""); 
 
-
-
-
     useEffect(() => {
         TurnoService.getTodos().then(res => {
             cargarConfiguracionTurnos(res.data);
-         //   const turnosParaEstado = Object.values(MAPEO_TURNOS);
-        //    setTurnosCargados(turnosParaEstado);       
          });
     }, []);
-
-
-
-
 
     const contexto = useMemo(() => {
         const perfil = JSON.parse(sessionStorage.getItem('user_profile'));
@@ -72,6 +60,7 @@ export default function ProgramacionHorario() {
             
             // Datos del Calendario
             mes: fechaActual.getMonth() + 1,
+//            mes: fechaActual.getMonth() ,
             anio: fechaActual.getFullYear()
         };
     }, [idEspecialidad, 
@@ -138,7 +127,7 @@ export default function ProgramacionHorario() {
 
     useEffect(() => {
             // Aquí el log siempre será el actual
-            console.log("REVISANDO CONTEXTO:", contexto.idMedico, contexto.idEspecialidad, contexto.idServicio);
+//            console.log("REVISANDO CONTEXTO:", contexto.idMedico, contexto.idEspecialidad, contexto.idServicio);
 
             if (contexto.idMedico && contexto.idEspecialidad ) {
                 cargarProgramacionCompleta();
@@ -305,34 +294,14 @@ export default function ProgramacionHorario() {
             const dPadded = String(d).padStart(2, '0');
             const mPadded = String(mes + 1).padStart(2, '0');
             const clave = `${año}-${mPadded}-${dPadded}`;
-       //     const turnos = horarioCalendario[clave];
-            //const tieneDatos = turnos && turnos.length > 0 && !(turnos.length === 1 && turnos[0] === 'libre');
-        //    console.log("horarioCalendario   "+JSON.stringify(horarioCalendario))                    
-
             const dataDia = horarioCalendario[clave];
-           // console.log("data dia  ===> "+JSON.stringify(dataDia));
-            //const tieneDatos = dataDia && dataDia.idTurno !== 'libre';        
-
             const tieneTurnoAsignado = 
                     dataDia && 
                     dataDia.idTurno !== 0 && 
                     dataDia.idTurno !== '0' && 
                     dataDia.idTurno !== 'libre' &&
                     dataDia.idTurno !== null;
-       //     console.log("dataDia   "+JSON.stringify(dataDia))                    
-       //     console.log("tieneTurnoAsignado   "+tieneTurnoAsignado)                    
-
-        //    const diaConfirmado = datosOriginalesBackend.find(diaBack => diaBack.getClaveCalendario() === clave);
-        //    const confirmadoEnBackend = diaConfirmado && diaConfirmado.idTurno !== 0 && diaConfirmado.idTurno !== '0';            
-            //const codServ    = dataDia && dataDia.codigoServicio !== '' ;        
             const codServ = dataDia?.codigoServicio || "";
-        /*    console.log("datosCalendario dPadded ===> "+JSON.stringify(dPadded)
-                +" mPadded ===> "+JSON.stringify(mPadded)
-                +" clave ===> "+JSON.stringify(clave)
-                +" turnos ===> "+JSON.stringify(turnos)
-                +" tieneDatos ===> "+JSON.stringify(tieneDatos)
-                +" codServ ===> "+JSON.stringify(codServ)
-            );*/
             celdas.push(
                 <CeldaCalendario
                     key={clave}
@@ -340,7 +309,6 @@ export default function ProgramacionHorario() {
                     claveFecha={clave}
                     esHoy={clave === claveHoy}
                     tieneHorario={tieneTurnoAsignado}
-//                    tieneHorario={tieneDatos}
                     estaSeleccionadoMasivo={diasMasivosSeleccionados.includes(clave)}
                     manejarClickDia={manejarClickDia}
                     horario={horarioCalendario}

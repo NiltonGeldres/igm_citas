@@ -16,7 +16,7 @@ function PagoVirtual({
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     idCitaSeparada,
-    fecha: new Date().toISOString().substring(0, 10),
+    fecha: new Date().toLocaleDateString('sv-SE').substring(0, 10),
     nroOperacion: '',
     correo: email || '',
     celular: celular || '', // Inicializado con la prop recibida
@@ -26,7 +26,6 @@ function PagoVirtual({
     destino: nombreDestino || '',
     entidadDestino: '1' // Default: Yape
   });
-
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
@@ -42,7 +41,6 @@ function PagoVirtual({
     setLoading(true);
     try {
       const fechaEnviar = FormatDate.format_yyyymmdd(new Date(formData.fecha));
-      
       await pagoVirtualService.setPagoVirtualCrear(
         formData.idCitaSeparada,
         fechaEnviar,
