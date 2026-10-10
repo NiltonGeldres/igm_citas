@@ -55,7 +55,7 @@ const ProgramadorMasivo = ({
                             <button
                                 key={turno.idTurno}
                                 onClick={() => alternarTurno(turno.idTurno)}
-                                className={`btn d-flex flex-column align-items-start fw-semibold text-start transition-all ${estaSeleccionado ? 'btn-success shadow-sm' : 'btn-outline-secondary'}`}
+                                className={`btn d-flex flex-column align-items-start fw-semibold text-start transition-all ${estaSeleccionado ? turno.claseColor : 'btn-outline-secondary'}`}
                             >
                                 {turno.descripcion}
                                 <span className="small opacity-75" style={{fontSize: '0.7rem'}}>{turno.hora}</span>

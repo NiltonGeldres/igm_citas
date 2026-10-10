@@ -60,6 +60,7 @@ const CeldaCalendario = React.memo(({ dia, claveFecha, esHoy, tieneHorario, esta
                     // CeldaCalendario.js
                     turnosActuales.map(turnoId => {
                         const t = MAPEO_TURNOS[turnoId] || MAPEO_TURNOS['libre'];
+                        console.log(t.descripcion+"-----"+t.claseColor)
                         
                         // Si el ID es 'libre', no queremos solo la "L", queremos el texto o un icono
                         const esLibre = turnoId === 'libre';

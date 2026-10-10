@@ -143,6 +143,17 @@ export default function ProgramacionHorario() {
     // Guardado de datos
     //...............................................................................
     const manejarGuardado = useCallback( async (horarioActualizado = null) => {
+            if (!idServicio || idServicio === "" || idServicio === 0) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Servicio requerido',
+                    text: 'Por favor, selecciona un consultorio/servicio antes de guardar la programación.',
+                    confirmButtonText: 'Entendido',
+                    confirmButtonColor: '#3085d6'
+                });
+                return false; // Detiene la ejecución por completo
+            }
+
         setEstadoGuardado('guardando');
         try {
             const fuenteDeDatos = horarioActualizado || horarioCalendario;
