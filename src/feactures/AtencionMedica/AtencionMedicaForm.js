@@ -491,7 +491,12 @@ function AtencionMedicaForm() {
       </div>
 
       {/* 3. BOTÓN GUARDAR FLOTANTE */}
-      {patientData.estadoFirma === "BORRADOR" && patientData.id && (
+      { patientData.id  && estadoFirma === "BORRADOR"  && (
+        
+//      {patientData.estadoFirma === "BORRADOR" && patientData.id && (
+//       {patientData.estadoFirma !== "PENDIENTE_FIRMA" && ((patientData.estadoFirma === "BORRADOR" && patientData.id)) && (
+//          <span className="fab-tooltip">Finalizar Atención</span>
+
         <button 
           type="button"
           onClick={guardarAtencionBorrador}
@@ -500,7 +505,7 @@ function AtencionMedicaForm() {
           aria-label="Finalizar y Guardar Atención"
         >
           <Save size={28} color="#ffffff" strokeWidth={2} />
-          <span className="fab-tooltip">Finalizar Atención</span>
+          <span className="fab-tooltip">{estadoFirma}</span>
         </button>
       )}
 
