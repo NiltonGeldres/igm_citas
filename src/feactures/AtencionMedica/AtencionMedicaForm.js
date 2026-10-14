@@ -262,7 +262,19 @@ function AtencionMedicaForm() {
                     refrescarEstadoFirma={refrescarEstadoFirma}
                   /> 
                 </div>
+               
               )}
+
+              <AtencionMedicaHistoriaClinicaDrawer
+                isOpen={isHistoriaClinicaOpen}
+                onClose={() => setIsHistoriaClinicaOpen(false)}
+                patientData={patientData}
+                historiaClinicaData={historiaClinicaData}
+                alertasMedicas={alertasMedicas}
+                onCopiarAnamnesis={handleCopiarAnamnesis}
+                onCopiarReceta={handleCopiarReceta}
+              />
+
 
               {/* BARRA INFERIOR DE NAVEGACIÓN EN MÓVIL */}
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '8px' }}>
