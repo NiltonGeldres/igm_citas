@@ -5,12 +5,8 @@ import CalendarioReserva from './CalendarioReserva';
 import ProgramacionHoras from './ProgramacionHoras';
 import CitaService from '../../../feactures/Cita/CitaService'; // Ajustar ruta según tu proyecto
 import CitaSeparadaService from '../../CitaSeparada/CitaSeparadaService';
-
 import ProgramacionHorarioIndividualService from '../../../feactures/ProgramacionHorario/ProgramacionHorarioService';
-//import { transformarProgramacion } from './mapper/CitaProgramacionMedicaUI';
 import { transformarProgramacion } from '../../../apps/paciente-app/mapper/CitaProgramacionMedicaUI';
-
-
 
 export const AtencionMedicaReservaCitaDestino = ({
   isOpen,
@@ -111,7 +107,6 @@ export const AtencionMedicaReservaCitaDestino = ({
     if (procesandoBloqueo) return;
     let timerInterval;
     setProcesandoBloqueo(true);
-
     try {
       // PASO 1: Bloqueo temporal en el Servidor
       const respBloqueo = await CitaService.getCitaBloquear(hora, datosReserva.fechaYYYYMMDD, datosReserva.doctor.id);
@@ -149,7 +144,7 @@ export const AtencionMedicaReservaCitaDestino = ({
           idServ,
           idProg,
           0,
-          datosReserva.doctor?.monto || 0
+          datosReserva.doctor?.monto || 50
         );
 
         if (res.data?.idCitaSeparada || res.data) {

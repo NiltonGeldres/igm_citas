@@ -114,6 +114,7 @@ export default function PacientePage({  direccionClinica = "Sede Central" , onLo
     precioUnitario: 0,
     nombreDestino: '',
     email: user.email,
+    idUsuarioPaciente: 0,
 
   });
 
@@ -194,14 +195,8 @@ export default function PacientePage({  direccionClinica = "Sede Central" , onLo
 
   const seleccionarMedico = async (med) => { // 1. Hacemos la función principal async
         // 2. Obtenemos los datos directamente del médico seleccionado (med) y la especialidad actual
-
         const medId = med.id;
         const espId = datosReserva.especialidad?.idEspecialidad || datosReserva.especialidad?.idEspecialidad;
-   //     console.log("espID     "+espId)
-  //      console.log("medID     "+JSON.stringify(med))
-  //      console.log("medID     "+medId)
-  //      const serId = datosReserva.servicio?.idServicio || datosReserva.servicio?.id;
-
         // 3. Actualizamos el estado con el médico elegido y pasamos al paso 3
         setDatosReserva(prev => ({ 
           ...prev, 
@@ -235,7 +230,7 @@ export default function PacientePage({  direccionClinica = "Sede Central" , onLo
           }
   }  
 
-    const seleccionarDia = async (dia) => {
+  const seleccionarDia = async (dia) => {
       const { mes, anio } = datosReserva.fechaObjeto;
       // Formato para mostrar en el UI (ej: "15 de Marzo")
       const fechaStr = `${dia} ${new Intl.DateTimeFormat('es-ES', { month: 'short' }).format(new Date(anio, mes))}`;
@@ -251,7 +246,7 @@ export default function PacientePage({  direccionClinica = "Sede Central" , onLo
         fecha: fechaStr, 
         fechaObjeto: { ...prev.fechaObjeto, dia } ,
         hora:''
-      }));
+   }));
       
 /*
         const data = await ejecutarAPI("obtenerProgramacionMedicaHorasService", { 
@@ -345,7 +340,8 @@ export default function PacientePage({  direccionClinica = "Sede Central" , onLo
                   idServ,
                   idProg,
                   0,
-                  datosReserva.doctor?.monto
+                  datosReserva.doctor?.monto,
+                  user.idUsuario
               );
           if (res.data?.idCitaSeparada) {
               // 1. Mapeamos (la limpieza de campos ocurre aquí dentro)

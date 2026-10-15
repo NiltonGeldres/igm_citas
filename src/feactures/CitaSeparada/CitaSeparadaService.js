@@ -1,5 +1,7 @@
 import header from "../../shared/utils/Header";
 import axios from "axios";
+import { useAuth } from "../../shared/context/AuthContext";
+
 const API_URL = process.env.REACT_APP_URL_API;
 const API_LEER_CITA_SEPARADA_XUSUARIO = "/citaSeparadaLeer";
 const API_LEER_CITA_SEPARADA_CONPAGOVIRTUAL_XUSUARIO = "/citaSeparadaConPagoVirtualLeer";
@@ -50,20 +52,10 @@ const getCitaSeparadaCrear = (
               ,idServicio
               ,idProgramacion
               ,idProducto
-              ,precioUnitario) => {
+              ,precioUnitario
+              ,idUsuario
+              ) => {
     const usuario = sessionStorage.getItem('username');
-alert(
-              fecha
-              +"---"+horaInicio
-              +"---"+horaFin
-              +"---"+idPaciente
-              +"---"+idMedico
-              +"---"+idEspecialidad
-              +"---"+idServicio
-              +"---"+idProgramacion
-              +"---"+idProducto
-              +"---"+precioUnitario  
-)       
    return axios.post(API_URL+API_CREAR_CITA_SEPARADA
     ,{ 
         usuario           : usuario,
@@ -80,6 +72,7 @@ alert(
         horaSolicitud     :horaInicio,
         tipoUsuario       : "WEB",
         fechaSeparacion   :fecha,
+        idUsuarioPaciente : idUsuario,
         precioUnitario    :precioUnitario,
        }
     ,{ headers: header()}
