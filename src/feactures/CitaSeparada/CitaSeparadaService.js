@@ -52,7 +52,18 @@ const getCitaSeparadaCrear = (
               ,idProducto
               ,precioUnitario) => {
     const usuario = sessionStorage.getItem('username');
-       
+alert(
+              fecha
+              +"---"+horaInicio
+              +"---"+horaFin
+              +"---"+idPaciente
+              +"---"+idMedico
+              +"---"+idEspecialidad
+              +"---"+idServicio
+              +"---"+idProgramacion
+              +"---"+idProducto
+              +"---"+precioUnitario  
+)       
    return axios.post(API_URL+API_CREAR_CITA_SEPARADA
     ,{ 
         usuario           : usuario,

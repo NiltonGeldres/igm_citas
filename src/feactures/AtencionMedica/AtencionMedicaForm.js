@@ -99,6 +99,7 @@ function AtencionMedicaForm() {
     handleFinalizarFlujoYRegresar,
     showModalMessage,
     refrescarEstadoFirma,
+    contextoUsuario ,
 
   isHistoriaClinicaOpen,
   setIsHistoriaClinicaOpen,
@@ -109,7 +110,6 @@ function AtencionMedicaForm() {
   handleCopiarReceta,
 
   } = useAtencionContext();
-
   const isMobile = useIsMobile();
 
   useEffect(() => {
@@ -240,6 +240,8 @@ function AtencionMedicaForm() {
                   <h3 style={titleStyle}><span style={dotStyle} /> 6. ALTA Y DESTINO</h3>
                   <AtencionMedicaAltaPanel
                     title="Panel Alta"
+                    idMedicoActual={contextoUsuario.idMedico}
+                    idEspecialidadActual={patientData.idEspecialidad}
                     content={sectionsData.PanelAlta}
                     onContentChange={(newList) => handleSectionContentChange('PanelAlta', newList)}
                     onModalMessage={showModalMessage}
@@ -433,6 +435,8 @@ function AtencionMedicaForm() {
                 <div style={{ flex: 1, overflowY: 'auto' }}>
                   <AtencionMedicaAltaPanel
                     title="Panel Alta"
+                    idMedicoActual={contextoUsuario.idMedico}
+                    idEspecialidadActual={patientData.idEspecialidad}
                     content={sectionsData.PanelAlta}
                     onContentChange={(newList) => handleSectionContentChange('PanelAlta', newList)}
                     onModalMessage={showModalMessage}

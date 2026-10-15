@@ -43,13 +43,14 @@ export const useAtencionMedica = () => {
   
   const showModalMessage = (message) => setModalMessage(message);
   const closeModal = () => setModalMessage('');  
-
+  
   const [patientData, setPatientData] = useState({
     name: '',
     sexo: '',
     edad: '',
     id: '',
     hc: '',
+    idEspecialidad: '', 
     idPaciente: null,
     idCita: null,
     idAtencion: null,
@@ -477,7 +478,8 @@ export const useAtencionMedica = () => {
     urlJsonFirmadoBackend,
     rutaPdfFirmado,
     documentosPdf,
-    
+    contextoUsuario ,
+       
     handleTriajeChange,
     showModalMessage,
     closeModal,
