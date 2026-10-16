@@ -138,13 +138,14 @@ export const AtencionMedicaReservaCitaDestino = ({
           datosReserva.fechaYYYYMMDD,
           hora,
           hora,
-          0,
+          datosReserva.hc?.hc || 0,
           datosReserva.doctor?.id,
           datosReserva.especialidad?.idEspecialidad,
           idServ,
           idProg,
           0,
-          datosReserva.doctor?.monto || 50
+          datosReserva.doctor?.monto || 0,
+          datosReserva.idUsuarioPaciente
         );
 
         if (res.data?.idCitaSeparada || res.data) {
