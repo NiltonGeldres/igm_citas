@@ -100,7 +100,8 @@ function AtencionMedicaForm() {
     showModalMessage,
     refrescarEstadoFirma,
     contextoUsuario ,
-
+   idUsuarioPaciente,
+   
   isHistoriaClinicaOpen,
   setIsHistoriaClinicaOpen,
   historiaClinicaData,

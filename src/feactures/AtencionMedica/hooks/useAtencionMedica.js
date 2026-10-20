@@ -37,6 +37,7 @@ export const useAtencionMedica = () => {
   const [isAgendaOpen, setIsAgendaOpen] = useState(false);
   const [modoImpresion, setModoImpresion] = useState('completo');
   const [pacienteActivo, setPacienteActivo] = useState(null);
+  const [idUsuarioPaciente, setIdUsuarioPaciente] = useState(null);
 
   const [datosGuardadosExito, setDatosGuardadosExito] = useState(null);
   const [mostrarModalExito, setMostrarModalExito] = useState(false);
@@ -242,13 +243,12 @@ export const useAtencionMedica = () => {
     if (idAtencionValido) {
       try {
         const dataAtencion = await AtencionMedicaService.obtenerAtencionPorId(idAtencionValido);
-        console.log("PACIENTE ENCONTRADO "+JSON.stringify(dataAtencion))
+//        console.log("PACIENTE ENCONTRADO "+JSON.stringify(dataAtencion))
         setRutaPdfFirmado(dataAtencion.rutaPdfFirmado);
         setEstadoFirma(dataAtencion.estadoFirma);
-
+        setIdUsuarioPaciente(dataAtencion.idUsuarioPaciente);
         // 🟢 CARGA LAS 4 RUTAS AL RECONSULTAR ATENCIÓN
         setDocumentosPdf(extraerDocumentosPdf(dataAtencion));
-
         const seccionesCargadas = AtencionMedicaSectionsRegistry.cargarPanelesDesdeApi(dataAtencion);
         setSectionsData(seccionesCargadas);
 
@@ -479,6 +479,7 @@ export const useAtencionMedica = () => {
     rutaPdfFirmado,
     documentosPdf,
     contextoUsuario ,
+    idUsuarioPaciente,
        
     handleTriajeChange,
     showModalMessage,

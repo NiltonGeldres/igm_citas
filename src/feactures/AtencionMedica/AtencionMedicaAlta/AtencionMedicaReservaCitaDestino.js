@@ -15,6 +15,7 @@ export const AtencionMedicaReservaCitaDestino = ({
   idEspecialidad,
   nombreMedico = '',
   nombreEspecialidad = '',
+  idUsuarioPaciente,
   onCitaGuardadaEnBackend // Callback que recibe el objeto final para insertar en PanelAlta
 }) => {
   const hoy = new Date();
@@ -26,7 +27,8 @@ export const AtencionMedicaReservaCitaDestino = ({
     fechaYYYYMMDD: '',
     hora: null,
     idProgramacion: null,
-    idServicio: null
+    idServicio: null,
+    idUsuarioPaciente: idUsuarioPaciente
   });
 
   const [programacionMensual, setProgramacionMensual] = useState([]);
@@ -107,10 +109,13 @@ export const AtencionMedicaReservaCitaDestino = ({
     if (procesandoBloqueo) return;
     let timerInterval;
     setProcesandoBloqueo(true);
+    //const idBloqueo = null;
     try {
-      // PASO 1: Bloqueo temporal en el Servidor
+        // PASO 1: Bloqueo temporal en el Servidor
       const respBloqueo = await CitaService.getCitaBloquear(hora, datosReserva.fechaYYYYMMDD, datosReserva.doctor.id);
       const idBloqueo = respBloqueo.data.idCitaBloqueada;
+//      console.log('TRY Hora: '+hora +'idprog:  '+ idProg+' idServ:  '+ idServ+'respbloqueo' +JSON.stringify(respBloqueo))
+      console.log('TRY Hora: '+hora +'  idprog:  '+ idProg+' idServ:  '+ idServ+'respbloqueo   ' +idBloqueo)
 
       // PASO 2: Confirmación con el Usuario mediante SweetAlert2
       const result = await Swal.fire({
@@ -133,7 +138,7 @@ export const AtencionMedicaReservaCitaDestino = ({
       // PASO 3: Acciones según respuesta del usuario
       if (result.isConfirmed) {
         // Ejecutar guardado real de la cita separada en el backend
-
+        alert("DATIS RESERVA " +JSON.stringify(datosReserva))
         const res = await CitaSeparadaService.getCitaSeparadaCrear(
           datosReserva.fechaYYYYMMDD,
           hora,
@@ -176,6 +181,7 @@ export const AtencionMedicaReservaCitaDestino = ({
     } catch (error) {
       console.error("Error al procesar la reserva:", error);
       Swal.fire('Error', 'El horario ya no está disponible o hubo un problema de conexión.', 'error');
+      setProcesandoBloqueo(false);
     } finally {
       setProcesandoBloqueo(false);
     }
