@@ -246,6 +246,7 @@ function AtencionMedicaForm() {
                     content={sectionsData.PanelAlta}
                     onContentChange={(newList) => handleSectionContentChange('PanelAlta', newList)}
                     onModalMessage={showModalMessage}
+                    idUsuarioPaciente={idUsuarioPaciente}                    
                   />
                 </div>
               )}
@@ -441,6 +442,7 @@ function AtencionMedicaForm() {
                     content={sectionsData.PanelAlta}
                     onContentChange={(newList) => handleSectionContentChange('PanelAlta', newList)}
                     onModalMessage={showModalMessage}
+                    idUsuarioPaciente={idUsuarioPaciente}
                   />
                 </div>
               </div>

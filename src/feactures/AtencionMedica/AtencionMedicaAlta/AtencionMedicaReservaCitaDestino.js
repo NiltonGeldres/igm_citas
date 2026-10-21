@@ -15,22 +15,21 @@ export const AtencionMedicaReservaCitaDestino = ({
   idEspecialidad,
   nombreMedico = '',
   nombreEspecialidad = '',
+  onCitaGuardadaEnBackend, // Callback que recibe el objeto final para insertar en PanelAlta
   idUsuarioPaciente,
-  onCitaGuardadaEnBackend // Callback que recibe el objeto final para insertar en PanelAlta
 }) => {
-  const hoy = new Date();
 
+  const hoy = new Date();
   const [datosReserva, setDatosReserva] = useState({
+    idUsuarioPaciente: idUsuarioPaciente,
     doctor: { id: idMedico, nombre: nombreMedico },
     especialidad: { idEspecialidad: idEspecialidad, nombre: nombreEspecialidad },
     fechaObjeto: { mes: hoy.getMonth(), anio: hoy.getFullYear(), dia: null },
     fechaYYYYMMDD: '',
     hora: null,
     idProgramacion: null,
-    idServicio: null,
-    idUsuarioPaciente: idUsuarioPaciente
+    idServicio: null
   });
-
   const [programacionMensual, setProgramacionMensual] = useState([]);
   const [cargandoProg, setCargandoProg] = useState(false);
   const [procesandoBloqueo, setProcesandoBloqueo] = useState(false);
@@ -60,6 +59,14 @@ export const AtencionMedicaReservaCitaDestino = ({
       setCargandoProg(false);
     }
   }, []);
+
+  useEffect(() => {
+    setDatosReserva(prev => ({
+      ...prev,
+      idUsuarioPaciente: idUsuarioPaciente || prev.idUsuarioPaciente
+    }));
+  }, [idUsuarioPaciente]);
+
 
   useEffect(() => {
     if (isOpen && idMedico && idEspecialidad) {
@@ -109,14 +116,10 @@ export const AtencionMedicaReservaCitaDestino = ({
     if (procesandoBloqueo) return;
     let timerInterval;
     setProcesandoBloqueo(true);
-    //const idBloqueo = null;
     try {
         // PASO 1: Bloqueo temporal en el Servidor
       const respBloqueo = await CitaService.getCitaBloquear(hora, datosReserva.fechaYYYYMMDD, datosReserva.doctor.id);
       const idBloqueo = respBloqueo.data.idCitaBloqueada;
-//      console.log('TRY Hora: '+hora +'idprog:  '+ idProg+' idServ:  '+ idServ+'respbloqueo' +JSON.stringify(respBloqueo))
-      console.log('TRY Hora: '+hora +'  idprog:  '+ idProg+' idServ:  '+ idServ+'respbloqueo   ' +idBloqueo)
-
       // PASO 2: Confirmación con el Usuario mediante SweetAlert2
       const result = await Swal.fire({
         title: '¿Confirmar próxima cita?',
@@ -138,7 +141,6 @@ export const AtencionMedicaReservaCitaDestino = ({
       // PASO 3: Acciones según respuesta del usuario
       if (result.isConfirmed) {
         // Ejecutar guardado real de la cita separada en el backend
-        alert("DATIS RESERVA " +JSON.stringify(datosReserva))
         const res = await CitaSeparadaService.getCitaSeparadaCrear(
           datosReserva.fechaYYYYMMDD,
           hora,

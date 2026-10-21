@@ -12,7 +12,7 @@ export const useAgenda = (idMedico, fechaSeleccionada) => {
     try {
       const data = await agendaService.getAgendaPorMedico(idMedico,fechaSeleccionada);
       setCitados(data);
-      console.log("CITADOS    "+JSON.stringify(data))
+//      console.log("agendaService.getAgendaPorMedico CITADOS  POR MEDICO    "+JSON.stringify(data))
     } catch (error) {
       setCitados([]);
     } finally {

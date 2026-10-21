@@ -22,7 +22,8 @@ const AtencionMedicaAltaPanel = ({
   idEspecialidadActual,
   nombreMedicoActual,
   nombreEspecialidadActual,
-  onModalMessage
+  onModalMessage,
+  idUsuarioPaciente
 }) => {
   const textareaRef = useRef(null);
   const [selectedOpcion, setSelectedOpcion] = useState('NULL');
@@ -260,7 +261,8 @@ const AtencionMedicaAltaPanel = ({
         idEspecialidad={idEspecialidadActual}
         nombreMedico={nombreMedicoActual}
         nombreEspecialidad={nombreEspecialidadActual}
-        onCitaConfirmada={handleCitaConfirmada}
+        onCitaGuardada={handleCitaConfirmada}
+        idUsuarioPaciente={idUsuarioPaciente}
       />
     </div>
   );

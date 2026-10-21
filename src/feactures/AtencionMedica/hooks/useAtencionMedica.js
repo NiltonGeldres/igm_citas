@@ -212,8 +212,8 @@ export const useAtencionMedica = () => {
   };
 
   const handleSelectPaciente = async (pacienteSeleccionado) => {
-    if (!pacienteSeleccionado) return;
 
+    if (!pacienteSeleccionado) return;
     const idAtencionValido = Number(pacienteSeleccionado.idAtencion) > 0 
       ? Number(pacienteSeleccionado.idAtencion) 
       : null;
@@ -228,6 +228,7 @@ export const useAtencionMedica = () => {
       edad: pacienteSeleccionado.edad ? `${pacienteSeleccionado.edad} años` : 'N/A',
       id: pacienteSeleccionado.idPaciente,
       idPaciente: pacienteSeleccionado.idPaciente,
+      idUsuarioPaciente: pacienteSeleccionado.idUsuario,
       idCuentaAtencion: pacienteSeleccionado.idCuentaAtencion,
       idServicio: pacienteSeleccionado.idServicio,
       idEspecialidad: pacienteSeleccionado.idEspecialidad, 
@@ -235,23 +236,23 @@ export const useAtencionMedica = () => {
       hc: pacienteSeleccionado.nroHistoriaClinica,
       idAtencion: idAtencionValido,
       accionAgenda: accionGatillada
+
     };
 
     setPacienteActivo(pacienteSeleccionado);
     setPatientData(nuevoPatientData);
+    setIdUsuarioPaciente(nuevoPatientData.idUsuarioPaciente);
+     console.log("obtenerAtencionPorId PACIENTE ENCONTRADO "+JSON.stringify(nuevoPatientData.idUsuarioPacienten))
 
+     // SI YA SE REGISTRO LA ATENCION
     if (idAtencionValido) {
       try {
         const dataAtencion = await AtencionMedicaService.obtenerAtencionPorId(idAtencionValido);
-//        console.log("PACIENTE ENCONTRADO "+JSON.stringify(dataAtencion))
         setRutaPdfFirmado(dataAtencion.rutaPdfFirmado);
         setEstadoFirma(dataAtencion.estadoFirma);
-        setIdUsuarioPaciente(dataAtencion.idUsuarioPaciente);
-        // 🟢 CARGA LAS 4 RUTAS AL RECONSULTAR ATENCIÓN
-        setDocumentosPdf(extraerDocumentosPdf(dataAtencion));
+        setDocumentosPdf(extraerDocumentosPdf(dataAtencion)); // 🟢 CARGA LAS 4 RUTAS AL RECONSULTAR ATENCIÓN
         const seccionesCargadas = AtencionMedicaSectionsRegistry.cargarPanelesDesdeApi(dataAtencion);
         setSectionsData(seccionesCargadas);
-
       } catch (error) {
         console.error("❌ Error al obtener la atención completa:", error);
         setSectionsData(AtencionMedicaSectionsRegistry.cargarPanelesIniciales());
@@ -260,7 +261,6 @@ export const useAtencionMedica = () => {
       setDocumentosPdf({ hc: null, ordenes: null, receta: null, indicaciones: null });
       setSectionsData(AtencionMedicaSectionsRegistry.cargarPanelesIniciales());
     }
-
     setIsAgendaOpen(false);
   };
 

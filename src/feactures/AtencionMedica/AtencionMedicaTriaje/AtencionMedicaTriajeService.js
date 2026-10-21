@@ -53,10 +53,8 @@ export const AtencionMedicaTriajeService = {
 
         // 3. Regla de Negocio: Filtrar prioridades <= 5
         const prioritariosApi = catalogo.filter(item => item.prioridad && item.prioridad  === 1);
-        console.log("CATALOGO TRIAJES  :"+JSON.stringify(prioritariosApi));
 
         const x =AtencionMedicaTriajeMapper.transformarApiALFront(prioritariosApi);
-        console.log("TRIAJES "+JSON.stringify(x));
         return x;
     },
 

@@ -17,7 +17,6 @@ const ejecutarAPI = async (endpoint, params = {}) => {
         });
         // Extraemos la data (manejando si viene envuelta en .data)
         const rawData = response.data.data || response.data;
-        console.log("rawData   "+JSON.stringify(rawData))
         return transformarCitados(rawData);
     } catch (error) {
         // TU LÓGICA DE DEPURACIÓN AQUÍ:
