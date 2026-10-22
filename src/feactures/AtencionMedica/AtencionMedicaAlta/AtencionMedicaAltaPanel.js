@@ -6,11 +6,11 @@ import { Mic, MicOff, Plus, Trash2, ChevronDown } from 'lucide-react';
 import { AtencionMedicaReservaCitaDestino } from '../AtencionMedicaAlta/AtencionMedicaReservaCitaDestino';
 
 const OPCIONES_DESTINO = [
-  { id: 'NULL', label: '📝 Otras indicaciones / Recomendaciones' },
-  { id: '1', label: '📅 Próxima Cita' },
-  { id: '2', label: '🏥 Hospitalización' },
-  { id: '3', label: '🔗 Referencia (RENAES)' },
-  { id: '4', label: '✅ Alta o Cierre de Caso' },
+  { id: '1', label: '📝 Otras indicaciones / Recomendaciones' },
+  { id: '2', label: '📅 Próxima Cita' },
+  { id: '3', label: '🏥 Hospitalización' },
+  { id: '4', label: '🔗 Referencia (RENAES)' },
+  { id: '5', label: '✅ Alta o Cierre de Caso' },
   { id: '6', label: '🩺 Interconsulta' }
 ];
 
@@ -42,6 +42,7 @@ const AtencionMedicaAltaPanel = ({
   const agregarItemAlArray = useCallback((idAltaVal, textoDescripcion) => {
     if (!textoDescripcion || !textoDescripcion.trim()) return;
 
+    alert("DATOS DE ALTA "+textoDescripcion+"-----"+idAltaVal)
     const nuevoElemento = {
       idAlta: idAltaVal,
       descripcionAlta: textoDescripcion.trim()
@@ -128,7 +129,7 @@ const AtencionMedicaAltaPanel = ({
       <div style={{ backgroundColor: '#f8fafc', padding: '10px', borderRadius: '6px', border: '1px solid #e2e8f0', marginBottom: '10px' }}>
         
         {/* NULL: OTRAS INDICACIONES */}
-        {selectedOpcion === 'NULL' && (
+        {selectedOpcion === '1' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <span style={{ fontSize: '11px', fontWeight: '600', color: '#475569' }}>Indicaciones / Recomendaciones Generales</span>

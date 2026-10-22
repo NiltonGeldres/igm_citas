@@ -437,10 +437,12 @@ function AtencionMedicaForm() {
                 <div style={{ flex: 1, overflowY: 'auto' }}>
                   <AtencionMedicaAltaPanel
                     title="Panel Alta"
-                    idMedicoActual={contextoUsuario.idMedico}
-                    idEspecialidadActual={patientData.idEspecialidad}
                     content={sectionsData.PanelAlta}
                     onContentChange={(newList) => handleSectionContentChange('PanelAlta', newList)}
+                    idMedicoActual={contextoUsuario.idMedico}
+                    nombreMedicoActual={contextoUsuario.nombreMedicoActual}
+                    nombreEspecialidadActual={contextoUsuario.nombreEspecialidadActual}
+                    idEspecialidadActual={patientData.idEspecialidad}
                     onModalMessage={showModalMessage}
                     idUsuarioPaciente={idUsuarioPaciente}
                   />
