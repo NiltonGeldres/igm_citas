@@ -111,16 +111,25 @@ export const AtencionMedicaReservaCitaDestino = ({
     }));
   };
 
-  // --- LÓGICA DE BLOQUEO, CONFIRMACIÓN Y GUARDADO REAL EN EL BACKEND ---
+
+// --- LÓGICA DE BLOQUEO, CONFIRMACIÓN Y GUARDADO LIMPIA Y SEGURA ---
   const handleHoraSeleccionada = async (hora, idProg, idServ) => {
     if (procesandoBloqueo) return;
-    let timerInterval;
+    
     setProcesandoBloqueo(true);
+    let idBloqueo = null;
+    let timerInterval = null;
+
     try {
-        // PASO 1: Bloqueo temporal en el Servidor
+      // 1. PASO 1: Bloqueo temporal en el Servidor
       const respBloqueo = await CitaService.getCitaBloquear(hora, datosReserva.fechaYYYYMMDD, datosReserva.doctor.id);
-      const idBloqueo = respBloqueo.data.idCitaBloqueada;
-      // PASO 2: Confirmación con el Usuario mediante SweetAlert2
+      idBloqueo = respBloqueo?.data?.idCitaBloqueada;
+
+      if (!idBloqueo) {
+        throw new Error("No se pudo obtener el bloqueo temporal del cupo.");
+      }
+
+      // 2. PASO 2: Confirmación con el Usuario mediante SweetAlert2
       const result = await Swal.fire({
         title: '¿Confirmar próxima cita?',
         html: `Has seleccionado las <b>${hora}</b>.<br/>Confirma en <b>60</b> segundos.`,
@@ -138,58 +147,66 @@ export const AtencionMedicaReservaCitaDestino = ({
         willClose: () => clearInterval(timerInterval)
       });
 
-      // PASO 3: Acciones según respuesta del usuario
-      if (result.isConfirmed) {
-        // Ejecutar guardado real de la cita separada en el backend
-        const res = await CitaSeparadaService.getCitaSeparadaCrear(
-          datosReserva.fechaYYYYMMDD,
-          hora,
-          hora,
-          datosReserva.hc?.hc || 0,
-          datosReserva.doctor?.id,
-          datosReserva.especialidad?.idEspecialidad,
-          idServ,
-          idProg,
-          0,
-          datosReserva.doctor?.monto || 0,
-          datosReserva.idUsuarioPaciente
-        );
-
-        if (res.data?.idCitaSeparada || res.data) {
-          // Formatear fecha para lectura (YYYYMMDD -> DD/MM/YYYY)
-          const yyyy = datosReserva.fechaYYYYMMDD.substring(0, 4);
-          const mm = datosReserva.fechaYYYYMMDD.substring(4, 6);
-          const dd = datosReserva.fechaYYYYMMDD.substring(6, 8);
-          const fechaFormateada = `${dd}/${mm}/${yyyy}`;
-
-          const descripcionConcatenada = `Próxima Cita reservada para el ${fechaFormateada} a las ${hora}${nombreEspecialidad ? ` (${nombreEspecialidad})` : ''} — Dr(a). ${nombreMedico}`;
-
-          // Enviar el resultado al componente padre para que lo guarde en el PanelAlta con idAlta: 1
-          onCitaGuardadaEnBackend({
-            idAlta: 1,
-            descripcionAlta: descripcionConcatenada
-          });
-
-          Swal.fire('¡Éxito!', 'La próxima cita ha sido registrada correctamente en el destino.', 'success');
-          onClose();
-        } else {
-          Swal.fire("Atención", "No se pudo completar la reserva de la cita.", "warning");
-        }
+      // Si el usuario canceló o expiró el tiempo, salimos (el bloque finally limpiará el bloqueo)
+      if (!result.isConfirmed) {
+        return;
       }
 
-      // Limpiar el bloqueo temporal
-      await CitaService.getEliminarCitaBloqueada(idBloqueo);
+      // 3. PASO 3: Guardado real de la cita separada en el backend
+      const res = await CitaSeparadaService.getCitaSeparadaCrear(
+        datosReserva.fechaYYYYMMDD,
+        hora,
+        hora,
+        datosReserva.hc?.hc || 0,
+        datosReserva.doctor?.id,
+        datosReserva.especialidad?.idEspecialidad,
+        idServ,
+        idProg,
+        0,
+        datosReserva.doctor?.monto || 0,
+        datosReserva.idUsuarioPaciente
+      );
+
+      const citaCreada = res?.data?.idCitaSeparada || res?.data;
+
+      if (citaCreada) {
+        // Formatear fecha para lectura (YYYYMMDD -> DD/MM/YYYY)
+        const yyyy = datosReserva.fechaYYYYMMDD.substring(0, 4);
+        const mm = datosReserva.fechaYYYYMMDD.substring(4, 6);
+        const dd = datosReserva.fechaYYYYMMDD.substring(6, 8);
+        const fechaFormateada = `${dd}/${mm}/${yyyy}`;
+
+        const descripcionConcatenada = `Próxima Cita reservada para el ${fechaFormateada} a las ${hora}${nombreEspecialidad ? ` (${nombreEspecialidad})` : ''} — Dr(a). ${nombreMedico}`;
+        // Enviar resultado al componente padre (PanelAlta)
+        onCitaGuardadaEnBackend({
+          idAlta: 1,
+          descripcionAlta: descripcionConcatenada
+        });
+
+        await Swal.fire('¡Éxito!', 'La próxima cita ha sido registrada correctamente en el destino.', 'success');
+        onClose();
+      } else {
+        await Swal.fire("Atención", "No se pudo completar la reserva de la cita.", "warning");
+      }
 
     } catch (error) {
       console.error("Error al procesar la reserva:", error);
-      Swal.fire('Error', 'El horario ya no está disponible o hubo un problema de conexión.', 'error');
-      setProcesandoBloqueo(false);
+      await Swal.fire('Error', error?.message || 'El horario ya no está disponible o hubo un problema de conexión.', 'error');
     } finally {
+      // 4. GARANTÍA DE LIMPIEZA: Siempre se libera el bloqueo en el servidor y el estado de carga
+      if (idBloqueo) {
+        try {
+          await CitaService.getEliminarCitaBloqueada(idBloqueo);
+        } catch (libError) {
+          console.error("Error al liberar el bloqueo temporal:", libError);
+        }
+      }
       setProcesandoBloqueo(false);
     }
   };
 
-  return (
+
+ return (
     <div style={{
       position: 'fixed',
       top: 0, left: 0, right: 0, bottom: 0,
@@ -251,3 +268,85 @@ export const AtencionMedicaReservaCitaDestino = ({
     </div>
   );
 };
+
+  // --- LÓGICA DE BLOQUEO, CONFIRMACIÓN Y GUARDADO REAL EN EL BACKEND ---
+/*  const handleHoraSeleccionada = async (hora, idProg, idServ) => {
+    if (procesandoBloqueo) return;
+    let timerInterval;
+    setProcesandoBloqueo(true);
+    try {
+        // PASO 1: Bloqueo temporal en el Servidor
+      const respBloqueo = await CitaService.getCitaBloquear(hora, datosReserva.fechaYYYYMMDD, datosReserva.doctor.id);
+      const idBloqueo = respBloqueo.data.idCitaBloqueada;
+      // PASO 2: Confirmación con el Usuario mediante SweetAlert2
+      const result = await Swal.fire({
+        title: '¿Confirmar próxima cita?',
+        html: `Has seleccionado las <b>${hora}</b>.<br/>Confirma en <b>60</b> segundos.`,
+        timer: 60000,
+        timerProgressBar: true,
+        showCancelButton: true,
+        confirmButtonText: 'Sí, reservar',
+        cancelButtonText: 'Cancelar',
+        didOpen: () => {
+          const b = Swal.getHtmlContainer().querySelector('b');
+          timerInterval = setInterval(() => {
+            if (b) b.textContent = Math.ceil(Swal.getTimerLeft() / 1000);
+          }, 1000);
+        },
+        willClose: () => clearInterval(timerInterval)
+      });
+
+      // PASO 3: Acciones según respuesta del usuario
+      if (result.isConfirmed) {
+        // Ejecutar guardado real de la cita separada en el backend
+        const res = await CitaSeparadaService.getCitaSeparadaCrear(
+              datosReserva.fechaYYYYMMDD,
+              hora,
+              hora,
+              datosReserva.hc?.hc || 0,
+              datosReserva.doctor?.id,
+              datosReserva.especialidad?.idEspecialidad,
+              idServ,
+              idProg,
+              0,
+              datosReserva.doctor?.monto || 0,
+              datosReserva.idUsuarioPaciente
+         );
+          if (res.data?.idCitaSeparada || res.data) {
+            // Formatear fecha para lectura (YYYYMMDD -> DD/MM/YYYY)
+            const yyyy = datosReserva.fechaYYYYMMDD.substring(0, 4);
+            const mm = datosReserva.fechaYYYYMMDD.substring(4, 6);
+            const dd = datosReserva.fechaYYYYMMDD.substring(6, 8);
+            const fechaFormateada = `${dd}/${mm}/${yyyy}`;
+            const descripcionConcatenada = `Próxima Cita reservada para el ${fechaFormateada} a las ${hora}${nombreEspecialidad ? ` (${nombreEspecialidad})` : ''} — Dr(a). ${nombreMedico}`;
+            // Enviar el resultado al componente padre para que lo guarde en el PanelAlta con idAlta: 1
+//          console.log("CITA SEPARADA RESPONSE  "+JSON.stringify(res.data))
+            console.log(" descripcionConcatenada "+descripcionConcatenada)
+
+            onCitaGuardadaEnBackend({
+              idAlta: 1,
+              descripcionAlta: descripcionConcatenada
+            });
+
+            console.log(" paso a onCitaGuardadaEnBackend ")
+
+            Swal.fire('¡Éxito!', 'La próxima cita ha sido registrada correctamente en el destino.', 'success');
+            onClose();
+          } else {
+            Swal.fire("Atención", "No se pudo completar la reserva de la cita.", "warning");
+          }
+      }
+
+      // Limpiar el bloqueo temporal
+      await CitaService.getEliminarCitaBloqueada(idBloqueo);
+
+    } catch (error) {
+      console.error("Error al procesar la reserva:", error);
+      Swal.fire('Error', 'El horario ya no está disponible o hubo un problema de conexión.', 'error');
+      setProcesandoBloqueo(false);
+    } finally {
+      setProcesandoBloqueo(false);
+    }
+  };
+*/
+ 

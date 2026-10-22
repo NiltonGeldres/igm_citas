@@ -84,7 +84,7 @@ function PagoVirtual({
         {/* Método de Pago */}
         <div className="col-md-6">
           <label className="form-label small fw-bold text-secondary">
-            <FaUniversity className="me-1" /> Origen: Método de Pago
+            <FaUniversity className="me-1" /> Método de Pago: 
           </label>
           <select 
             className="form-select border-2 rounded-3 shadow-sm" 
@@ -101,7 +101,7 @@ function PagoVirtual({
         {/* Nro Operación */}
         <div className="col-md-6">
           <label className="form-label small fw-bold text-secondary">
-            <FaHashtag className="me-1" /> Origen: Nro. Operación
+            <FaHashtag className="me-1" /> Nro. Operación del Pago
           </label>
           <input 
             type="text"
@@ -117,7 +117,7 @@ function PagoVirtual({
         {/* Fecha */}
         <div className="col-md-6">
           <label className="form-label small fw-bold text-secondary">
-            <FaCalendarAlt className="me-1" /> Origen: Fecha Voucher
+            <FaCalendarAlt className="me-1" /> Fecha Voucher de Pago
           </label>
           <input 
             type="date" 
@@ -132,7 +132,7 @@ function PagoVirtual({
         {/* Nombre Titular */}
         <div className="col-md-6">
           <label className="form-label small fw-bold text-secondary">
-            <FaUser className="me-1" /> Origen: Nombre Titular
+            <FaUser className="me-1" /> Nombre Titular de Pago
           </label>
           <input 
             type="text"
@@ -148,7 +148,7 @@ function PagoVirtual({
         {/* Celular del Pago */}
         <div className="col-md-6">
           <label className="form-label small fw-bold text-secondary">
-            <FaPhone className="me-1" /> Origen: Nro Celular
+            <FaPhone className="me-1" /> Nro Celular de Pago
           </label>
           <input 
             type="text"
@@ -164,7 +164,7 @@ function PagoVirtual({
         {/* Correo (Solo lectura) */}
         <div className="col-md-6">
           <label className="form-label small fw-bold text-secondary">
-            <FaEnvelope className="me-1" /> Correo Confirmación
+            <FaEnvelope className="me-1" /> Correo Confirmación 
           </label>
           <input 
             type="email"

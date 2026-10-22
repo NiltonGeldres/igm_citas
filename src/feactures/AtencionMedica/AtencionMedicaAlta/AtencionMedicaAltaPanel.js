@@ -83,8 +83,9 @@ const AtencionMedicaAltaPanel = ({
 
   // Recibir la cita confirmada desde la Modal
   const handleCitaConfirmada = (citaData) => {
-    const descripcionConcatenada = `Próxima Cita reservada para el ${citaData.fecha} a las ${citaData.hora}${citaData.especialidad ? ` (${citaData.especialidad})` : ''}`;
-    agregarItemAlArray(1, descripcionConcatenada);
+   // const descripcionConcatenada = `Próxima Cita reservada para el ${citaData.fecha} a las ${citaData.hora}${citaData.especialidad ? ` (${citaData.especialidad})` : ''}`;
+//    agregarItemAlArray(1, descripcionConcatenada);
+    agregarItemAlArray(citaData.idAlta, citaData.descripcionAlta);
   };
 
   return (
@@ -261,7 +262,7 @@ const AtencionMedicaAltaPanel = ({
         idEspecialidad={idEspecialidadActual}
         nombreMedico={nombreMedicoActual}
         nombreEspecialidad={nombreEspecialidadActual}
-        onCitaGuardada={handleCitaConfirmada}
+        onCitaGuardadaEnBackend={handleCitaConfirmada}
         idUsuarioPaciente={idUsuarioPaciente}
       />
     </div>
