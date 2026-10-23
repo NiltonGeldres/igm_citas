@@ -150,7 +150,7 @@ export const useAtencionMedica = () => {
       } else {
         respuesta = await AtencionMedicaService.actualizarAtencionBorrador(idAtencionExistente, payload);
       }
-
+      alert("ESTADO FIRMA :  "+respuesta.estadoFirma)
       setEstadoFirma(respuesta.estadoFirma);
       setDocumentosPdf(extraerDocumentosPdf(respuesta));
 

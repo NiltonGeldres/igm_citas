@@ -511,13 +511,10 @@ function AtencionMedicaForm() {
         )}
       </div>
 
-      {/* 3. BOTÓN GUARDAR FLOTANTE */}
-      { patientData.id  && estadoFirma === "BORRADOR"  && (
-        
-//      {patientData.estadoFirma === "BORRADOR" && patientData.id && (
-//       {patientData.estadoFirma !== "PENDIENTE_FIRMA" && ((patientData.estadoFirma === "BORRADOR" && patientData.id)) && (
-//          <span className="fab-tooltip">Finalizar Atención</span>
 
+      {/* 3. BOTÓN GUARDAR FLOTANTE */}
+      {patientData?.idPaciente && (estadoFirma === "BORRADOR" || !estadoFirma) && (
+        
         <button 
           type="button"
           onClick={guardarAtencionBorrador}
@@ -526,9 +523,10 @@ function AtencionMedicaForm() {
           aria-label="Finalizar y Guardar Atención"
         >
           <Save size={28} color="#ffffff" strokeWidth={2} />
-          <span className="fab-tooltip">{estadoFirma}</span>
+          <span className="fab-tooltip">{"Guardar atencion borrador" || "Guardar nueva atencion"}</span>
         </button>
-      )}
+      )}      
+
 
       {/* 4. MODAL FLOTANTE DE CITAS */}
       {isAgendaOpen && (
@@ -645,3 +643,23 @@ const dotStyle = {
 };
 
 export default AtencionMedicaForm;
+
+//      {/* 3. BOTÓN GUARDAR FLOTANTE */}
+//      {patientData?.idPaciente && (estadoFirma === "BORRADOR" || !estadoFirma) && (        
+//      { patientData.id  && estadoFirma === "BORRADOR"  && (
+//      {patientData.estadoFirma === "BORRADOR" && patientData.id && (
+//       {patientData.estadoFirma !== "PENDIENTE_FIRMA" && ((patientData.estadoFirma === "BORRADOR" && patientData.id)) && (
+//          <span className="fab-tooltip">Finalizar Atención</span>
+
+/*        <button 
+          type="button"
+          onClick={guardarAtencionBorrador}
+          className="hce-floating-action-button"
+          title="Finalizar y Guardar Atención"
+          aria-label="Finalizar y Guardar Atención"
+        >
+          <Save size={28} color="#ffffff" strokeWidth={2} />
+          <span className="fab-tooltip">{estadoFirma}</span>
+        </button>
+      )}
+*/

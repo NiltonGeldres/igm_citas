@@ -39,7 +39,7 @@ export function AtencionMedicaFirmaPanelV1({
 
   // Función para invocar el protocolo ReFirma
   const handleInvocarReFirma = () => {
-    alert(JSON.stringify(jsonFirmadoUrl))
+//    alert(JSON.stringify(jsonFirmadoUrl))
     if (jsonFirmadoUrl) {
       const refirmaUrl = jsonFirmadoUrl.startsWith('refirma://')
         ? jsonFirmadoUrl

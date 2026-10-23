@@ -2,11 +2,10 @@ import React, { useState, useMemo, useCallback, useRef, useEffect } from 'react'
 import Styles from '../../../Styles';
 import useVoiceRecognition from '../../../hooks/useVoiceRecognition';
 import { Mic, MicOff, Plus, Trash2, ChevronDown } from 'lucide-react';
-//import { ModalReservaCitaDestino } from './ModalReservaCitaDestino'; // Import de la Modal
 import { AtencionMedicaReservaCitaDestino } from '../AtencionMedicaAlta/AtencionMedicaReservaCitaDestino';
 
 const OPCIONES_DESTINO = [
-  { id: '1', label: '📝 Otras indicaciones / Recomendaciones' },
+  { id: '1', label: '📝 Otras indicaciones' },
   { id: '2', label: '📅 Próxima Cita' },
   { id: '3', label: '🏥 Hospitalización' },
   { id: '4', label: '🔗 Referencia (RENAES)' },
@@ -26,7 +25,7 @@ const AtencionMedicaAltaPanel = ({
   idUsuarioPaciente
 }) => {
   const textareaRef = useRef(null);
-  const [selectedOpcion, setSelectedOpcion] = useState('NULL');
+  const [selectedOpcion, setSelectedOpcion] = useState('1'); // Inicializado en '1' por defecto
   const [isAgendaOpen, setIsAgendaOpen] = useState(false);
 
   // Estados temporales de entrada
@@ -42,9 +41,8 @@ const AtencionMedicaAltaPanel = ({
   const agregarItemAlArray = useCallback((idAltaVal, textoDescripcion) => {
     if (!textoDescripcion || !textoDescripcion.trim()) return;
 
-    alert("DATOS DE ALTA "+textoDescripcion+"-----"+idAltaVal)
     const nuevoElemento = {
-      idAlta: idAltaVal,
+      idAlta: Number(idAltaVal),
       descripcionAlta: textoDescripcion.trim()
     };
 
@@ -77,16 +75,14 @@ const AtencionMedicaAltaPanel = ({
     const val = e.target.value;
     setSelectedOpcion(val);
 
-    if (val === '1') {
+    if (val === '2') {
       setIsAgendaOpen(true);
     }
   };
 
   // Recibir la cita confirmada desde la Modal
   const handleCitaConfirmada = (citaData) => {
-   // const descripcionConcatenada = `Próxima Cita reservada para el ${citaData.fecha} a las ${citaData.hora}${citaData.especialidad ? ` (${citaData.especialidad})` : ''}`;
-//    agregarItemAlArray(1, descripcionConcatenada);
-    agregarItemAlArray(citaData.idAlta, citaData.descripcionAlta);
+    agregarItemAlArray(citaData.idAlta || 2, citaData.descripcionAlta);
   };
 
   return (
@@ -128,7 +124,7 @@ const AtencionMedicaAltaPanel = ({
       {/* Contenedor según opción seleccionada */}
       <div style={{ backgroundColor: '#f8fafc', padding: '10px', borderRadius: '6px', border: '1px solid #e2e8f0', marginBottom: '10px' }}>
         
-        {/* NULL: OTRAS INDICACIONES */}
+        {/* 1: OTRAS INDICACIONES / RECOMENDACIONES */}
         {selectedOpcion === '1' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -159,7 +155,7 @@ const AtencionMedicaAltaPanel = ({
             <button
               type="button"
               disabled={!textoLibre.trim()}
-              onClick={() => agregarItemAlArray(0, textoLibre)}
+              onClick={() => agregarItemAlArray(1, 'Otras indicaciones: ' +textoLibre)}
               style={btnAgregarStyle(!textoLibre.trim())}
             >
               <Plus size={12} /> Agregar Indicación
@@ -167,8 +163,8 @@ const AtencionMedicaAltaPanel = ({
           </div>
         )}
 
-        {/* 1: PRÓXIMA CITA */}
-        {selectedOpcion === '1' && (
+        {/* 2: PRÓXIMA CITA */}
+        {selectedOpcion === '2' && (
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <span style={{ fontSize: '12px', color: '#334155', fontWeight: '500' }}>
               Seleccione una fecha y hora en el calendario de citas.
@@ -183,33 +179,33 @@ const AtencionMedicaAltaPanel = ({
           </div>
         )}
 
-        {/* 2: HOSPITALIZACIÓN */}
-        {selectedOpcion === '2' && (
+        {/* 3: HOSPITALIZACIÓN */}
+        {selectedOpcion === '3' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
             <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
               <input type="text" placeholder="Servicio de destino (ej. Pediatría)" value={hospitalizacion.servicio} onChange={(e) => setHospitalizacion({ ...hospitalizacion, servicio: e.target.value })} style={{ ...inputStyle, flex: '1 1 180px' }} />
               <input type="text" placeholder="Cama (Opcional)" value={hospitalizacion.cama} onChange={(e) => setHospitalizacion({ ...hospitalizacion, cama: e.target.value })} style={{ ...inputStyle, flex: '0 1 100px' }} />
             </div>
             <input type="text" placeholder="Nota de transferencia o motivo de hospitalización..." value={hospitalizacion.nota} onChange={(e) => setHospitalizacion({ ...hospitalizacion, nota: e.target.value })} style={inputStyle} />
-            <button type="button" disabled={!hospitalizacion.servicio.trim()} onClick={() => agregarItemAlArray(2, `Hospitalización en ${hospitalizacion.servicio}${hospitalizacion.cama ? ` (Cama: ${hospitalizacion.cama})` : ''}${hospitalizacion.nota ? ` - Nota: ${hospitalizacion.nota}` : ''}`)} style={btnAgregarStyle(!hospitalizacion.servicio.trim())}>
+            <button type="button" disabled={!hospitalizacion.servicio.trim()} onClick={() => agregarItemAlArray(3, `Hospitalización en ${hospitalizacion.servicio}${hospitalizacion.cama ? ` (Cama: ${hospitalizacion.cama})` : ''}${hospitalizacion.nota ? ` - Nota: ${hospitalizacion.nota}` : ''}`)} style={btnAgregarStyle(!hospitalizacion.servicio.trim())}>
               <Plus size={12} /> Registrar Hospitalización
             </button>
           </div>
         )}
 
-        {/* 3: REFERENCIA */}
-        {selectedOpcion === '3' && (
+        {/* 4: REFERENCIA (RENAES) */}
+        {selectedOpcion === '4' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
             <input type="text" placeholder="Establecimiento de destino (RENAES / Nombre)" value={referencia.renaes} onChange={(e) => setReferencia({ ...referencia, renaes: e.target.value })} style={inputStyle} />
             <input type="text" placeholder="Motivo de la referencia" value={referencia.motivo} onChange={(e) => setReferencia({ ...referencia, motivo: e.target.value })} style={inputStyle} />
-            <button type="button" disabled={!referencia.renaes.trim()} onClick={() => agregarItemAlArray(3, `Referencia a: ${referencia.renaes}${referencia.motivo ? ` - Motivo: ${referencia.motivo}` : ''}`)} style={btnAgregarStyle(!referencia.renaes.trim())}>
+            <button type="button" disabled={!referencia.renaes.trim()} onClick={() => agregarItemAlArray(4, `Referencia a: ${referencia.renaes}${referencia.motivo ? ` - Motivo: ${referencia.motivo}` : ''}`)} style={btnAgregarStyle(!referencia.renaes.trim())}>
               <Plus size={12} /> Registrar Referencia
             </button>
           </div>
         )}
 
-        {/* 4: ALTA */}
-        {selectedOpcion === '4' && (
+        {/* 5: ALTA O CIERRE DE CASO */}
+        {selectedOpcion === '5' && (
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
             <span style={{ fontSize: '11.5px', fontWeight: '600', color: '#475569' }}>Condición al Alta:</span>
             <select value={condicionAlta} onChange={(e) => setCondicionAlta(e.target.value)} style={{ ...inputStyle, width: 'auto' }}>
@@ -217,7 +213,7 @@ const AtencionMedicaAltaPanel = ({
               <option value="Mejorado">Mejorado</option>
               <option value="Inalterado">Inalterado</option>
             </select>
-            <button type="button" onClick={() => agregarItemAlArray(4, `Alta Médica - Condición: ${condicionAlta}`)} style={{ ...btnAgregarStyle(false), width: 'auto' }}>
+            <button type="button" onClick={() => agregarItemAlArray(5, `Alta Médica - Condición: ${condicionAlta}`)} style={{ ...btnAgregarStyle(false), width: 'auto' }}>
               <Plus size={12} /> Confirmar Cierre
             </button>
           </div>
