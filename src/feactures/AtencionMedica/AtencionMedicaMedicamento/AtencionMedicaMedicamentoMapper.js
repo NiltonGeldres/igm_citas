@@ -39,7 +39,14 @@ export const AtencionMedicaMedicamentoMapper = {
 
       // Mapeo seguro de campos de BD a la UI
       dosis: item.cantidadDosis !== undefined ? String(item.cantidadDosis) : (item.dosis || '1'),
-      frecuencia: item.idFrecuenciaDosis !== undefined ? item.idFrecuenciaDosis : (item.frecuencia || 24),
+      
+//      frecuencia: item.idFrecuenciaDosis !== undefined ? item.idFrecuenciaDosis : (item.frecuencia || 24),
+
+      //  Mapeo de Frecuencia (Soporta ID de frecuencia y etiqueta descriptiva)
+      idFrecuenciaDosis: item.idFrecuenciaDosis !== undefined ? item.idFrecuenciaDosis : (item.frecuenciaId || null),
+      frecuencia: item.frecuencia !== undefined ? item.frecuencia : 3, // Factor diario por defecto
+      frecuenciaEtiqueta: item.frecuenciaEtiqueta || item.nombreFrecuenciaDosis || '',
+
       periodo: item.cantidadPeriodo !== undefined ? item.cantidadPeriodo : (item.periodo || 7),
       cantidad: item.cantidadTotal !== undefined ? item.cantidadTotal : (item.cantidad || 1),
 

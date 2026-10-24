@@ -3,43 +3,76 @@ import { useAuth } from '../../../shared/context/AuthContext';
 
 function AtencionMedicaMedicamentoDetalleModal({ medication, onClose, onSave, showMessage }) {
   const { catalogoGlobal } = useAuth();
+  
   const [dosis, setDosis] = useState('');
-  const [frecuencia, setFrecuencia] = useState('');
+  const [idFrecuencia, setIdFrecuencia] = useState(''); // 👈 Guarda el ID de la frecuencia seleccionada
   const [periodo, setPeriodo] = useState('');
   const [cantidad, setCantidad] = useState('');
-  const [idVia, setIdVia] = useState(''); // 👈 Guarda el ID de la Vía
+  const [idVia, setIdVia] = useState('');
   
   const viasAdministracion = catalogoGlobal?.catalogoViasAdministracion || [];
+  const frecuenciasCatalogo = catalogoGlobal?.catalogoFrecuencias || [];
 
   useEffect(() => {
     if (medication) {
       setDosis(medication.dosis !== undefined ? String(medication.dosis) : '');
-      setFrecuencia(medication.frecuencia !== undefined ? String(medication.frecuencia) : '');
       setPeriodo(medication.periodo !== undefined ? String(medication.periodo) : '');
       setCantidad(medication.cantidad !== undefined ? String(medication.cantidad) : '');
-      // Asigna el ID si ya existe o busca el ID a partir del texto
       setIdVia(medication.idViaAdministracion || medication.idVia || medication.via || '');
+
+      // Asigna el ID de frecuencia si ya existe o intenta buscarlo por coincidencia numérica
+      const freqExistente = medication.idFrecuenciaDosis || medication.idFrecuencia || medication.frecuencia;
+      if (freqExistente) {
+        // Si el valor numérico coincide con un factorDiario o id, seleccionamos el item correspondiente
+        const encontrada = frecuenciasCatalogo.find(
+          f => String(f.idFrecuenciaDosis) === String(freqExistente) || String(f.factorDiario) === String(freqExistente)
+        );
+        setIdFrecuencia(encontrada ? String(encontrada.idFrecuenciaDosis) : String(freqExistente));
+      } else {
+        setIdFrecuencia('');
+      }
     }
-  }, [medication]);
+  }, [medication, frecuenciasCatalogo]);
+
+  // 🟢 Cálculo automático del Total a Dispensar en tiempo real
+  useEffect(() => {
+    if (!dosis || !idFrecuencia || !periodo) return;
+
+    const parsedDosis = parseFloat(dosis);
+    const parsedPeriodo = parseInt(periodo, 10);
+    const freqObj = frecuenciasCatalogo.find(f => String(f.idFrecuenciaDosis) === String(idFrecuencia));
+    const factorDiario = freqObj ? freqObj.factorDiario : 1;
+
+    if (isNaN(parsedDosis) || isNaN(parsedPeriodo) || parsedDosis <= 0 || parsedPeriodo <= 0) return;
+
+    // Regla de cálculo: Jarabes (líquidos) vs Medicamentos Sólidos (tabletas)
+    const esLiquido = medication?.esLiquido || medication?.unidadDosis === 'ml';
+    const contenidoEnvaseMl = medication?.contenidoEnvaseMl || 120; // Tamaño por defecto del frasco
+
+    if (esLiquido) {
+      const totalMl = parsedDosis * factorDiario * parsedPeriodo;
+      const frascosCalculados = Math.ceil(totalMl / contenidoEnvaseMl);
+      setCantidad(String(frascosCalculados));
+    } else {
+      const totalUnidades = Math.ceil(parsedDosis * factorDiario * parsedPeriodo);
+      setCantidad(String(totalUnidades));
+    }
+  }, [dosis, idFrecuencia, periodo, medication, frecuenciasCatalogo]);
 
   const handleSave = () => {
-    if (!dosis || !frecuencia || !periodo || !cantidad || !idVia) {
+    if (!dosis || !idFrecuencia || !periodo || !cantidad || !idVia) {
       if (showMessage) showMessage('Por favor, completa todos los campos requeridos para la receta.');
       return;
     }
 
     const parsedDosis = parseFloat(dosis);
-    const parsedFrecuencia = parseInt(frecuencia, 10);
     const parsedPeriodo = parseInt(periodo, 10);
     const parsedCantidad = parseInt(cantidad, 10);
     const parsedIdVia = parseInt(idVia, 10);
+    const parsedIdFrecuencia = parseInt(idFrecuencia, 10);
 
     if (isNaN(parsedDosis) || parsedDosis <= 0) {
-      if (showMessage) showMessage('La dosis debe ser un número válido.');
-      return;
-    }
-    if (isNaN(parsedFrecuencia) || parsedFrecuencia <= 0) {
-      if (showMessage) showMessage('La frecuencia debe ser mayor a 0 veces al día.');
+      if (showMessage) showMessage('La dosis debe ser un número válido mayor a 0.');
       return;
     }
     if (isNaN(parsedPeriodo) || parsedPeriodo <= 0) {
@@ -47,24 +80,29 @@ function AtencionMedicaMedicamentoDetalleModal({ medication, onClose, onSave, sh
       return;
     }
     if (isNaN(parsedCantidad) || parsedCantidad <= 0) {
-      if (showMessage) showMessage('La cantidad total debe ser un número entero.');
+      if (showMessage) showMessage('La cantidad total debe ser un número entero mayor a 0.');
       return;
     }
 
-    // Buscar el objeto de la vía seleccionada para obtener también el nombre
     const viaObjeto = viasAdministracion.find(
       (v) => String(v.idViaAdministracion) === String(idVia)
+    );
+
+    const frecuenciaObjeto = frecuenciasCatalogo.find(
+      (f) => String(f.idFrecuenciaDosis) === String(idFrecuencia)
     );
 
     onSave({
       ...medication, 
       idProducto: medication.idProducto || medication.id,
       dosis: parsedDosis.toString(),
-      frecuencia: parsedFrecuencia,
+      idFrecuenciaDosis: parsedIdFrecuencia,
+      frecuencia: frecuenciaObjeto ? frecuenciaObjeto.factorDiario : 1, // Envia el factor numérico para retrocompatibilidad
+      frecuenciaEtiqueta: frecuenciaObjeto ? frecuenciaObjeto.nombreFrecuenciaDosis : '',
       periodo: parsedPeriodo,
       cantidad: parsedCantidad,
       idViaAdministracion: parsedIdVia, 
-      via: viaObjeto ? viaObjeto.nombreViaAdministracion.trim() : 'Oral' // Texto legible para UI
+      via: viaObjeto ? viaObjeto.nombreViaAdministracion.trim() : 'Oral'
     });
   };
 
@@ -78,7 +116,7 @@ function AtencionMedicaMedicamentoDetalleModal({ medication, onClose, onSave, sh
       backdropFilter: 'blur(2px)'
     },
     content: {
-      backgroundColor: '#ffffff', width: '90%', maxWidth: '400px',
+      backgroundColor: '#ffffff', width: '90%', maxWidth: '440px',
       borderRadius: '12px', overflow: 'hidden', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)',
       border: '1px solid #e2e8f0'
     },
@@ -109,6 +147,7 @@ function AtencionMedicaMedicamentoDetalleModal({ medication, onClose, onSave, sh
         </div>
 
         <div style={modalStyles.body}>
+          {/* Vía de Administración */}
           <label style={modalStyles.label}>
             Vía de Administración
             <select
@@ -120,7 +159,7 @@ function AtencionMedicaMedicamentoDetalleModal({ medication, onClose, onSave, sh
               {viasAdministracion.map((itemVia) => (
                 <option 
                   key={itemVia.idViaAdministracion} 
-                  value={itemVia.idViaAdministracion} // 👈 El valor es el ID numérico
+                  value={itemVia.idViaAdministracion}
                 >
                   {itemVia.nombreViaAdministracion} ({itemVia.grupoClasificacion})
                 </option>
@@ -128,11 +167,13 @@ function AtencionMedicaMedicamentoDetalleModal({ medication, onClose, onSave, sh
             </select>
           </label>
 
+          {/* Dosis y Frecuencia */}
           <div style={{ display: 'flex', gap: '10px' }}>
             <label style={{ ...modalStyles.label, flex: 1 }}>
               Dosis
               <input
-                type="text"
+                type="number"
+                step="0.1"
                 value={dosis}
                 onChange={(e) => setDosis(e.target.value)}
                 style={modalStyles.input}
@@ -141,17 +182,23 @@ function AtencionMedicaMedicamentoDetalleModal({ medication, onClose, onSave, sh
             </label>
 
             <label style={{ ...modalStyles.label, flex: 1 }}>
-              Veces al día (Frecuencia)
-              <input
-                type="number"
-                value={frecuencia}
-                onChange={(e) => setFrecuencia(e.target.value)}
-                style={modalStyles.input}
-                placeholder="Ej: 2"
-              />
+              Frecuencia
+              <select
+                value={idFrecuencia}
+                onChange={(e) => setIdFrecuencia(e.target.value)}
+                style={modalStyles.select}
+              >
+                <option value="">-- Frecuencia --</option>
+                {frecuenciasCatalogo.map((freq) => (
+                  <option key={freq.idFrecuenciaDosis} value={freq.idFrecuenciaDosis}>
+                    {freq.nombreFrecuenciaDosis}
+                  </option>
+                ))}
+              </select>
             </label>
           </div>
 
+          {/* Duración y Total a Dispensar */}
           <div style={{ display: 'flex', gap: '10px' }}>
             <label style={{ ...modalStyles.label, flex: 1 }}>
               Duración (Días)
@@ -170,7 +217,7 @@ function AtencionMedicaMedicamentoDetalleModal({ medication, onClose, onSave, sh
                 type="number"
                 value={cantidad}
                 onChange={(e) => setCantidad(e.target.value)}
-                style={modalStyles.input}
+                style={{ ...modalStyles.input, backgroundColor: '#f1f5f9', fontWeight: 'bold', color: '#0284c7' }}
                 placeholder="Ej: 14"
               />
             </label>

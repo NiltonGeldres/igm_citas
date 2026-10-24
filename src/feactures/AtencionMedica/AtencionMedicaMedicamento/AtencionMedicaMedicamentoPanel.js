@@ -465,8 +465,9 @@ function AtencionMedicaMedicamentoPanel({
                       Dosis: {item.dosis || 'N/A'}
                     </span>
                     <span style={{ fontSize: '10px', backgroundColor: '#fff7ed', color: '#ea580c', padding: '1px 5px', borderRadius: '4px', border: '1px solid #ffedd5', fontWeight: '500' }}>
-                      Cada: {item.frecuencia ? `Cada ${Math.round(24 / item.frecuencia)} hrs` : 'N/A'} ({item.frecuencia || 0} v/d)
+                      Frecuencia: {item.frecuenciaEtiqueta || (item.frecuencia ? `Cada ${Math.round(24 / item.frecuencia)} hrs` : 'N/A')}
                     </span>
+
                     <span style={{ fontSize: '10px', backgroundColor: '#f3e8ff', color: '#9333ea', padding: '1px 5px', borderRadius: '4px', border: '1px solid #e9d5ff', fontWeight: '500' }}>
                       Durante: {item.periodo || '0'} días
                     </span>
@@ -605,3 +606,7 @@ function AtencionMedicaMedicamentoPanel({
 }
 
 export default AtencionMedicaMedicamentoPanel;
+
+//                    <span style={{ fontSize: '10px', backgroundColor: '#fff7ed', color: '#ea580c', padding: '1px 5px', borderRadius: '4px', border: '1px solid #ffedd5', fontWeight: '500' }}>
+//                      Cada: {item.frecuencia ? `Cada ${Math.round(24 / item.frecuencia)} hrs` : 'N/A'} ({item.frecuencia || 0} v/d)
+//                    </span>
