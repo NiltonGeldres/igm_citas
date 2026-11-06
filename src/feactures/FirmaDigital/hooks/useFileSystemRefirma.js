@@ -34,6 +34,19 @@ export async function guardarPDFsEnCarpetaEntrada(dirHandle, atencionesSeleccion
     throw new Error("No hay acceso concedido a la carpeta local.");
   }
 
+// ---  Eliminar todos los archivos existentes en la carpeta antes de copiar ---
+  try {
+    for await (const entry of dirHandle.values()) {
+      if (entry.kind === 'file') {
+        await dirHandle.removeEntry(entry.name);
+      }
+    }
+  } catch (error) {
+    console.error("Error al limpiar la carpeta de entrada:", error);
+    throw new Error("No se pudo vaciar la carpeta de entrada antes de copiar los nuevos archivos.");
+  }
+  //--------------------------------------------------------------
+
   let procesados = 0;
   const total = atencionesSeleccionadas.length;
 

@@ -2,6 +2,7 @@ import React from 'react';
 import { Check, AlertCircle } from 'lucide-react';
 
 export function ResumenClinicoBorradorCard({ sourceDetails = {} }) {
+  console.log("sourceDetails   "+JSON.stringify(sourceDetails));
   const listaSignos = sourceDetails.PanelTriaje || [];
   const listaAntecedentes = sourceDetails.PanelAntecedentes || [];
   const listaSintomas = sourceDetails.PanelSintomas || [];
@@ -10,6 +11,7 @@ export function ResumenClinicoBorradorCard({ sourceDetails = {} }) {
   const listaExamenes = sourceDetails.PanelPlanTrabajo || [];
   const listaMedicamentos = sourceDetails.PanelMedicacion || [];
   const listaAlta = sourceDetails.PanelAlta || [];
+  console.log("listaExamenes   "+JSON.stringify(listaExamenes));
 
   return (
     <div style={{ backgroundColor: '#f8fafc', border: '1px solid #cbd5e1', borderRadius: '8px', padding: '16px' }}>
@@ -82,7 +84,7 @@ export function ResumenClinicoBorradorCard({ sourceDetails = {} }) {
               <ul style={{ margin: '4px 0 0 0', paddingLeft: '18px', color: '#334155' }}>
                 {listaDiagnosticos.map((d, i) => (
                   <li key={i}>
-                    <strong>({d.codigoCIE || 'CIE'})</strong> {d.diagnostico} {d.clasificacion ? `- [${d.clasificacion}]` : ''}
+                    <strong>({d.codigoCIE || 'CIE'})</strong> {d.diagnostico} 
                   </li>
                 ))}
               </ul>
@@ -102,7 +104,7 @@ export function ResumenClinicoBorradorCard({ sourceDetails = {} }) {
                 {listaExamenes.map((ex, i) => (
                   <li key={i}>
                     {ex.codigoProcedimiento ? <strong>({ex.codigoProcedimiento}) </strong> : null}
-                    {ex.examen || ex.descripcion} {ex.tipoExamen ? `[${ex.tipoExamen}]` : ''}
+                    {ex.examen || ex.label} 
                   </li>
                 ))}
               </ul>

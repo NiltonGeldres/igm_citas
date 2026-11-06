@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Prueba Real - Archivo de Carpeta</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; margin: 50px; background-color: #f0f2f5; }
+        .box { max-width: 600px; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); margin: 0 auto; }
+        h2 { color: #207a45; border-bottom: 2px solid #207a45; padding-bottom: 10px; }
+        button { background-color: #207a45; color: white; padding: 14px; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; width: 100%; font-weight: bold; }
+        button:hover { background-color: #165630; }
+        .terminal { margin-top: 20px; background: #1e1e1e; color: #a6e22e; padding: 15px; font-family: monospace; border-radius: 4px; min-height: 160px; font-size: 13px; white-space: pre-wrap; }
+        .success { color: #66d9ef; }
+    </style>
+</head>
+<body>
+
+<div class="box">
+    <h2>Prueba con PDF Real de Carpeta</h2>
+    <p>Este flujo leerá el archivo <b>documento_borrador.pdf</b> físico de tu disco duro y lo enviará al puerto 9091 en memoria.</p>
+    
+    <button onclick="ejecutarPruebaFisica()">⚡ Firmar PDF de la Carpeta en Bloque</button>
+
+    <div id="pantallaConsola" class="terminal">> Consola: lista para la prueba física.</div>
+</div>
+
+<script>
+function imprimir(texto, esExito = false) {
+    const p = document.getElementById("pantallaConsola");
+    const clase = esExito ? " class='success'" : "";
+    p.innerHTML += `<br><span${clase}>> ${texto}</span>`;
+}
+
+async function ejecutarPruebaFisica() {
+    try {
+        imprimir("1. Solicitando lectura de 'documento_borrador.pdf' al backend de Windows...");
+        
+        // 1. Llamamos al endpoint local para obtener los bytes reales de tu archivo PDF
+        const resPdf = await fetch('/obtener-pdf-local');
+        const datosPdf = await resPdf.json();
+
+        if (datosPdf.status !== "OK") {
+            throw new Error(datosPdf.message);
+        }
+
+        const base64Real = datosPdf.base64;
+        imprimir(`   [OK] Archivo leído con éxito. Tamaño en memoria: ${(base64Real.length / 1024).toFixed(2)} KB.`);
+
+        imprimir("2. Duplicando el archivo para simular Lote (Historia Clínica + Receta)...");
+        const payload = {
+            param_type: "PAdES",
+            param_reason: "Prueba Física de Invoker",
+            documents: [
+                { id: "HISTORIA_CLINICA_REAL", param_file: base64Real },
+                { id: "RECETA_MEDICA_REAL", param_file: base64Real }
+            ]
+        };
+
+        imprimir("3. Transmitiendo binarios reales por POST a /firmar-lote...");
+        
+        // 2. Enviamos el PDF real al endpoint de firma
+        const respuestaFirma = await fetch('/firmar-lote', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+
+        const jsonResultado = await respuestaFirma.json();
+
+        if (jsonResultado.status === "OK") {
+            imprimir("🎉 [ÉXITO TOTAL] ¡El puerto procesó tu PDF físico de Windows correctamente!", true);
+            imprimir(`   Mensaje del hardware: "${jsonResultado.message}"`, true);
+            imprimir(`   Documentos devueltos listos para Cloudflare: ${jsonResultado.documents_signed.length}`, true);
+        }
+
+    } catch (err) {
+        imprimir("❌ ERROR: " + err.message);
+    }
+}
+</script>
+
+</body>
+</html>
