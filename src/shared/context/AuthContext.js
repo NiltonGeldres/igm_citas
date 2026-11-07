@@ -77,6 +77,9 @@ export const AuthProvider = ({ children }) => {
   // Referencia para saber si la alerta está visible sin forzar re-renders
   const isWarningVisibleRef = useRef(false);
 
+  const [dirEntrada, setDirEntrada] = useState(null);
+  const [dirSalida, setDirSalida] = useState(null);  
+
   useEffect(() => {
     isWarningVisibleRef.current = showIdleWarning;
   }, [showIdleWarning]);
@@ -116,6 +119,8 @@ export const AuthProvider = ({ children }) => {
             nombresUsuario: resData?.nombresUsuario || perfilToken.nombresUsuario,
             nombreEntidad: resData?.nombreEntidad || perfilToken.nombreEntidad,
             email: resData?.email || perfilToken.email,
+            firmaEntrada: 'igm_salud\\entrada',
+            firmaSalida: 'igm_salud\\salida',
           };        
           setUser(perfilConDatosGlobales);
         } catch (error) {
@@ -176,6 +181,9 @@ export const AuthProvider = ({ children }) => {
     sessionStorage.removeItem('catalogo_global');
     setUser(null);
     setShowIdleWarning(false);
+
+    setDirEntrada(null);
+    setDirSalida(null);
 
     window.location.href = `/login?reason=${reason}`;
   }, [clearTimers]);
@@ -244,7 +252,11 @@ export const AuthProvider = ({ children }) => {
     logout,
     resetIdleTimer,
     isLoggedIn: !!user,
-    loading
+    loading,
+    dirEntrada,
+    setDirEntrada,
+    dirSalida,
+    setDirSalida    
   };
 
   return (

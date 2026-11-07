@@ -1,10 +1,13 @@
 import React, { useState } from 'react';
 import { ShieldCheck } from 'lucide-react';
-
 import { ResumenClinicoBorradorCard } from './ResumenClinicoBorradorCard';
 import { VisorPdfGCS } from './VisorPdfGCS';
 import { BarraHerramientasFirma } from './BarraHerramientasFirma';
 import AtencionMedicaService from '../AtencionMedicaService';
+//import { useAuth } from '../context/AuthContext'; // <--- 1. Importar tu AuthContext (ajusta la ruta según corresponda)
+import { solicitarAccesoCarpeta, prepararPDFParaFirma } from '../../FirmaDigital/hooks/useFileSystemRefirma';
+import { useAuth } from '../../../shared/context/AuthContext';
+
 export function AtencionMedicaFirmaPanelV1({
   sectionsData = {},
   patientData = {},
@@ -19,9 +22,67 @@ export function AtencionMedicaFirmaPanelV1({
   const [loadingFirma, setLoadingFirma] = useState(false);
   const [vistaDocumento, setVistaDocumento] = useState('hc');
 
+  const { dirEntrada, dirSalida, setDirEntrada, setDirSalida } = useAuth();
+  const estaSincronizado = !!(dirEntrada && dirSalida);
+
 //  const sourceDetails = Object.keys(attentionDetails).length > 0 ? attentionDetails : sectionsData;
   const sourceDetails = Object.keys(sectionsData).length > 0 ? sectionsData : sectionsData;
 
+  const handleGenerarPdfAccion = async () => {
+    let entradaHandle = dirEntrada;
+    let salidaHandle = dirSalida;
+
+    // FASE 1: Si no está sincronizado, el botón en rojo sirve para configurar carpetas guiadas
+    if (!estaSincronizado) {
+      showModalMessage?.("Configuremos las carpetas locales de ReFirma para este turno.");
+      
+      if (!entradaHandle) {
+        entradaHandle = await solicitarAccesoCarpeta('entrada');
+        if (entradaHandle) setDirEntrada(entradaHandle);
+        else return;
+      }
+
+      if (!salidaHandle) {
+        salidaHandle = await solicitarAccesoCarpeta('salida');
+        if (salidaHandle) setDirSalida(salidaHandle);
+        else return;
+      }
+      
+      return; // El primer clic configuró; el botón pasa a verde inmediatamente.
+    }
+
+    // FASE 2: Si ya está sincronizado, ejecutamos el flujo completo de generación y copiado local
+    if (typeof crearPdfBorrador !== 'function') {
+      showModalMessage?.("Error: La función crearPdfBorrador no está conectada.");
+      return;
+    }
+
+    try {
+      setLoadingFirma(true);
+      
+      // A. Ejecuta tu función original que guarda la data, genera el PDF y lo sube a Cloudflare
+      await crearPdfBorrador();
+
+      // B. Copiar automáticamente el PDF desde Cloudflare a la carpeta local de entrada de ReFirma
+      // (asumimos que patientData o sectionsData trae el idAtencion y la url del PDF generado)
+      const atencionItem = {
+        ...patientData,
+        idAtencion: patientData?.idAtencion || sectionsData?.idAtencion,
+        urlPdfBorrador: documentosPdf?.hc?.urlLecturaBorrador || rutaPdfFirmado
+      };
+
+      await prepararPDFParaFirma(entradaHandle, atencionItem);
+
+      showModalMessage?.("¡PDF generado, subido a la nube y preparado en la carpeta local de ReFirma! Ya puede proceder a firmar.");
+
+    } catch (error) {
+      console.error("Error al procesar la preparación del PDF:", error);
+      showModalMessage?.("Error al procesar la preparación del PDF local: " + error.message);
+    } finally {
+      setLoadingFirma(false);
+    }
+  };
+/*
   const handleGenerarPdfAccion = async () => {
     if (typeof crearPdfBorrador !== 'function') {
       showModalMessage?.("Error: La función crearPdfBorrador no está conectada.");
@@ -36,7 +97,7 @@ export function AtencionMedicaFirmaPanelV1({
       setLoadingFirma(false);
     }
   };
-
+*/
   // Función para invocar el protocolo ReFirma
   const handleInvocarReFirma = () => {
 //    alert(JSON.stringify(jsonFirmadoUrl))
