@@ -204,7 +204,7 @@ export function VisorPdfGCS({
 
         {esPendiente && (
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <button
+       {/*     <button
               type="button"
               onClick={handleEjecutarFirmaCompleta}
               disabled={procesandoFirma || cargandoSalida}
@@ -226,7 +226,7 @@ export function VisorPdfGCS({
             >
               <PenTool size={14} /> 
               {procesandoFirma ? `Guardando lote (${progreso}%)...` : '1. FIRMAR CON REFIRMA'}
-            </button>
+            </button>*/}
 
             <button
               type="button"

@@ -5,8 +5,9 @@ import { VisorPdfGCS } from './VisorPdfGCS';
 import { BarraHerramientasFirma } from './BarraHerramientasFirma';
 import AtencionMedicaService from '../AtencionMedicaService';
 //import { useAuth } from '../context/AuthContext'; // <--- 1. Importar tu AuthContext (ajusta la ruta según corresponda)
-import { solicitarAccesoCarpeta, prepararPDFParaFirma } from '../../FirmaDigital/hooks/useFileSystemRefirma';
+import { solicitarAccesoCarpeta, guardarPDFsEnCarpetaEntrada, solicitarAccesoCarpetaSalida } from '../../FirmaDigital/hooks/useFileSystemRefirma';
 import { useAuth } from '../../../shared/context/AuthContext';
+
 
 export function AtencionMedicaFirmaPanelV1({
   sectionsData = {},
@@ -28,7 +29,62 @@ export function AtencionMedicaFirmaPanelV1({
 //  const sourceDetails = Object.keys(attentionDetails).length > 0 ? attentionDetails : sectionsData;
   const sourceDetails = Object.keys(sectionsData).length > 0 ? sectionsData : sectionsData;
 
-  const handleGenerarPdfAccion = async () => {
+const handleGenerarPdfAccion = async () => {
+    let entradaHandle = dirEntrada;
+    let salidaHandle = dirSalida;
+
+    if (!estaSincronizado) {
+      showModalMessage?.("Configuremos las carpetas locales de ReFirma para este turno.");
+      
+      if (!entradaHandle) {
+        entradaHandle = await solicitarAccesoCarpeta('entrada');
+        if (entradaHandle) setDirEntrada(entradaHandle);
+        else return;
+      }
+
+      if (!salidaHandle) {
+        salidaHandle = await solicitarAccesoCarpeta('salida');
+        if (salidaHandle) setDirSalida(salidaHandle);
+        else return;
+      }
+      
+      return;
+    }
+
+    if (typeof crearPdfBorrador !== 'function') {
+      showModalMessage?.("Error: La función crearPdfBorrador no está conectada.");
+      return;
+    }
+
+    try {
+      setLoadingFirma(true);
+      
+      // 1. Genera el borrador y lo sube a la nube
+      await crearPdfBorrador();
+
+      // 2. Transformamos el objeto { hc: {...}, receta: {...} } en un arreglo con los 4 documentos
+      const atencionesSeleccionadas = Object.values(documentosPdf || {}).map(doc => ({
+        ...doc,
+        idAtencion: patientData?.idAtencion || sectionsData?.idAtencion,
+        urlPdfBorrador: doc.urlLecturaBorrador || doc.urlLectura || doc.urlPdf || doc.rutaPdfBorrador
+      }));
+
+      // 3. Invocamos EXACTAMENTE tu función anterior sin modificarla
+      await guardarPDFsEnCarpetaEntrada(entradaHandle, atencionesSeleccionadas, (porcentaje) => {
+        console.log(`Progreso de copia: ${porcentaje}%`);
+      });
+
+      showModalMessage?.("¡Documentos generados y copiados a la carpeta de ReFirma con éxito!");
+
+    } catch (error) {
+      console.error("Error al procesar la preparación de los PDFs:", error);
+      showModalMessage?.("Error al preparar los archivos locales: " + error.message);
+    } finally {
+     setLoadingFirma(false);
+    }
+  };
+
+/*  const handleGenerarPdfAccion = async () => {
     let entradaHandle = dirEntrada;
     let salidaHandle = dirSalida;
 
@@ -82,6 +138,8 @@ export function AtencionMedicaFirmaPanelV1({
       setLoadingFirma(false);
     }
   };
+*/
+
 /*
   const handleGenerarPdfAccion = async () => {
     if (typeof crearPdfBorrador !== 'function') {
@@ -275,6 +333,8 @@ export function AtencionMedicaFirmaPanelV1({
             vistaDocumento={vistaDocumento}
             setVistaDocumento={setVistaDocumento}
           />
+ 
+
           <VisorPdfGCS
             urlPdfFirmado={urlPdfActual}
             titulo={TITULOS_DOCUMENTO[vistaDocumento]}
@@ -282,10 +342,20 @@ export function AtencionMedicaFirmaPanelV1({
             atencionData={sourceDetails}
             documentosPdf={documentosPdf}
             onInvocarReFirma={handleInvocarReFirma}
-            onProcesarFirmadosSalida={handleProcesarFirmadosSalida}
+            onProcesarFirmadosSalida={async () => {
+              // Aquí asegúrate de pasarle el handle de salida guardado en el AuthContext
+              if (!dirSalida) {
+                showModalMessage?.("La carpeta de salida de ReFirma no está configurada.");
+                return;
+              }
+              // Tu función existente que lee los archivos del directorio local de salida y ejecuta handleProcesarFirmadosSalida
+              const archivosFirmados = await solicitarAccesoCarpetaSalida(dirSalida); 
+              await handleProcesarFirmadosSalida(archivosFirmados);
+            }}
             onRefrescarEstadoFirma={refrescarEstadoFirma}
             showModalMessage={showModalMessage}
           />
+          
         </div>
       )}
     </div>

@@ -206,6 +206,58 @@ export async function limpiarCarpeta(dirHandle) {
  * @param {FileSystemDirectoryHandle} dirEntradaHandle - Handle de la carpeta de entrada
  * @param {Object} atencionItem - Objeto que contiene los datos de la atención y la URL del PDF
  */
+export async function prepararPDFParaFirma(dirEntradaHandle, documentosPdf, atencionItem) {
+  if (!dirEntradaHandle) {
+    throw new Error("No hay acceso concedido a la carpeta de entrada.");
+  }
+
+  // 1. Limpieza obligatoria previa para evitar residuos de otros pacientes
+  await limpiarCarpeta(dirEntradaHandle);
+
+  // Soporte por si pasan un objeto único o el diccionario completo de documentos
+  const docsAEvaluar = documentosPdf && typeof documentosPdf === 'object' && !documentosPdf.urlPdfBorrador 
+    ? documentosPdf 
+    : { docUnico: documentosPdf };
+
+  const idAtencion = atencionItem?.idAtencion || atencionItem?.id || 'atencion';
+  let archivosCopiados = 0;
+
+  // 2. Recorremos cada documento (hc, receta, ordenes, indicaciones)
+  for (const [tipoDoc, docObj] of Object.entries(docsAEvaluar)) {
+    const urlPresigned = docObj?.urlLecturaBorrador || docObj?.urlLectura || docObj?.urlPdf || docObj?.rutaPdfBorrador;
+
+    if (urlPresigned && typeof urlPresigned === 'string' && urlPresigned.startsWith('http')) {
+      try {
+        // Descarga del binario desde la nube (Cloudflare R2)
+        const respuesta = await fetch(urlPresigned, { method: 'GET', mode: 'cors' });
+        if (!respuesta.ok) continue;
+        const blob = await respuesta.blob();
+
+        // Nombramiento estricto
+        const nombreArchivo = docObj.nombreArchivo || `atencion_${idAtencion}_${tipoDoc}.pdf`;
+
+        // Escritura física en la carpeta local de entrada
+        const fileHandle = await dirEntradaHandle.getFileHandle(nombreArchivo, { create: true });
+        const writableStream = await fileHandle.createWritable();
+        await writableStream.write(blob);
+        await writableStream.close();
+
+        archivosCopiados++;
+      } catch (err) {
+        console.error(`Error al procesar el documento ${tipoDoc}:`, err);
+      }
+    }
+  }
+
+  if (archivosCopiados === 0) {
+    throw new Error("La atención no cuenta con URLs válidas para descargar los documentos borradores.");
+  }
+
+  return true;
+}
+
+
+/*
 export async function prepararPDFParaFirma(dirEntradaHandle, atencionItem) {
   if (!dirEntradaHandle) {
     throw new Error("No hay acceso concedido a la carpeta de entrada.");
@@ -236,6 +288,7 @@ export async function prepararPDFParaFirma(dirEntradaHandle, atencionItem) {
 
   return true;
 }
+*/
 
 /**
  * Lee la carpeta de salida y busca el PDF firmado filtrando estrictamente 
