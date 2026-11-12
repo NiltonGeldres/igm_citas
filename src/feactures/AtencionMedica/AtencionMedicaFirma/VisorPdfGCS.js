@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { PenTool, RefreshCw, UploadCloud ,AlertTriangle} from 'lucide-react';
+import { RefreshCw, UploadCloud, AlertTriangle } from 'lucide-react';
+import { useAuth } from '../../../shared/context/AuthContext';
 
 import { 
   solicitarAccesoCarpetaEntrada, 
@@ -13,13 +14,10 @@ const isMobileDevice = () => {
 
   const userAgent = navigator.userAgent || navigator.vendor || window.opera;
   const mobileRegex = /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i;
-  
-  // Soporte especial para iPads en iPadOS 13+ que reportan como Mac Desktop
   const isMacTouch = navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1;
 
   return mobileRegex.test(userAgent) || isMacTouch;
 };
-
 
 export function VisorPdfGCS({ 
   urlPdfFirmado, 
@@ -32,8 +30,8 @@ export function VisorPdfGCS({
   onRefrescarEstadoFirma,
   showModalMessage
 }) {
-  const [dirHandleEntrada, setDirHandleEntrada] = useState(null);
-  const [dirHandleSalida, setDirHandleSalida] = useState(null);
+  const { dirEntrada, dirSalida, setDirEntrada, setDirSalida } = useAuth();
+
   const [procesandoFirma, setProcesandoFirma] = useState(false);
   const [cargandoSalida, setCargandoSalida] = useState(false);
   const [progreso, setProgreso] = useState(0);
@@ -56,26 +54,26 @@ export function VisorPdfGCS({
   const estadoUpper = (estadoFirma || '').toUpperCase();
   const esPendiente = estadoUpper === 'PENDIENTE_FIRMA' || estadoUpper === 'PDF_BORRADOR';
 
-  const handleEjecutarFirmaCompleta = async () => {
-
+  // Flujo Unificado: Prepara la carpeta, limpia, copia el lote e invoca ReFirma automáticamente
+  const handleEjecutarPreparacionYFirma = async () => {
     if (isMobileDevice()) {
       setErrorMovil(true);
-      if (typeof showModalMessage === 'function') {
-        showModalMessage("Este proceso solo se realiza en equipos de escritorio.");
-      }
+      showModalMessage?.("Este proceso solo se realiza en equipos de escritorio.");
       return;
     }
     setErrorMovil(false);
     
-    let handleActual = dirHandleEntrada;
+    if (procesandoFirma) return;
+
+    let handleActual = dirEntrada;
 
     if (!handleActual) {
       handleActual = await solicitarAccesoCarpetaEntrada();
       if (!handleActual) {
-        showModalMessage?.("Debes seleccionar la carpeta de ENTRADA de ReFirma (ej. C:\\igm_salud\\refirma\\entrada) para continuar.");
+        showModalMessage?.("Debes seleccionar la carpeta de ENTRADA de ReFirma para continuar.");
         return;
       }
-      setDirHandleEntrada(handleActual);
+      setDirEntrada(handleActual);
     }
 
     try {
@@ -84,32 +82,16 @@ export function VisorPdfGCS({
 
       const idAtencion = atencionData?.idAtencion || atencionData?.id || 'atencion';
 
-      const urlHc = documentosPdf?.hc?.urlLectura || documentosPdf?.urlHistoriaPdf;
-      const urlReceta = documentosPdf?.receta?.urlLectura || documentosPdf?.urlRecetaPdf;
-      const urlOrdenes = documentosPdf?.ordenes?.urlLectura || documentosPdf?.urlOrdenesPdf;
-      const urlIndicaciones = documentosPdf?.indicaciones?.urlLectura || documentosPdf?.urlIndicacionesPdf;
+      const urlHc = documentosPdf?.hc?.urlLecturaBorrador || documentosPdf?.hc?.urlLectura || documentosPdf?.urlHistoriaPdf;
+      const urlReceta = documentosPdf?.receta?.urlLecturaBorrador || documentosPdf?.receta?.urlLectura || documentosPdf?.urlRecetaPdf;
+      const urlOrdenes = documentosPdf?.ordenes?.urlLecturaBorrador || documentosPdf?.ordenes?.urlLectura || documentosPdf?.urlOrdenesPdf;
+      const urlIndicaciones = documentosPdf?.indicaciones?.urlLecturaBorrador || documentosPdf?.indicaciones?.urlLectura || documentosPdf?.urlIndicacionesPdf;
 
       const loteDocumentos = [
-        { 
-          id: `${idAtencion}_hc`, 
-          urlPdfBorrador: urlHc, 
-          nombreArchivo: documentosPdf?.hc?.nombreArchivo || `atencion_${idAtencion}_historia-borrador.pdf` 
-        },
-        { 
-          id: `${idAtencion}_receta`, 
-          urlPdfBorrador: urlReceta, 
-          nombreArchivo: documentosPdf?.receta?.nombreArchivo || `atencion_${idAtencion}_receta-borrador.pdf` 
-        },
-        { 
-          id: `${idAtencion}_ordenes`, 
-          urlPdfBorrador: urlOrdenes, 
-          nombreArchivo: documentosPdf?.ordenes?.nombreArchivo || `atencion_${idAtencion}_orden-borrador.pdf` 
-        },
-        { 
-          id: `${idAtencion}_indicaciones`, 
-          urlPdfBorrador: urlIndicaciones, 
-          nombreArchivo: documentosPdf?.indicaciones?.nombreArchivo || `atencion_${idAtencion}_indicaciones-borrador.pdf` 
-        }
+        { id: `${idAtencion}_hc`, urlPdfBorrador: urlHc, nombreArchivo: documentosPdf?.hc?.nombreArchivo || `atencion_${idAtencion}_historia-borrador.pdf` },
+        { id: `${idAtencion}_receta`, urlPdfBorrador: urlReceta, nombreArchivo: documentosPdf?.receta?.nombreArchivo || `atencion_${idAtencion}_receta-borrador.pdf` },
+        { id: `${idAtencion}_ordenes`, urlPdfBorrador: urlOrdenes, nombreArchivo: documentosPdf?.ordenes?.nombreArchivo || `atencion_${idAtencion}_orden-borrador.pdf` },
+        { id: `${idAtencion}_indicaciones`, urlPdfBorrador: urlIndicaciones, nombreArchivo: documentosPdf?.indicaciones?.nombreArchivo || `atencion_${idAtencion}_indicaciones-borrador.pdf` }
       ].filter(doc => Boolean(doc.urlPdfBorrador));
 
       if (loteDocumentos.length === 0) {
@@ -117,10 +99,12 @@ export function VisorPdfGCS({
         return;
       }
 
+      // 1. Limpia y copia los PDFs nuevos a la carpeta de entrada local
       await guardarPDFsEnCarpetaEntrada(handleActual, loteDocumentos, (porcentaje) => {
         setProgreso(porcentaje);
       });
 
+      // 2. Invoca automáticamente ReFirma
       if (typeof onInvocarReFirma === 'function') {
         onInvocarReFirma();
       }
@@ -133,16 +117,22 @@ export function VisorPdfGCS({
     }
   };
 
+  // Cargar firmados desde la carpeta de salida
   const handleCargarFirmadosSalida = async () => {
-    let handleSalidaActual = dirHandleSalida;
+    if (isMobileDevice()) {
+      showModalMessage?.("Este proceso solo se realiza en equipos de escritorio.");
+      return;
+    }
+
+    let handleSalidaActual = dirSalida;
 
     if (!handleSalidaActual) {
       handleSalidaActual = await solicitarAccesoCarpetaSalida();
       if (!handleSalidaActual) {
-        showModalMessage?.("Debes seleccionar la carpeta de SALIDA de ReFirma (ej. C:\\igm_salud\\refirma\\salida) para procesar los firmados.");
+        showModalMessage?.("Debes seleccionar la carpeta de SALIDA de ReFirma para procesar los firmados.");
         return;
       }
-      setDirHandleSalida(handleSalidaActual);
+      setDirSalida(handleSalidaActual);
     }
 
     try {
@@ -156,12 +146,19 @@ export function VisorPdfGCS({
 
       if (typeof onProcesarFirmadosSalida === 'function') {
         await onProcesarFirmadosSalida(archivosFirmados);
+
+        // Limpieza de la carpeta de salida tras una subida exitosa
+        for await (const entry of handleSalidaActual.values()) {
+          if (entry.kind === 'file') {
+            await handleSalidaActual.removeEntry(entry.name);
+          }
+        }
       } else {
         showModalMessage?.("Se leyeron los archivos pero no hay una función de carga registrada.");
       }
     } catch (error) {
       console.error("Error al leer la carpeta de salida:", error);
-      showModalMessage?.("Error al leer los documentos firmados de la carpeta de salida.");
+      showModalMessage?.("Error al leer o limpiar los documentos firmados de la carpeta de salida.");
     } finally {
       setCargandoSalida(false);
     }
@@ -171,42 +168,24 @@ export function VisorPdfGCS({
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', width: '100%', height: '650px' }}>
 
       {errorMovil && (
-        <div style={{
-          backgroundColor: '#fef3c7',
-          borderBottom: '1px solid #f59e0b',
-          color: '#92400e',
-          padding: '8px 16px',
-          fontSize: '12px',
-          fontWeight: '600',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '8px'
-        }}>
+        <div style={{ backgroundColor: '#fef3c7', borderBottom: '1px solid #f59e0b', color: '#92400e', padding: '8px 16px', fontSize: '12px', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '8px' }}>
           <AlertTriangle size={16} color="#d97706" />
           <span>Este proceso solo se realiza en equipos de escritorio.</span>
         </div>
       )}
 
-      <div 
-        style={{ 
-          backgroundColor: '#0f172a', 
-          color: '#ffffff', 
-          padding: '8px 16px', 
-          borderTopRightRadius: '8px', 
-          display: 'flex', 
-          justifyContent: 'space-between', 
-          alignItems: 'center' 
-        }}
-      >
+      <div style={{ backgroundColor: '#0f172a', color: '#ffffff', padding: '8px 16px', borderTopRightRadius: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <span style={{ fontWeight: '700', fontSize: '13px', color: '#38bdf8' }}>
           {titulo}
         </span>
 
         {esPendiente && (
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-       {/*     <button
+            
+            {/* Único botón de Preparación y Lanzamiento Automático */}
+            <button
               type="button"
-              onClick={handleEjecutarFirmaCompleta}
+              onClick={handleEjecutarPreparacionYFirma}
               disabled={procesandoFirma || cargandoSalida}
               style={{
                 display: 'inline-flex',
@@ -222,12 +201,13 @@ export function VisorPdfGCS({
                 cursor: (procesandoFirma || cargandoSalida) ? 'not-allowed' : 'pointer',
                 boxShadow: '0 2px 4px rgba(22, 163, 74, 0.3)'
               }}
-              title="1. Descargar lote a la carpeta de entrada y ejecutar ReFirma PC"
+              title="Preparar lote y abrir ReFirma"
             >
-              <PenTool size={14} /> 
-              {procesandoFirma ? `Guardando lote (${progreso}%)...` : '1. FIRMAR CON REFIRMA'}
-            </button>*/}
+              <UploadCloud size={14} /> 
+              {procesandoFirma ? `Preparando lote (${progreso}%)...` : 'PREPARAR Y FIRMAR'}
+            </button>
 
+            {/* Botón para procesar los documentos ya firmados de la salida */}
             <button
               type="button"
               onClick={handleCargarFirmadosSalida}
@@ -246,10 +226,10 @@ export function VisorPdfGCS({
                 cursor: (procesandoFirma || cargandoSalida) ? 'not-allowed' : 'pointer',
                 boxShadow: '0 2px 4px rgba(2, 132, 199, 0.3)'
               }}
-              title="2. Procesar y guardar documentos firmados desde la carpeta de salida"
+              title="Procesar documentos firmados desde la carpeta de salida"
             >
               <UploadCloud size={14} /> 
-              {cargandoSalida ? 'Procesando firmados...' : '2. CARGAR FIRMADOS'}
+              {cargandoSalida ? 'Procesando firmados...' : 'CARGAR FIRMADOS'}
             </button>
 
             {onRefrescarEstadoFirma && (
