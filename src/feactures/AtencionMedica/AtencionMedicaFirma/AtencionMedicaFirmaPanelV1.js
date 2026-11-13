@@ -266,6 +266,8 @@ const handleGenerarPdfAccion = async () => {
   // Función requerida por VisorPdfGCS para subir los PDFs firmados desde C:\igm_salud\refirma\salida
 // Función requerida por VisorPdfGCS para subir los PDFs firmados desde C:\igm_salud\refirma\salida
   const handleProcesarFirmadosSalida = async (archivosFirmados) => {
+    alert("handleProcesarFirmadosSalida")
+    console.log("archivosFirmados:   "+JSON.stringify(archivosFirmados))
       try {
         const idAtencion = patientData?.idAtencion;
         const idStr = idAtencion ? String(idAtencion) : '';
@@ -350,13 +352,16 @@ const handleGenerarPdfAccion = async () => {
             } else {
               console.error("⚠️ La prop refrescarEstadoFirma no está definida o no es una función.");
             }
+          return subidosExitosos; //            
         } else {
           showModalMessage?.("No se encontraron coincidencias entre los archivos leídos y los documentos de esta atención.");
+          return 0; // 🔴 RETORNA 0 SI NO HUBO COINCIDENCIAS        
         }
 
       } catch (error) {
         console.error("Error en la carga o confirmación de archivos firmados:", error);
         showModalMessage?.("Ocurrió un error al intentar subir los archivos o confirmar la firma.");
+        return 0; // 🔴 RETORNA 0 SI NO HUBO COINCIDENCIAS        
       }
     };
     
@@ -409,15 +414,18 @@ const handleGenerarPdfAccion = async () => {
             atencionData={sourceDetails}
             documentosPdf={documentosPdf}
             onInvocarReFirma={handleInvocarReFirma}
-            onProcesarFirmadosSalida={async () => {
+            onProcesarFirmadosSalida={async (archivosLeidos) => {
               // Aquí asegúrate de pasarle el handle de salida guardado en el AuthContext
               if (!dirSalida) {
                 showModalMessage?.("La carpeta de salida de ReFirma no está configurada.");
                 return;
               }
+              const cantidadExitosa = await handleProcesarFirmadosSalida(archivosLeidos);
+              return cantidadExitosa; // Debe retornar un número mayor a 0 si todo fue bien
+
               // Tu función existente que lee los archivos del directorio local de salida y ejecuta handleProcesarFirmadosSalida
-              const archivosFirmados = await solicitarAccesoCarpetaSalida(dirSalida); 
-              await handleProcesarFirmadosSalida(archivosFirmados);
+              //const archivosFirmados = await solicitarAccesoCarpetaSalida(dirSalida); 
+              //await handleProcesarFirmadosSalida(archivosFirmados);
             }}
             onRefrescarEstadoFirma={refrescarEstadoFirma}
             showModalMessage={showModalMessage}

@@ -138,6 +138,7 @@ export function VisorPdfGCS({
     try {
       setCargandoSalida(true);
       const archivosFirmados = await leerPDFsDeCarpetaSalida(handleSalidaActual);
+      console.log("archivosFirmados:   "+JSON.stringify(archivosFirmados))
 
       if (!archivosFirmados || archivosFirmados.length === 0) {
         showModalMessage?.("No se encontraron documentos PDF firmados en la carpeta de salida.");
