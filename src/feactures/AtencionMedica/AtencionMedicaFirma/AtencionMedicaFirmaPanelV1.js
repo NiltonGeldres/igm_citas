@@ -84,7 +84,7 @@ export function AtencionMedicaFirmaPanelV1({
           });
 
           // 5. LLAMADA DIRECTA A LA FUNCIÓN LOCAL QUE DISPARA REFIRMA
-          handleInvocarReFirma();
+          // handleInvocarReFirma();
 
           showModalMessage?.("¡Documentos generados y listos en ReFirma!");
 
@@ -264,10 +264,7 @@ const handleGenerarPdfAccion = async () => {
   const urlPdfActual = obtenerUrlSegunVista();
 
   // Función requerida por VisorPdfGCS para subir los PDFs firmados desde C:\igm_salud\refirma\salida
-// Función requerida por VisorPdfGCS para subir los PDFs firmados desde C:\igm_salud\refirma\salida
   const handleProcesarFirmadosSalida = async (archivosFirmados) => {
-    alert("handleProcesarFirmadosSalida")
-    console.log("archivosFirmados:   "+JSON.stringify(archivosFirmados))
       try {
         const idAtencion = patientData?.idAtencion;
         const idStr = idAtencion ? String(idAtencion) : '';
