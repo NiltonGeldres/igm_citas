@@ -13,8 +13,8 @@ export const MedicoRouter = ({ onLogout }) => {
         <Route path="atencion-medica" element={<AtencionMedicaForm />} />
         <Route path="scheduling" element={<ProgramacionHorario />} />
         <Route path="billing" element={<Facturacion/>} />
-        <Route path="/" element={<Navigate to="atencion-medica" />} />
-        <Route path="*" element={<Navigate to="atencion-medica" />} />
+        <Route path="/" element={<Navigate to="scheduling" />} />
+        <Route path="*" element={<Navigate to="scheduling" />} />
       </Routes>
     </MedicoLayout>
 </AtencionProvider>        

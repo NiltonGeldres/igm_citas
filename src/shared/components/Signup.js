@@ -217,20 +217,27 @@ const Signup = () => {
                             </select>
                         </div>
 
-                        <div className="responsive-grid">
-                            <input name="primerNombre" placeholder="Primer Nombre" className="input-simple" onChange={handleChange} required disabled={!entidad} />
-                            <input name="segundoNombre" placeholder="Segundo Nombre" className="input-simple" onChange={handleChange} disabled={!entidad} />
-                        </div>
 
                         <div className="responsive-grid">
                             <input name="apellidoPaterno" placeholder="Ap. Paterno" className="input-simple" onChange={handleChange} required disabled={!entidad} />
                             <input name="apellidoMaterno" placeholder="Ap. Materno" className="input-simple" onChange={handleChange} required disabled={!entidad} />
                         </div>
 
+                        <div className="responsive-grid">
+                            <input name="primerNombre" placeholder="Primer Nombre" className="input-simple" onChange={handleChange} required disabled={!entidad} />
+                            <input name="segundoNombre" placeholder="Segundo Nombre" className="input-simple" onChange={handleChange} disabled={!entidad} />
+                        </div>
+
                         <div className="divider"><span>Seguridad</span></div>
                         <div className="input-box mb-3">
                             <Mail className="icon" size={18} />
-                            <input name="email" type="email" placeholder="Correo Electrónico" className="input-simple" onChange={handleChange} required disabled={!entidad} />
+                            <input name="email" 
+                            type="email" 
+                            placeholder="Correo Electrónico" 
+                            className="input-simple" 
+                            onChange={handleChange} 
+                            required disabled={!entidad} />
+
                         </div>
 
                         <div className="responsive-grid">

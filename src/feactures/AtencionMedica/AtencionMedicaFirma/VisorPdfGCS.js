@@ -105,9 +105,9 @@ export function VisorPdfGCS({
       });
 
       // 2. Invoca automáticamente ReFirma
-      if (typeof onInvocarReFirma === 'function') {
-        onInvocarReFirma();
-      }
+      //if (typeof onInvocarReFirma === 'function') {
+       // onInvocarReFirma();
+      //}
 
     } catch (error) {
       console.error("Error al procesar la firma en lote:", error);
