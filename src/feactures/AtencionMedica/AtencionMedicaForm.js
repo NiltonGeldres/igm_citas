@@ -263,6 +263,7 @@ function AtencionMedicaForm() {
                     jsonFirmadoUrl={urlJsonFirmadoBackend}
                     rutaPdfFirmado={rutaPdfFirmado}
                     documentosPdf={documentosPdf}
+                    guardarAtencionBorrador={guardarAtencionBorrador}
                     refrescarEstadoFirma={refrescarEstadoFirma}
                   /> 
                 </div>
@@ -464,6 +465,7 @@ function AtencionMedicaForm() {
                   jsonFirmadoUrl={urlJsonFirmadoBackend}
                   rutaPdfFirmado={rutaPdfFirmado}
                   documentosPdf={documentosPdf}
+                  guardarAtencionBorrador={guardarAtencionBorrador}
                   refrescarEstadoFirma={refrescarEstadoFirma}
                 /> 
               </div>
